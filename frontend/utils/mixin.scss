@@ -1,0 +1,29 @@
+@mixin center {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+@mixin button {
+	padding: .8rem 1.2rem;
+	border: none;
+	border-radius: .5rem;
+	cursor: pointer;
+	font-size: 1rem;
+	font-weight: bold;
+	transition: var(--transition-timing);
+
+	&:hover {
+		background-color: var(--white);
+	}
+}
+
+@mixin box-shadow($x: 0, $y: 0, $blur: 10px, $color: rgba(0, 0, 0, 0.1)) {
+	box-shadow: $x $y $blur $color;
+}
+  
+@mixin flex-center($justify-content: center, $align-items: center) {
+	display: flex;
+	justify-content: $justify-content;
+	align-items: $align-items;
+}
