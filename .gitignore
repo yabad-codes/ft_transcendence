@@ -7,3 +7,4 @@ __pycache__
 */lib
 pyvenv.cfg
 db.sqlite3
+logs
