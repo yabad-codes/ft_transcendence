@@ -9,4 +9,8 @@ COPY . /app/
 
 EXPOSE 8000
 
-CMD ["gunicorn", "-c", "config/gunicorn.conf.py", "pong_service.wsgi:application"]
+COPY config/entrypoint.sh /app/entrypoint.sh
+
+RUN chmod +x /app/entrypoint.sh
+
+CMD [ "/app/entrypoint.sh" ]
