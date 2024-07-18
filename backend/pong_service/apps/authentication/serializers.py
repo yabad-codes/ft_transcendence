@@ -7,30 +7,9 @@ from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
 from .models import Player
 
-
+# Serializer for handling player registration.
 class PlayerRegistrationSerializer(serializers.ModelSerializer):
     
-    """
-        Serializer for handling player registration.
-
-        This serializer ensures:
-        - Validation of input data for creating new players.
-        - Password and password confirmation match.
-        - Username uniqueness and format.
-        - Creation of a new Player instance with validated data.
-        - Generation of a default avatar from Robohash if none is provided.
-
-        Fields:
-        - username: Unique, alphanumeric with underscores, and at least one letter.
-        - password: Write-only, must meet password validation criteria.
-        - password_confirm: Write-only, must match the password.
-        - avatar: Optional field for uploading player avatar.
-        
-        Security Considerations:
-        - Protection against SQL injection: Uses Django's ORM which automatically sanitizes inputs.
-        - Prevention of XSS (Cross-Site Scripting) attacks: Validates username format and constructs avatar URLs safely.
-        
-    """
     password = serializers.CharField(
         write_only=True, 
         required=True, 
@@ -51,15 +30,12 @@ class PlayerRegistrationSerializer(serializers.ModelSerializer):
             ),
         ]
     )
-
+ 
     class Meta:
         model = Player
         fields = ('username', 'password', 'password_confirm', 'avatar')
 
     def validate(self, data):
-        
-        #Ensure the password and password_confirm fields match.
-        
         if data['password'] != data['password_confirm']:
             raise serializers.ValidationError({"password": "Password fields didn't match."})
         return data
@@ -88,3 +64,17 @@ class PlayerRegistrationSerializer(serializers.ModelSerializer):
             avatar=validated_data.get('avatar', None),
         )
         return user
+
+# Serializer for listing player details.
+class PlayerListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Player
+        fields =('username', 'avatar')
+
+ #Serializer for displaying public player profile.
+class PlayerPublicProfileSerializer(serializers.ModelSerializer):
+    
+        class Meta:
+            model = Player
+            feilds =('username', 'avatar')

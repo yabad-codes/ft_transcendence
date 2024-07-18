@@ -24,7 +24,7 @@ urlpatterns = [
     path('api/', include('pong_service.apps.authentication.urls')),
 ]
 
-
+# Add media URL configuration for development
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
