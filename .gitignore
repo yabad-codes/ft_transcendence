@@ -8,3 +8,4 @@ __pycache__
 pyvenv.cfg
 db.sqlite3
 logs
+avatars
