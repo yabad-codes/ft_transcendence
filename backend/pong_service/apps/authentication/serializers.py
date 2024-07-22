@@ -70,11 +70,11 @@ class PlayerListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Player
-        fields =('username', 'avatar')
+        fields =('id','username', 'avatar')
 
  #Serializer for displaying public player profile.
 class PlayerPublicProfileSerializer(serializers.ModelSerializer):
     
         class Meta:
             model = Player
-            feilds =('username', 'avatar')
+            feilds =('id','username', 'avatar')
