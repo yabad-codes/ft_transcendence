@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ping Pong Game</title>
+    <style>
+        body {
+            margin: 0;
+        }
+    </style>
+
+    <script src="app.js" type="module"></script>
+</head>
+<body>
+    <!-- <nav-bar></nav-bar> -->
+
+    <!-- NavBar -->
+    <template id="navbar">
+        <nav>
+            <!-- Logo -->
+            <div>
+                <img src="images/pong-dark.svg" alt="Logo" width="64" height="64">
+                <div class="horizontal-line"></div>
+            </div>
+    
+            <!-- Nav links -->
+            <div class="nav-links-container">
+                <a href="/profile" class="nav-links">
+                    <img src="images/user.png" alt="User" class="nav-links-image">
+                </a>
+                <a href="/" class="nav-links">
+                    <img src="images/game-controller-click.png" alt="Game Controller" class="nav-links-image">
+                </a>
+                <a href="/chat" class="nav-links">
+                    <img src="images/chat.png" alt="Chat" class="nav-links-image">
+                </a>
+                <a href="/leaderboard" class="nav-links">
+                    <img src="images/trophy.png" alt="Trophy" class="nav-links-image">
+                </a>
+                <a href="/settings" class="nav-links">
+                    <img src="images/settings.png" alt="Settings" class="nav-links-image">
+                </a>
+            </div>
+            <!-- Logout Button -->
+            <button class="logout-button">
+                <img src="images/logout-re.png" alt="Logout">
+            </button>
+        </nav>
+    </template>
+
+    <!-- Home Page -->
+    <template id="homepage">
+        <nav-bar></nav-bar>
+        <main></main> <!-- Element Changed based on nav link click event -->
+    </template>
+
+    <!-- Game Page -->
+    <template id="gamepage">
+        <div class="game-btns">
+            <button>
+                New Game
+            </button>
+            <button>
+                vs Computer
+            </button>
+            <button>
+                Play a Friend
+            </button>
+        </div>
+    </template>
+
+    <!-- Add other templates -->
+</body>
+</html>

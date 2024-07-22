@@ -1,8 +1,9 @@
 import BaseHTMLElement from "./BaseHTMLElement.js"
 
-export class GamePage extends BaseHTMLElement {
+export class HomePage extends BaseHTMLElement {
     constructor() {
-        super('gamepage', './css/pages/GamePage.css', true);
+        super('homepage', './css/pages/HomePage.css')
+
     }
 
     connectedCallback() {
@@ -11,4 +12,4 @@ export class GamePage extends BaseHTMLElement {
     }
 }
 
-customElements.define('game-page', GamePage)
+customElements.define('home-page', HomePage)

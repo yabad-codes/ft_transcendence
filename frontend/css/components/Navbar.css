@@ -1,0 +1,46 @@
+nav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    width: 104px;
+    height: 100vh;
+    background-color: #404040;
+}
+
+.horizontal-line {
+    width: 64px;
+    height: 2px;
+    background-color: #cacaca;
+}
+
+.nav-links-image {
+    /* width: 36px;
+    height: 36px;
+    opacity: .8; */
+}
+
+.nav-links-container {
+    display: flex;
+    flex-direction: column;
+    margin-top: 30px;
+    /* background-color: red; */
+}
+
+.nav-links {
+    margin-bottom: 100px;
+}
+
+.logout-button {
+    width: 64px;
+    height: 64px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 100px;
+}
+
+.logout-button img {
+    /* width: 36px;
+    height: 36px; */
+}
