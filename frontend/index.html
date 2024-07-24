@@ -1,76 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ping Pong Game</title>
-    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/style.css" />
     <script src="app.js" type="module"></script>
-</head>
-<body>
+  </head>
+  <body>
     <!-- <nav-bar></nav-bar> -->
 
     <!-- NavBar -->
     <template id="navbar">
-        <nav class="vertical-nav d-flex flex-column align-items-center justify-content-between p-2">
-            <!-- Logo -->
-            <div class="">
-                <a class="navbar-brand">
-                    <img src="images/pong-dark.svg" alt="Logo" width="64" height="64">
-                </a>
-                <div class="horizontal-line"></div>
-            </div>
-    
-            <!-- <div class="d-flex flex-column align-items-center justify-content-between mh-50"> -->
-                <!-- Nav links -->
-                <div class="nav-links-container d-inline-flex flex-column">
-                    <a href="/profile" class="nav-links">
-                        <img src="images/user.png" alt="User" class="nav-links-image">
-                    </a>
-                    <a href="/" class="nav-links">
-                        <img src="images/game-controller-click.png" alt="Game Controller" class="nav-links-image">
-                    </a>
-                    <a href="/chat" class="nav-links">
-                        <img src="images/chat.png" alt="Chat" class="nav-links-image">
-                    </a>
-                    <a href="/leaderboard" class="nav-links">
-                        <img src="images/trophy.png" alt="Trophy" class="nav-links-image">
-                    </a>
-                    <a href="/settings" class="nav-links">
-                        <img src="images/settings.png" alt="Settings" class="nav-links-image">
-                    </a>
-                </div>
-                <!-- Logout Button -->
-                <button class="logout-button">
-                    <img src="images/logout.png" alt="Logout">
-                </button>
-            <!-- </div> -->
-        </nav>
+      <nav
+        class="vertical-nav d-flex flex-column align-items-center justify-content-between p-2"
+      >
+        <!-- Logo -->
+        <div class="">
+          <a class="navbar-brand">
+            <img src="images/pong-dark.svg" alt="Logo" width="64" height="64" />
+          </a>
+          <div class="horizontal-line"></div>
+        </div>
+
+        <!-- <div class="d-flex flex-column align-items-center justify-content-between mh-50"> -->
+        <!-- Nav links -->
+        <div class="nav-links-container d-inline-flex flex-column">
+          <a href="/profile" class="nav-links">
+            <img src="images/user.png" alt="User" class="nav-links-image" />
+          </a>
+          <a href="/" class="nav-links">
+            <img
+              src="images/game-controller-click.png"
+              alt="Game Controller"
+              class="nav-links-image"
+            />
+          </a>
+          <a href="/chat" class="nav-links">
+            <img src="images/chat.png" alt="Chat" class="nav-links-image" />
+          </a>
+          <a href="/leaderboard" class="nav-links">
+            <img src="images/trophy.png" alt="Trophy" class="nav-links-image" />
+          </a>
+          <a href="/settings" class="nav-links">
+            <img
+              src="images/settings.png"
+              alt="Settings"
+              class="nav-links-image"
+            />
+          </a>
+        </div>
+        <!-- Logout Button -->
+        <button class="logout-button">
+          <img src="images/logout.png" alt="Logout" />
+        </button>
+        <!-- </div> -->
+      </nav>
     </template>
 
     <!-- Home Page -->
     <template id="homepage">
-        <nav-bar></nav-bar>
-        <main></main> <!-- Element Changed based on nav link click event -->
+      <nav-bar></nav-bar>
+      <main></main>
+      <!-- Element Changed based on nav link click event -->
     </template>
 
     <!-- Game Page -->
     <template id="gamepage">
-        <div class="game-btns">
-            <button class="btn">
-                New Game
-            </button>
-            <button class="btn">
-                vs Computer
-            </button>
-            <button class="btn">
-                Play a Friend
-            </button>
-        </div>
+      <div class="game-btns">
+        <button class="btn">New Game</button>
+        <button class="btn">vs Computer</button>
+        <button class="btn">Play a Friend</button>
+      </div>
     </template>
 
     <!-- Add other templates -->
 
-    <script src="./bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js"></script>
-</body>
+    <script src="./bootstrap-5.3.3-dist/js/bootstrap.min.js"></script>
+  </body>
 </html>
