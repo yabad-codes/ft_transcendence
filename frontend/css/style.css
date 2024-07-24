@@ -5,6 +5,7 @@
 @import url('./components/Navbar.css');
 @import url('./pages/HomePage.css');
 @import url('./pages/GamePage.css');
+@import url('./pages/ChatPage.css');
 
 /* Import font family Montserrat */
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
@@ -12,5 +13,6 @@
 /* Global stylings */
 body {
     margin: 0;
+    font-family: "Montserrat", sans-serif;
 }
 
