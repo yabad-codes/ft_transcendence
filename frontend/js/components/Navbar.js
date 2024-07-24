@@ -2,7 +2,7 @@ import BaseHTMLElement from "../pages/BaseHTMLElement.js";
 
 export class NavBar extends BaseHTMLElement {
     constructor() {
-        super('navbar', './css/components/NavBar.css')
+        super('navbar')
     }
 
     connectedCallback() {
@@ -10,11 +10,9 @@ export class NavBar extends BaseHTMLElement {
 
         // Handle navigation links
         this.querySelectorAll('a.nav-links').forEach(link => {
-            console.log(link);
             link.addEventListener('click', event => {
                 event.preventDefault();
                 const urlPath = event.currentTarget.getAttribute("href")
-                console.log(urlPath);
                 app.router.go(urlPath)
             })
         })

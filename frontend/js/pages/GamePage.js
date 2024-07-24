@@ -2,7 +2,7 @@ import BaseHTMLElement from "./BaseHTMLElement.js"
 
 export class GamePage extends BaseHTMLElement {
     constructor() {
-        super('gamepage', './css/pages/GamePage.css', true);
+        super('gamepage');
     }
 
     connectedCallback() {

@@ -1,22 +1,24 @@
-div {
-    width: 100%;
-    height: 100%;
-    /* background-color: green; */
+game-page {
     display: flex;
-    flex-direction: column;
-    align-items: center;
     justify-content: center;
+    height: 100%;
 }
 
-button {
-    margin-bottom: 20px;
-    width: 400px;
+game-page .game-btns {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.game-btns .btn {
+    width: 350px;
     height: 100px;
     background-color: #404040;
-    border-radius: 10px;
-    border: none;
+    font-family: "Montserrat", sans-serif;
+    font-weight: 800;
     font-size: 24px;
+    letter-spacing: 3px;
     color: white;
-    cursor: pointer;
-    font-weight: bold;
+    margin-bottom: 10px;
 }

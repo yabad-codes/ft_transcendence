@@ -4,12 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ping Pong Game</title>
-    <style>
-        body {
-            margin: 0;
-        }
-    </style>
-
+    <link rel="stylesheet" href="./css/style.css">
     <script src="app.js" type="module"></script>
 </head>
 <body>
@@ -17,35 +12,39 @@
 
     <!-- NavBar -->
     <template id="navbar">
-        <nav>
+        <nav class="vertical-nav d-flex flex-column align-items-center justify-content-between p-2">
             <!-- Logo -->
-            <div>
-                <img src="images/pong-dark.svg" alt="Logo" width="64" height="64">
+            <div class="">
+                <a class="navbar-brand">
+                    <img src="images/pong-dark.svg" alt="Logo" width="64" height="64">
+                </a>
                 <div class="horizontal-line"></div>
             </div>
     
-            <!-- Nav links -->
-            <div class="nav-links-container">
-                <a href="/profile" class="nav-links">
-                    <img src="images/user.png" alt="User" class="nav-links-image">
-                </a>
-                <a href="/" class="nav-links">
-                    <img src="images/game-controller-click.png" alt="Game Controller" class="nav-links-image">
-                </a>
-                <a href="/chat" class="nav-links">
-                    <img src="images/chat.png" alt="Chat" class="nav-links-image">
-                </a>
-                <a href="/leaderboard" class="nav-links">
-                    <img src="images/trophy.png" alt="Trophy" class="nav-links-image">
-                </a>
-                <a href="/settings" class="nav-links">
-                    <img src="images/settings.png" alt="Settings" class="nav-links-image">
-                </a>
-            </div>
-            <!-- Logout Button -->
-            <button class="logout-button">
-                <img src="images/logout-re.png" alt="Logout">
-            </button>
+            <!-- <div class="d-flex flex-column align-items-center justify-content-between mh-50"> -->
+                <!-- Nav links -->
+                <div class="nav-links-container d-inline-flex flex-column">
+                    <a href="/profile" class="nav-links">
+                        <img src="images/user.png" alt="User" class="nav-links-image">
+                    </a>
+                    <a href="/" class="nav-links">
+                        <img src="images/game-controller-click.png" alt="Game Controller" class="nav-links-image">
+                    </a>
+                    <a href="/chat" class="nav-links">
+                        <img src="images/chat.png" alt="Chat" class="nav-links-image">
+                    </a>
+                    <a href="/leaderboard" class="nav-links">
+                        <img src="images/trophy.png" alt="Trophy" class="nav-links-image">
+                    </a>
+                    <a href="/settings" class="nav-links">
+                        <img src="images/settings.png" alt="Settings" class="nav-links-image">
+                    </a>
+                </div>
+                <!-- Logout Button -->
+                <button class="logout-button">
+                    <img src="images/logout.png" alt="Logout">
+                </button>
+            <!-- </div> -->
         </nav>
     </template>
 
@@ -58,18 +57,20 @@
     <!-- Game Page -->
     <template id="gamepage">
         <div class="game-btns">
-            <button>
+            <button class="btn">
                 New Game
             </button>
-            <button>
+            <button class="btn">
                 vs Computer
             </button>
-            <button>
+            <button class="btn">
                 Play a Friend
             </button>
         </div>
     </template>
 
     <!-- Add other templates -->
+
+    <script src="./bootstrap-5.3.3-dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

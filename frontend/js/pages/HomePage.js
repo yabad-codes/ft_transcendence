@@ -2,7 +2,7 @@ import BaseHTMLElement from "./BaseHTMLElement.js"
 
 export class HomePage extends BaseHTMLElement {
     constructor() {
-        super('homepage', './css/pages/HomePage.css')
+        super('homepage')
 
     }
 
