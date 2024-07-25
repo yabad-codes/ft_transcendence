@@ -39,10 +39,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-	'pong_service.apps.authentication',
-	'pong_service.apps.chat',
-	'pong_service.apps.player',
-	'pong_service.apps.pong',
+    'pong_service.apps.authentication',
+    'pong_service.apps.chat',
+    'pong_service.apps.player',
+    'pong_service.apps.pong',
 ]
 
 MIDDLEWARE = [
@@ -133,3 +133,4 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+AUTH_USER_MODEL = 'authentication.Player'

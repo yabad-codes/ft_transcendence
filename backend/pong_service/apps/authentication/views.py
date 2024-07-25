@@ -1,8 +1,31 @@
-from rest_framework.generics import ListCreateAPIView , ListAPIView
-from .serializers import  *
+from rest_framework.generics import ListCreateAPIView, ListAPIView
+from .serializers import *
 from .models import Player
-from rest_framework.permissions import AllowAny 
+from rest_framework.permissions import AllowAny
 from rest_framework import generics
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.contrib.auth import login
+from rest_framework.permissions import IsAuthenticated
+
+
+class LoginView(APIView):
+    permission_classes = (AllowAny,)
+    serializer_class = LoginSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            user = serializer.validated_data['user']
+            login(request, user)
+            return Response({
+                'user_id': user.id,
+                'username': user.username,
+                'message': 'Login successful'
+            }, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class RegisterView(ListCreateAPIView):
     """
@@ -13,6 +36,7 @@ class RegisterView(ListCreateAPIView):
     serializer_class = PlayerRegistrationSerializer
     permission_classes = (AllowAny,)
 
+
 class PlayerListView(ListAPIView):
     """
     Retrieve a list of all players.
@@ -20,7 +44,9 @@ class PlayerListView(ListAPIView):
 
     queryset = Player.objects.all()
     serializer_class = PlayerListSerializer
-   
+    permission_classes = [IsAuthenticated]
+
+
 class PlayerPublicProfileView(generics.RetrieveAPIView):
 
     """
@@ -29,3 +55,4 @@ class PlayerPublicProfileView(generics.RetrieveAPIView):
     queryset = Player.objects.all()
     serializer_class = PlayerPublicProfileSerializer
     lookup_field = 'username'
+    permission_classes = [IsAuthenticated]
