@@ -1,0 +1,153 @@
+textarea:active,
+select:active,
+input:active {
+  outline: none;
+  box-shadow: 0 0 5px #17a2b8;
+  border-color: #17a2b8;
+}
+
+body {
+  font-family: "Montserrat", sans-serif;
+}
+
+.container-fluid {
+  height: 100vh;
+  position: relative;
+}
+
+.logo {
+  position: absolute;
+  top: 10px;
+  left: 20px;
+  z-index: 10;
+}
+
+.logo img {
+  width: 90px;
+}
+
+.hero-img {
+  z-index: 1;
+  width: 60%;
+  height: 60%;
+}
+
+.bg-image {
+  position: relative;
+  background-color: #222;
+}
+.bg-image::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-image: url("../../images/bg-pattern.svg");
+  background-size: cover;
+  opacity: 0.03;
+}
+
+.px-7 {
+  padding-left: 7rem;
+  padding-right: 7rem;
+}
+
+h1 {
+  font-weight: bold;
+  margin-top: 25%;
+  margin-bottom: 10%;
+  color: #404040;
+}
+
+.form-control {
+  height: 3.7rem;
+  font-size: 16px;
+  padding-left: 1.5rem;
+  color: #404040;
+  margin-bottom: 1.5rem;
+}
+
+.form-group:nth-child(2) {
+  margin-bottom: 3rem;
+}
+
+.register-link {
+  color: #404040;
+}
+.register-link a {
+  color: #17a2b8;
+  text-decoration: none;
+  font-weight: 500;
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+.register-link a:hover {
+  text-decoration: underline;
+}
+
+.btn {
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: 500;
+  text-transform: capitalize;
+  transition: background-color 0.3s;
+  height: 3.4rem;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background-color: #17a2b8;
+  border: none;
+}
+.btn-primary:hover {
+  background-color: #117a8b;
+}
+
+.btn-dark {
+  background-color: #222;
+  border: none;
+}
+.btn-dark:hover {
+  background-color: #333;
+}
+
+.hr-with-text {
+  position: relative;
+  text-align: center;
+  margin-top: 20px;
+}
+.hr-with-text hr {
+  border: 0;
+  height: 1px;
+  background-color: #ccc;
+  margin: 0;
+}
+.hr-with-text .hr-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #fff;
+  padding: 0 10px;
+  color: #ccc;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.text-shadow {
+  text-shadow: 1px 0px 1px rgba(0, 0, 0, 0.1), 2px 6px 9px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 768px) {
+  .logo-desktop {
+    display: none;
+  }
+}
+
+@media (max-width: 1000px) {
+  .logo-desktop {
+    display: none;
+  }
+}

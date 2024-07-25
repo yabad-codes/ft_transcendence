@@ -1,24 +1,24 @@
 game-page {
-    display: flex;
-    justify-content: center;
-    height: 100%;
+  display: flex;
+  justify-content: center;
+  height: 100%;
 }
 
 game-page .game-btns {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .game-btns .btn {
-    width: 350px;
-    height: 100px;
-    background-color: #404040;
-    font-family: "Montserrat", sans-serif;
-    font-weight: 800;
-    font-size: 24px;
-    letter-spacing: 3px;
-    color: white;
-    margin-bottom: 10px;
+  width: 350px;
+  height: 100px;
+  background-color: #404040;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 800;
+  font-size: 24px;
+  letter-spacing: 3px;
+  color: white;
+  margin-bottom: 10px;
 }

@@ -1,18 +1,18 @@
 /* Import Bootstrap */
-@import url('../bootstrap-5.3.3-dist/css/bootstrap.min.css');
+@import url("../bootstrap-5.3.3-dist/css/bootstrap.min.css");
 
 /* Import custom CSS stylings */
-@import url('./components/Navbar.css');
-@import url('./pages/HomePage.css');
-@import url('./pages/GamePage.css');
-@import url('./pages/ChatPage.css');
+@import url("./components/Navbar.css");
+
+@import url("./pages/HomePage.css");
+@import url("./pages/GamePage.css");
+@import url("./pages/LoginPage.css");
 
 /* Import font family Montserrat */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
 
 /* Global stylings */
 body {
-    margin: 0;
-    font-family: "Montserrat", sans-serif;
+  margin: 0;
+  font-family: "Montserrat", sans-serif;
 }
-

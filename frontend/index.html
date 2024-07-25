@@ -8,7 +8,7 @@
     <script src="app.js" type="module"></script>
   </head>
   <body>
-    <!-- <nav-bar></nav-bar> -->
+    <!-- COMPONENTS -->
 
     <!-- NavBar -->
     <template id="navbar">
@@ -58,6 +58,8 @@
       </nav>
     </template>
 
+    <!-- PAGES -->
+
     <!-- Home Page -->
     <template id="homepage">
       <nav-bar></nav-bar>
@@ -71,6 +73,71 @@
         <button class="btn">New Game</button>
         <button class="btn">vs Computer</button>
         <button class="btn">Play a Friend</button>
+      </div>
+    </template>
+
+    <!-- Login Page -->
+    <template id="loginpage">
+      <div class="container-fluid">
+        <header class="logo">
+          <img src="./images/pong-dark.svg" alt="logo" class="logo-desktop" />
+        </header>
+        <main class="row h-100 rounded">
+          <section class="col-md-6 d-none d-md-block bg-image">
+            <div class="d-flex justify-content-center align-items-center h-100">
+              <img
+                class="hero-img"
+                src="./images/hero.svg"
+                alt="ping pong player"
+              />
+            </div>
+          </section>
+          <section class="col-md-6 d-flex align-items-center px-7">
+            <div class="w-100">
+              <div class="text-center mb-5">
+                <h1 class="text-shadow">LOGIN</h1>
+                <form class="p-4">
+                  <div class="form-group">
+                    <input
+                      type="text"
+                      class="form-control"
+                      placeholder="Username"
+                      required
+                    />
+                  </div>
+                  <div class="form-group">
+                    <input
+                      type="password"
+                      class="form-control"
+                      placeholder="Password"
+                      required
+                    />
+                  </div>
+                  <button type="submit" class="btn btn-primary btn-block">
+                    Login
+                  </button>
+                  <div class="text-center mt-3 mb-5 register-link">
+                    <span>Don't have an account? <a href="#">Signup</a></span>
+                  </div>
+                  <div class="hr-with-text">
+                    <hr />
+                    <span class="hr-text">or</span>
+                  </div>
+                  <button type="button" class="btn btn-dark btn-block mt-5">
+                    Login with
+                    <img
+                      src="./images/42-logo.svg"
+                      alt="42 logo"
+                      width="37px"
+                      height="37px"
+                      class="ml-2"
+                    />
+                  </button>
+                </form>
+              </div>
+            </div>
+          </section>
+        </main>
       </div>
     </template>
 

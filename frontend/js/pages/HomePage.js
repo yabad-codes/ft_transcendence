@@ -8,7 +8,7 @@ export class HomePage extends BaseHTMLElement {
 
     connectedCallback() {
         super.connectedCallback()
-        // Add additional logic for the game page ... 
+        // Add additional logic for the home page ... 
     }
 }
 
