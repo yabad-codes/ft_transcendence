@@ -12,8 +12,6 @@ class Player(AbstractUser):
                           unique=True, primary_key=True)
     tournament_name = models.CharField(
         max_length=30, blank=True, unique=True, null=True)
-    display_name = models.CharField(
-        max_length=30, blank=True, unique=True, null=True)
     wins = models.PositiveIntegerField(default=0)
     losses = models.PositiveIntegerField(default=0)
 
