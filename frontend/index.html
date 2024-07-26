@@ -141,6 +141,202 @@
       </div>
     </template>
 
+    <!-- Chat Page -->
+    <template id="chatpage">
+      <!-- Navigation panel -->
+      <div class="flex-basis-30 d-flex flex-column h-100 border">
+        <div
+          class="d-flex justify-content-between align-items-center mb-2 pe-4 ps-4 pt-4"
+        >
+          <h4 class="">Chats</h4>
+          <button class="border-0 bg-transparent">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="30"
+              height="30"
+              viewBox="0 0 16 16"
+            >
+              <!-- Circle -->
+              <circle cx="8" cy="8" r="8" fill="#f0f2f5" />
+              <!-- Circle color -->
+
+              <!-- Plus Sign -->
+              <path
+                d="M8 4.5v7M4.5 8h7"
+                stroke="#000000"
+                stroke-width="0.7"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
+        <div class="mb-3 pe-4 ps-4">
+          <input class="search-box" placeholder="Search Users" />
+        </div>
+        <h5 class="pe-4 ps-4">Direct messages</h5>
+        <div class="flex-grow-1 overflow-y-auto">
+          <div class="direct_message_container pe-4 ps-4">
+            <button
+              class="direct_message_btn border-0 w-100 p-3 rounded-pill d-inline-flex mb-2"
+            >
+              <div class="avatar me-2">
+                <img
+                  class="avatar_image"
+                  src="./images/avatar.jpg"
+                  alt="Avatar image"
+                />
+                <span class="avatar_status"></span>
+              </div>
+              <div
+                class="flex-grow-1 d-flex flex-column justify-content-between position-relative"
+                style="height: 60px"
+              >
+                <h6 class="text-start m-0">James bones</h6>
+                <p class="direct_message_text text-start m-0">
+                  Hello today is a wonderful day... hjkjjljkgg
+                </p>
+                <span
+                  class="direct_message_notification_icon position-absolute top-0 end-0 border border-light badge rounded-circle d-flex justify-content-center align-items-center"
+                  >2</span
+                >
+              </div>
+            </button>
+            <button
+              class="btn border-0 w-100 p-3 rounded-pill d-inline-flex mb-2"
+            >
+              <div class="avatar me-2">
+                <img
+                  class="avatar_image"
+                  src="./images/avatar.jpg"
+                  alt="Avatar image"
+                />
+                <span class="avatar_status"></span>
+              </div>
+              <div
+                class="flex-grow-1 d-flex flex-column justify-content-between position-relative"
+                style="height: 60px"
+              >
+                <h6 class="text-start m-0">James bones</h6>
+                <p class="direct_message_text text-start m-0">
+                  Hello today is a wonderful day... blabla
+                </p>
+                <span
+                  class="direct_message_notification_icon position-absolute top-0 end-0 border border-light badge rounded-circle d-flex justify-content-center align-items-center"
+                  >2</span
+                >
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- Chat message -->
+      <div
+        class="flex-grow-1 position-relative chat_message_container d-flex flex-column h-100"
+      >
+        <img
+          src="./images/chat_bg.svg"
+          alt=""
+          class="position-absolute top-0 start-0 end-0 bottom-0 w-100 h-auto opacity-7 z-n1"
+        />
+        <!-- User profile bar -->
+        <div
+          class="z-3 d-inline-flex justify-content-between align-items-center pe-3 ps-3 pt-3 pb-3 user_profile_bar"
+        >
+          <span class="fw-semibold">
+            <div class="avatar me-2">
+              <img
+                class="avatar_image"
+                src="./images/avatar.jpg"
+                alt="Avatar image"
+              />
+              <span class="avatar_status"></span>
+            </div>
+            Sonara Doris
+          </span>
+          <button class="border-0 bg-transparent">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="30"
+              height="30"
+              fill="#231f20"
+              class="bi bi-three-dots"
+              viewBox="0 0 16 16"
+            >
+              <path
+                d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"
+              />
+            </svg>
+          </button>
+        </div>
+        <!-- Actual messages -->
+        <div class="flex-grow-1 d-flex flex-column-reverse overflow-y-auto p-5">
+          <div
+            class="chat_messages d-flex flex-column-reverse justify-content-end"
+          >
+            <span class="mine_message fw-medium align-self-end">
+              <p
+                class="pe-4 ps-4 pt-2 pb-2 d-inline-block rounded-top-4 rounded-start-4 me-2"
+              >
+                How’s your family?
+              </p>
+              3:15PM
+            </span>
+            <span class="mine_message fw-medium align-self-end">
+              <p
+                class="pe-4 ps-4 pt-2 pb-2 d-inline-block rounded-top-4 rounded-start-4 me-2"
+              >
+                How’s your family?
+              </p>
+              3:15PM
+            </span>
+            <span class="mine_message fw-medium align-self-end">
+              <p
+                class="pe-4 ps-4 pt-2 pb-2 d-inline-block rounded-top-4 rounded-start-4 me-2"
+              >
+                Hello today is a wonderful day and I am very excited
+              </p>
+              3:15PM
+            </span>
+            <span class="friend_message fw-medium">
+              <p
+                class="pe-4 ps-4 pt-2 pb-2 d-inline-block text-light rounded-top-4 rounded-end-4 me-2"
+              >
+                Hello James How’s you day is going?
+              </p>
+              3:15PM
+            </span>
+          </div>
+        </div>
+        <!-- Send Message button -->
+        <div class="d-flex align-items-end pe-5 ps-5 pb-3 mh-25">
+          <div class="send_message_container flex-grow-1" tabindex="0">
+            <input
+              type="text"
+              placeholder="Type a message"
+              name="submit_message"
+              id=""
+              class="flex-grow-1 border-0"
+            />
+            <button class="border-0 bg-transparent">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="25"
+                height="25"
+                fill="none"
+                class="bi bi-send-fill"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471z"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </template>
     <!-- Add other templates -->
 
     <script src="./bootstrap-5.3.3-dist/js/bootstrap.min.js"></script>
