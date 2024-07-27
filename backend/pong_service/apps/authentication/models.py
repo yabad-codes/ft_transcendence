@@ -12,12 +12,10 @@ class Player(AbstractUser):
                           unique=True, primary_key=True)
     tournament_name = models.CharField(
         max_length=30, blank=True, unique=True, null=True)
-    display_name = models.CharField(
-        max_length=30, blank=True, unique=True, null=True)
     wins = models.PositiveIntegerField(default=0)
     losses = models.PositiveIntegerField(default=0)
 
-    # Establishes many-to-many relationships with Group and Permission models, using unique related names to avoid conflicts.
+    # Using unique related names for groups and user_permissions to avoid conflicts with ORM.
     groups = models.ManyToManyField(
         Group, related_name='player_groups', blank=True)
     user_permissions = models.ManyToManyField(
