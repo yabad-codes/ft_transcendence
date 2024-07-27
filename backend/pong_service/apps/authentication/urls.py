@@ -6,5 +6,6 @@ urlpatterns = [
     path('players/', PlayerListView.as_view(), name='player_list'),
     path('profile/<str:username>/',
          PlayerPublicProfileView.as_view(), name='player_profile'),
-    path('login/', LoginView.as_view(), name='login')
+    path('login/', LoginView.as_view(), name='login'),
+    path('logout/', LogoutView.as_view(), name='logout'),
 ]

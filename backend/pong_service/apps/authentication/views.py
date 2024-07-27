@@ -6,11 +6,25 @@ from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from rest_framework.permissions import IsAuthenticated
 
 
+class LogoutView(APIView):
+    """
+    Logout a player.
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        logout(request)
+        return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
+
+
 class LoginView(APIView):
+    """
+    Login a player.
+    """
     permission_classes = (AllowAny,)
     serializer_class = LoginSerializer
 
