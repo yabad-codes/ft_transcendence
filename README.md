@@ -1,3 +1,3 @@
 # ft_transcendence
 ## Three-Tier Architecture
-![three-tier diagram2](https://github.com/yabad-codes/ft_transcendence/assets/103969464/1f89fa5c-9052-4c00-9554-b05ad75c5c2b)
+![three tier architecture](https://github.com/user-attachments/assets/4f74eec3-f019-4e00-a089-c7e0148506f5)
