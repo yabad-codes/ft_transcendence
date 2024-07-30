@@ -1,0 +1,142 @@
+chat-page {
+  display: flex;
+  height: 100%;
+}
+
+.flex-basis-30 {
+  flex-basis: 30%;
+}
+
+.flex-basis-80 {
+  flex-basis: 80%;
+}
+
+.search-box {
+  background-color: #f0f2f5;
+  width: 100%;
+  padding: 10px;
+  border-radius: 5px;
+  border: none;
+  outline-color: transparent;
+}
+
+.search-box:focus {
+  transition: all 0.4s ease-in-out;
+  outline-color: #cacaca;
+}
+
+.avatar {
+  position: relative;
+  display: inline-block;
+}
+
+.avatar_image {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 100%;
+}
+
+.avatar_status {
+  width: 20%;
+  height: 20%;
+  background: #99cc00;
+  border: 2px solid white;
+  position: absolute;
+  bottom: 4%;
+  right: 4%;
+  border-radius: 100%;
+}
+
+.direct_message_text {
+  color: #7b7b7b;
+}
+
+.direct_message_notification_icon {
+  font-size: xx-small;
+  width: 20px;
+  height: 20px;
+  background-color: #0097b9;
+}
+
+.direct_message_btn {
+  background-color: #f0f2f5;
+}
+
+.opacity-7 {
+  opacity: 7%;
+}
+
+.user_profile_bar {
+  border-bottom-left-radius: 50px;
+  background-color: #f0f2f5;
+}
+
+.send_message_container {
+  display: inline-flex;
+  background-color: white;
+}
+
+.send_message_container input {
+  background-color: transparent;
+  padding: 1rem 0 1rem 1rem;
+  border-top: 1px solid rgba(123, 123, 123, 0.6);
+  border-bottom: 1px solid rgba(123, 123, 123, 0.6);
+  border-left: 1px solid rgba(123, 123, 123, 0.6);
+  border-right: none;
+  transition: border 0.2s ease-in-out;
+}
+
+.send_message_container input:focus {
+  background-color: transparent;
+  padding: 1rem 0 1rem 1rem;
+  outline: none;
+  border-top: 1px solid rgba(123, 123, 123, 0.9);
+  border-bottom: 1px solid rgba(123, 123, 123, 0.9);
+  border-left: 1px solid rgba(123, 123, 123, 0.9);
+  border-right: none;
+}
+
+.send_message_container input::placeholder {
+  color: rgba(123, 123, 123, 0.5);
+}
+
+.send_message_container button {
+  flex-basis: 10%;
+  border: none;
+  background-color: #404040d1;
+  transition: background 0.2s ease-in-out;
+}
+
+.send_message_container button:hover {
+  background-color: #404040bc;
+}
+
+.chat_messages span {
+  font-size: x-small;
+  color: rgba(123, 123, 123, 0.8);
+  max-width: 40%;
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.chat_messages span p {
+  font-size: 16px;
+  margin: 0;
+}
+
+.chat_messages .friend_message p {
+  background-color: #0097b2;
+}
+
+.chat_messages .mine_message p {
+  background-color: white;
+  color: #7b7b7b;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.chat_message_container {
+  background-image: url('../../images/chat_bg.svg');
+  background-size: contain;
+}
