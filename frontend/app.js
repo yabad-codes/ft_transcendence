@@ -13,19 +13,4 @@ app.isLoggedIn = true;
 
 window.addEventListener("DOMContentLoaded", () => {
   app.router.init();
-  sendMessageActionStyling();
 });
-
-// This is temporary for me Anouar, later will be placed in a custom HTML Element 😁
-function sendMessageActionStyling() {
-  const input = document.querySelector(".send_message_container input");
-  const container = document.querySelector(".send_message_container");
-
-  input.addEventListener("focus", () => {
-    container.classList.add("focused");
-  });
-
-  input.addEventListener("blur", () => {
-    container.classList.remove("focused");
-  });
-}

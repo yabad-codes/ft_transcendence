@@ -233,16 +233,11 @@
       </div>
       <!-- Chat message -->
       <div
-        class="flex-grow-1 position-relative chat_message_container d-flex flex-column h-100"
+        class="flex-grow-1 chat_message_container d-flex flex-column h-100"
       >
-        <img
-          src="./images/chat_bg.svg"
-          alt=""
-          class="position-absolute top-0 start-0 end-0 bottom-0 w-100 h-auto opacity-7 z-n1"
-        />
         <!-- User profile bar -->
         <div
-          class="z-3 d-inline-flex justify-content-between align-items-center pe-3 ps-3 pt-3 pb-3 user_profile_bar"
+          class="z-3 d-inline-flex justify-content-between align-items-center p-3 user_profile_bar"
         >
           <span class="fw-semibold">
             <div class="avatar me-2">
@@ -310,21 +305,21 @@
           </div>
         </div>
         <!-- Send Message button -->
-        <div class="d-flex align-items-end pe-5 ps-5 pb-3 mh-25">
+        <div class="d-flex pe-5 ps-5 pb-3">
           <div class="send_message_container flex-grow-1" tabindex="0">
             <input
               type="text"
               placeholder="Type a message"
               name="submit_message"
               id=""
-              class="flex-grow-1 border-0"
+              class="flex-grow-1 rounded-start-4"
             />
-            <button class="border-0 bg-transparent">
+            <button class="rounded-end-4">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="25"
                 height="25"
-                fill="none"
+                fill="#ffffff"
                 class="bi bi-send-fill"
                 viewBox="0 0 16 16"
               >

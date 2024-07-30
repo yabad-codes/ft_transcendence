@@ -68,38 +68,48 @@ chat-page {
 }
 
 .user_profile_bar {
-  border-bottom-left-radius: 10px;
+  border-bottom-left-radius: 50px;
   background-color: #f0f2f5;
 }
 
 .send_message_container {
-  padding: 1rem;
   display: inline-flex;
-  border-radius: 15px;
-  border: 1px solid rgba(0, 0, 0, 0.3);
   background-color: white;
-  transition: border 0.2s ease-in-out;
-}
-
-.send_message_container.focused {
-  border-color: rgba(0, 0, 0, 0.7);
 }
 
 .send_message_container input {
+  background-color: transparent;
+  padding: 1rem 0 1rem 1rem;
+  border-top: 1px solid rgba(123, 123, 123, 0.6);
+  border-bottom: 1px solid rgba(123, 123, 123, 0.6);
+  border-left: 1px solid rgba(123, 123, 123, 0.6);
+  border-right: none;
+  transition: border 0.2s ease-in-out;
+}
+
+.send_message_container input:focus {
+  background-color: transparent;
+  padding: 1rem 0 1rem 1rem;
   outline: none;
+  border-top: 1px solid rgba(123, 123, 123, 0.9);
+  border-bottom: 1px solid rgba(123, 123, 123, 0.9);
+  border-left: 1px solid rgba(123, 123, 123, 0.9);
+  border-right: none;
 }
 
 .send_message_container input::placeholder {
   color: rgba(123, 123, 123, 0.5);
 }
 
-.bi-send-fill {
-  fill: rgba(123, 123, 123, 0.4);
-  transition: all 0.2s ease-in-out;
+.send_message_container button {
+  flex-basis: 10%;
+  border: none;
+  background-color: #404040d1;
+  transition: background 0.2s ease-in-out;
 }
 
-.bi-send-fill:hover {
-  fill: rgba(123, 123, 123, 0.8);
+.send_message_container button:hover {
+  background-color: #404040bc;
 }
 
 .chat_messages span {
@@ -124,4 +134,9 @@ chat-page {
   background-color: white;
   color: #7b7b7b;
   border: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.chat_message_container {
+  background-image: url('../../images/chat_bg.svg');
+  background-size: contain;
 }
