@@ -10,18 +10,27 @@ from django.contrib.auth import login, logout
 
 class LogoutView(APIView):
     """
-    Logout a player.
+    View for logging out a user.
+
+    Requires the user to be authenticated.
     """
+
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
+        """
+        Handle POST request to log out the user.
+
+        :param request: The HTTP request object.
+        :return: A Response object with a success message.
+        """
         logout(request)
         return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
 
 
 class LoginView(APIView):
     """
-    Login a player.
+    View for handling user login.
     """
     permission_classes = (AllowAny,)
     serializer_class = LoginSerializer
@@ -41,9 +50,10 @@ class LoginView(APIView):
 
 class RegisterView(ListCreateAPIView):
     """
-    Register a new player.
-    """
+    View for registering a new player.
 
+    Inherits from ListCreateAPIView, which provides GET (list) and POST (create) methods.
+    """
     queryset = Player.objects.all()
     serializer_class = PlayerRegistrationSerializer
     permission_classes = (AllowAny,)
@@ -51,20 +61,23 @@ class RegisterView(ListCreateAPIView):
 
 class PlayerListView(ListAPIView):
     """
-    Retrieve a list of all players.
-    """
+    API view that returns a list of all players.
 
+    Inherits from ListAPIView and uses PlayerListSerializer
+    to serialize the queryset.
+
+    Requires authentication for access.
+    """
     queryset = Player.objects.all()
     serializer_class = PlayerListSerializer
     permission_classes = [IsAuthenticated]
 
 
 class PlayerPublicProfileView(generics.RetrieveAPIView):
-
     """
-    Retrieve a player's public profile.
+    API view to retrieve the public profile of a player.
     """
     queryset = Player.objects.all()
-    serializer_class = PlayerPublicProfileSerializer
+    serializer_class = PlayerListSerializer
     lookup_field = 'username'
     permission_classes = [IsAuthenticated]

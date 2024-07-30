@@ -1,15 +1,15 @@
-from django.contrib.auth.models import AbstractUser, Group, Permission
-from django.db import models
 import uuid
+from django.db import models
+from django.contrib.auth.models import AbstractUser, Group, Permission
 
 
 class Player(AbstractUser):
-    """  
-    Custom user model for the application.
     """
-    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+    Represents a player in the system.
+    """
     id = models.UUIDField(default=uuid.uuid4, editable=False,
                           unique=True, primary_key=True)
+    avatar = models.URLField(max_length=500, null=True, blank=True)
     tournament_name = models.CharField(
         max_length=30, blank=True, unique=True, null=True)
     wins = models.PositiveIntegerField(default=0)
