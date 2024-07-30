@@ -100,7 +100,7 @@
                   <div class="form-group">
                     <input
                       type="text"
-                      class="form-control"
+                      class="login-input"
                       placeholder="Username"
                       required
                     />
@@ -108,12 +108,15 @@
                   <div class="form-group">
                     <input
                       type="password"
-                      class="form-control"
+                      class="login-input"
                       placeholder="Password"
                       required
                     />
                   </div>
-                  <button type="submit" class="btn btn-primary btn-block">
+                  <button
+                    type="submit"
+                    class="login-btn login-primary btn-block"
+                  >
                     Login
                   </button>
                   <div class="text-center mt-3 mb-5 register-link">
@@ -123,7 +126,10 @@
                     <hr />
                     <span class="hr-text">or</span>
                   </div>
-                  <button type="button" class="btn btn-dark btn-block mt-5">
+                  <button
+                    type="button"
+                    class="login-btn login-dark btn-dark btn-block mt-5"
+                  >
                     Login with
                     <img
                       src="./images/42-logo.svg"
@@ -232,9 +238,7 @@
         </div>
       </div>
       <!-- Chat message -->
-      <div
-        class="flex-grow-1 chat_message_container d-flex flex-column h-100"
-      >
+      <div class="flex-grow-1 chat_message_container d-flex flex-column h-100">
         <!-- User profile bar -->
         <div
           class="z-3 d-inline-flex justify-content-between align-items-center p-3 user_profile_bar"
