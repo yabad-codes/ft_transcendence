@@ -6,7 +6,7 @@ from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import authenticate
 
-USERNAME_REGEX = r'^(?=.*[a-zA-Z])(?=\S+$)[a-zA-Z0-9_]{3,20}$'
+USERNAME_REGEX = r'^(?=[a-zA-Z0-9]*-?[a-zA-Z0-9]*$)[a-zA-Z][a-zA-Z0-9\-]{2,19}$'
 NAME_REGEX = r'^[a-zA-Z]+([ -][a-zA-Z]+)*$'
 
 USERNAME_ERROR = "Username: 3-20 chars, 1+ letter, no spaces, only letters, numbers, or _."
@@ -14,6 +14,7 @@ NAME_ERROR = "First and last name must contain only letters, or a single space o
 
 INCLUDE_USERNAME_AND_PASSWORD = "Must include 'username' and 'password'."
 INVALID_USERNAME_OR_PASSWORD = "Invalid username or password."
+
 
 def password_validator(password):
     """
