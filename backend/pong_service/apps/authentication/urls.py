@@ -8,4 +8,6 @@ urlpatterns = [
          views.PlayerPublicProfileView.as_view(), name='player_profile'),
     path('login/', views.LoginView.as_view(), name='login'),
     path('logout/', views.LogoutView.as_view(), name='logout'),
+    path('oauth/login/', views.OAuthLoginView.as_view(), name='oauth_login'),
+    path('oauth/callback/', views.OAuthCallbackView.as_view(), name='oauth_callback'),
 ]
