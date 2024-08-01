@@ -89,6 +89,7 @@ h1 {
 
 .password-eye:active path {
   fill: #17a2b8;
+  transition: all 0.3s ease-in-out;
 }
 
 .register-link {
