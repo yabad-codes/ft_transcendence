@@ -118,7 +118,10 @@
                     Login
                   </button>
                   <div class="text-center mt-3 mb-5 register-link">
-                    <span>Don't have an account? <a href="#">Signup</a></span>
+                    <span
+                      >Don't have an account?
+                      <a href="/register">Register</a></span
+                    >
                   </div>
                   <div class="hr-with-text">
                     <hr />
@@ -174,17 +177,59 @@
                       required
                     />
                     <input
-                      type="password"
+                      type="text"
                       class="login-input"
-                      placeholder="Password"
+                      placeholder="First name"
+                      required
+                    />
+                    <input
+                      type="text"
+                      class="login-input"
+                      placeholder="Last name"
                       required
                     />
                     <input
                       type="password"
                       class="login-input"
-                      placeholder="Confirm Password"
+                      placeholder="Password"
                       required
                     />
+                    <div class="confirm-password">
+                      <input
+                        type="password"
+                        class="login-input"
+                        placeholder="Confirm Password"
+                        required
+                      />
+                      <svg
+                        class="password-eye"
+                        xmlns="http://www.w3.org/2000/svg"
+                        xmlns:xlink="http://www.w3.org/1999/xlink"
+                        width="350"
+                        zoomAndPan="magnify"
+                        viewBox="0 0 262.5 187.499995"
+                        height="250"
+                        preserveAspectRatio="xMidYMid meet"
+                        version="1.0"
+                      >
+                        <defs>
+                          <clipPath id="c9ca60e547">
+                            <path
+                              d="M 1 0 L 261 0 L 261 186.253906 L 1 186.253906 Z M 1 0 "
+                              clip-rule="nonzero"
+                            />
+                          </clipPath>
+                        </defs>
+                        <g clip-path="url(#c9ca60e547)">
+                          <path
+                            fill="#959595"
+                            d="M 258.027344 83.875 C 250.015625 71.058594 233.140625 48.382812 206.800781 31.234375 L 221.320312 16.714844 C 224.941406 13.09375 224.941406 7.234375 221.320312 3.617188 C 217.703125 0 211.84375 0 208.226562 3.617188 L 41.066406 170.773438 C 37.449219 174.394531 37.449219 180.253906 41.066406 183.871094 C 42.875 185.679688 45.246094 186.585938 47.617188 186.585938 C 49.984375 186.585938 52.355469 185.679688 54.164062 183.871094 L 72.316406 165.71875 C 88.929688 173.609375 108.480469 178.886719 131.195312 178.886719 C 203.332031 178.886719 244.015625 126.035156 258.027344 103.609375 C 261.796875 97.582031 261.796875 89.90625 258.027344 83.875 Z M 131.195312 149.3125 C 119.191406 149.3125 108.128906 145.457031 99.054688 138.980469 L 119.257812 118.777344 C 122.871094 120.523438 126.90625 121.527344 131.195312 121.527344 C 146.539062 121.527344 158.980469 109.089844 158.980469 93.742188 C 158.980469 89.453125 157.976562 85.417969 156.230469 81.804688 L 176.429688 61.605469 C 182.90625 70.675781 186.761719 81.742188 186.761719 93.742188 C 186.761719 124.433594 161.882812 149.3125 131.195312 149.3125 Z M 77.601562 108.234375 C 76.351562 103.609375 75.625 98.765625 75.625 93.746094 C 75.625 63.054688 100.503906 38.175781 131.195312 38.175781 C 136.214844 38.175781 141.058594 38.902344 145.6875 40.152344 L 171.296875 14.542969 C 159.183594 10.867188 145.875 8.597656 131.195312 8.597656 C 59.058594 8.597656 18.375 61.453125 4.359375 83.875 C 0.59375 89.90625 0.59375 97.582031 4.359375 103.609375 C 10.738281 113.816406 22.707031 130.300781 40.578125 145.257812 Z M 77.601562 108.234375 "
+                            fill-opacity="1"
+                            fill-rule="nonzero"
+                          />
+                        </g>
+                      </svg>
+                    </div>
                   </div>
                   <button
                     type="submit"
@@ -193,7 +238,9 @@
                     Register
                   </button>
                   <div class="text-center mt-3 mb-5 register-link">
-                    <span>Already have an account? <a href="#">Login</a></span>
+                    <span
+                      >Already have an account? <a href="/login">Login</a></span
+                    >
                   </div>
                   <div class="hr-with-text">
                     <hr />
