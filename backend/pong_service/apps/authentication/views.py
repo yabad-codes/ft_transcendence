@@ -127,7 +127,7 @@ class ChangePasswordView(generics.UpdateAPIView):
         - Player: The player object. 
         """
         return self.request.user
-    def put(self, request):
+    def patch(self, request):
         player=request.user
         serializer=self.serializer_class(player, data=request.data)
         if serializer.is_valid():
