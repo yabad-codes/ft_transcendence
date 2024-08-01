@@ -2,7 +2,6 @@ import bleach
 from rest_framework import serializers
 from .models import Player
 
-
 def sanitize_and_validate_data(validated_data):
 	"""
 	Sanitizes and validates the given data by cleaning specific fields using bleach.
@@ -15,7 +14,8 @@ def sanitize_and_validate_data(validated_data):
 	"""
 	fields = ['username', 'first_name', 'last_name']
 	for field in fields:
-		validated_data[field] = bleach.clean(validated_data[field])
+		if field in validated_data:
+			validated_data[field] = bleach.clean(validated_data[field])
 	return validated_data
 
 
@@ -97,3 +97,37 @@ def get_player_representation(player):
 		'last_name': player.last_name,
 		'avatar': player.avatar if player.avatar else None
 	}
+ 
+def update_player_info(self, instance, validated_data):
+	"""
+	Update the player's information with the provided validated data.
+
+	Args:
+		instance: The player instance to be updated.
+		validated_data: A dictionary containing the validated data.
+
+	Returns:
+		The updated player instance.
+	"""
+	fields = ['username', 'first_name', 'last_name']
+	for field in fields:
+		if field in validated_data:
+			setattr(instance, field, validated_data[field])
+	instance.save()
+	return instance
+	
+def update_password(self, instance, validated_data):
+	"""
+	Update the password for the given instance.
+
+	Args:
+		instance: The instance of the user model.
+		validated_data: The validated data containing the new password.
+
+	Returns:
+		The updated instance with the new password.
+	"""
+	if 'new_password' in validated_data and 'confirm_new_password' in validated_data:
+		instance.set_password(validated_data['new_password'])
+		instance.save()
+	return instance

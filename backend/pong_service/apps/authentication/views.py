@@ -81,3 +81,59 @@ class PlayerPublicProfileView(generics.RetrieveAPIView):
     serializer_class = PlayerListSerializer
     lookup_field = 'username'
     permission_classes = [IsAuthenticated]
+    
+class UpdatePlayerInfoView(generics.UpdateAPIView):
+    """
+    API view for updating player information.
+    Requires authentication.
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class =  UpdatePlayerInfoSerializer
+    
+    def get_object(self):
+        """
+        Get the player object of the currently authenticated user.
+        Returns:
+        - Player: The player object. 
+        """
+        return self.request.user
+
+    def patch(self, request):
+        """
+        Handle PATCH request to update player information.
+
+        Parameters:
+        - request: The HTTP request object.
+
+        Returns:
+        - Response: The HTTP response object.
+        """
+        player = request.user
+        serializer = self.serializer_class(player, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ChangePasswordView(generics.UpdateAPIView):
+    queryset = Player.objects.all()
+    permission_classes = [IsAuthenticated]
+    serializer_class =  ChangePasswordSerializer
+    
+    def get_object(self):
+        """
+        Get the player object of the currently authenticated user.
+        Returns:
+        - Player: The player object. 
+        """
+        return self.request.user
+    def put(self, request):
+        player=request.user
+        serializer=self.serializer_class(player, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Password changed successfully"},status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+    

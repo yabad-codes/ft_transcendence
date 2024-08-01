@@ -1,10 +1,11 @@
 import re
 from .models import Player
 from django.core.exceptions import ValidationError
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator 
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import authenticate
+from rest_framework.validators import UniqueValidator
 
 USERNAME_REGEX = r'^(?=[a-zA-Z0-9]*-?[a-zA-Z0-9]*$)[a-zA-Z][a-zA-Z0-9\-]{2,19}$'
 NAME_REGEX = r'^[a-zA-Z]+([ -][a-zA-Z]+)*$'
@@ -62,10 +63,8 @@ def username_validator(username):
     Returns:
             None
     """
-
-    if Player.objects.filter(username=username).exists():
-        raise ValueError('Username already exists.')
-
+    
+    regex_validator= UniqueValidator(queryset=Player.objects.all())
     regex_validator = RegexValidator(
         regex=USERNAME_REGEX,
         message=USERNAME_ERROR
