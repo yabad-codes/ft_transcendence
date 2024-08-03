@@ -66,23 +66,11 @@ class CustomTokenVerifyView(TokenVerifyView):
 		return super().post(request, *args, **kwargs)
 
 class LogoutView(APIView):
-    """
-    View for logging out a user.
-
-    Requires the user to be authenticated.
-    """
-
-    permission_classes = (IsAuthenticated,)
-
     def post(self, request):
-        """
-        Handle POST request to log out the user.
-
-        :param request: The HTTP request object.
-        :return: A Response object with a success message.
-        """
-        logout(request)
-        return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
+        response = Response(status=status.HTTP_204_NO_CONTENT)
+        response.delete_cookie('access')
+        response.delete_cookie('refresh')
+        return response
 
 
 class LoginView(APIView):

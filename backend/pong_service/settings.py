@@ -12,12 +12,17 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path, getenv
 from django.core.management.utils import get_random_secret_key
+import dotenv
 import redis
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+dotenv_file = BASE_DIR.parent / '.env.example'
+
+if Path.is_file(dotenv_file):
+    dotenv.load_dotenv(dotenv_file)
 
 # Redis connection
 REDIS_HOST = os.environ.get('REDIS_HOST')
