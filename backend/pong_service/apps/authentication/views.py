@@ -6,7 +6,34 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import login, logout
+from rest_framework_simplejwt.views import TokenObtainPairView
+from django.conf import settings
 
+class CustomTokenObtainPairView(TokenObtainPairView):
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 200:
+            access = response.data['access']
+            response.set_cookie(
+				key='access',
+				value=access,
+				max_age=settings.AUTH_COOKIE_ACCESS_MAX_AGE,
+				secure=settings.AUTH_COOKIE_SECURE,
+				httponly=settings.AUTH_COOKIE_HTTP_ONLY,
+				samesite=settings.AUTH_COOKIE_SAMESITE,
+				path=settings.AUTH_COOKIE_PATH
+			)
+            refresh = response.data['refresh']
+            response.set_cookie(
+                key='refresh',
+                value=refresh,
+                max_age=settings.AUTH_COOKIE_REFRESH_MAX_AGE,
+                secure=settings.AUTH_COOKIE_SECURE,
+                httponly=settings.AUTH_COOKIE_HTTP_ONLY,
+                samesite=settings.AUTH_COOKIE_SAMESITE,
+                path=settings.AUTH_COOKIE_PATH
+			)
+        return response
 
 class LogoutView(APIView):
     """
@@ -81,3 +108,5 @@ class PlayerPublicProfileView(generics.RetrieveAPIView):
     serializer_class = PlayerListSerializer
     lookup_field = 'username'
     permission_classes = [IsAuthenticated]
+
+
