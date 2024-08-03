@@ -9,6 +9,7 @@ from django.contrib.auth import login, logout
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
+    TokenVerifyView,
 )
 from django.conf import settings
 
@@ -57,6 +58,12 @@ class CustomTokenRefreshView(TokenRefreshView):
 			)
         return response
             
+class CustomTokenVerifyView(TokenVerifyView):
+	def post(self, request, *args, **kwargs):
+		access = request.COOKIES.get('access')
+		if access:
+			request.data['token'] = access
+		return super().post(request, *args, **kwargs)
 
 class LogoutView(APIView):
     """
