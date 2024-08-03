@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'pong_service.apps.player',
     'pong_service.apps.pong',
     'corsheaders',
+    'djoser',
 ]
 
 MIDDLEWARE = [
@@ -72,6 +73,15 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+		'authentication.authentication.CustomJWTAuthentication',
+	],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ]
+}
 
 ROOT_URLCONF = 'pong_service.urls'
 
