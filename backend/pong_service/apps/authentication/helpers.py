@@ -35,27 +35,16 @@ def process_avatar(avatar, username):
 
 def handle_avatar(validated_data):
 	"""
-	Handle the avatar for a user.
+	Generates an avatar URL based on the provided username.
 
 	Args:
-		validated_data (dict): The validated data containing the avatar and username.
+		validated_data (dict): A dictionary containing the validated data.
 
 	Returns:
-		dict: The updated validated data with the avatar URL.
-
-	Raises:
-		serializers.ValidationError: If there is an error uploading the avatar to Google Cloud.
-	"""
-	if 'avatar' in validated_data and validated_data['avatar']:
-		try:
-			validated_data['avatar'] = process_avatar(
-				validated_data['avatar'], validated_data['username'])
-		except:
-			raise serializers.ValidationError(
-				f"Failed to upload avatar to google cloud.")
-	else:
-		username = validated_data['username']
-		validated_data['avatar'] = f'https://robohash.org/{username}.jpg'
+		dict: The updated validated data dictionary with the 'avatar' field added.
+    """
+	username = validated_data['username']
+	validated_data['avatar'] = f'https://robohash.org/{username}.jpg'
 	return validated_data
 
 
