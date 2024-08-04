@@ -30,8 +30,6 @@ UID = os.environ.get('UID')
 SECRET = os.environ.get('SECRET')
 AUTH_URL = os.environ.get('AUTH_URL')
 REDIRECT_URL = os.environ.get('REDIRECT_URL')
-TOKEN_URL = os.environ.get('TOKEN_URL')
-API_URL = os.environ.get('API_URL')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/

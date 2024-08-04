@@ -1,15 +1,23 @@
-from rest_framework.generics import ListCreateAPIView, ListAPIView
-from .serializers import *
-from .models import Player
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework import generics, status
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from django.contrib.auth import login, logout
-from django.conf import settings
+# Standard library imports
 import logging
-import requests
+
+# Third-party library imports
+from rest_framework import generics, status
+from rest_framework.generics import ListCreateAPIView, ListAPIView
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+# Django imports
+from django.conf import settings
+from django.contrib.auth import login, logout
+from django.db.utils import IntegrityError
 from django.shortcuts import redirect
+
+# Local application imports
+from .models import Player
+from .serializers import LoginSerializer, PlayerRegistrationSerializer, PlayerListSerializer
+from .helpers import get_42_tokens, get_42_user_data, construct_user_data, create_player, user_already_exists
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -56,39 +64,136 @@ class LoginView(APIView):
 
 
 class OAuthLoginView(APIView):
+    """
+    View for redirecting to the OAuth login page.
+    """
+
     def get(self, request):
+        """
+        Handle GET requests for OAuth login.
+
+        This method redirects the user to the OAuth login page.
+
+        Args:
+            request (HttpRequest): The HTTP request object.
+
+        Returns:
+            HttpResponseRedirect: A redirect response to the OAuth login page.
+        """
         logger.debug('Redirecting to OAuth login page')
         return redirect(settings.AUTH_URL)
 
 
 class OAuthCallbackView(APIView):
+    """
+    View for handling OAuth callback from 42 API.
+    """
+
     def get(self, request):
+        """
+        Handle GET request for OAuth callback.
+
+        Args:
+            request (HttpRequest): The HTTP request object.
+
+        Returns:
+            HttpResponse: The HTTP response object.
+
+        Raises:
+            IntegrityError: If the user already exists.
+            KeyError: If there is an invalid user data.
+            Exception: If there is an unexpected error.
+        """
         logger.debug('Received OAuth callback')
-        if 'code' in request.GET:
-            code = request.GET['code']
-            token_url = settings.TOKEN_URL
-            token_data = {
-                'grant_type': 'authorization_code',
-                'code': code,
-                'client_id': settings.UID,
-                'client_secret': settings.SECRET,
-                'redirect_uri': settings.REDIRECT_URL
-            }
-            token_response = requests.post(token_url, data=token_data)
-            token_response_data = token_response.json()
-            logger.debug(f'Token response: {token_response_data}') 
-            access_token = token_response_data.get('access_token')
-            if access_token:
-                logger.debug(f'Access token: {access_token}')
-                # get user data
-                api_url = settings.API_URL
-                headers = {
-                    'Authorization': f'Bearer {access_token}'
-                }
-                user_response = requests.get(api_url, headers=headers)
-                user_response_data = user_response.json()
-                logger.debug(f'User data: {user_response_data}')
-        return redirect('https://google.com')
+
+        code = request.GET.get('code')
+        if not code:
+            return self._response_with_message('No code in request', status.HTTP_400_BAD_REQUEST)
+
+        access_token = self._get_access_token(code)
+        if not access_token:
+            return self._response_with_message('Failed to retrieve access token', status.HTTP_400_BAD_REQUEST)
+
+        user_data = get_42_user_data(access_token)
+        if not user_data:
+            return self._response_with_message('Failed to retrieve user data', status.HTTP_400_BAD_REQUEST)
+
+        user_data = construct_user_data(user_data)
+        try:
+            if user_already_exists(user_data):
+                return self._login_user(request, user_data)
+            return self._create_user(request, user_data)
+
+        except IntegrityError:
+            return self._response_with_message('User already exists', status.HTTP_400_BAD_REQUEST)
+        except KeyError as e:
+            logger.error('Key error: %s', str(e))
+            return self._response_with_message('Invalid user data', status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error('Unexpected error: %s', str(e))
+            return self._response_with_message('Internal server error', status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def _login_user(self, request, user_data):
+        """
+        Logs in the user with the provided user data.
+
+        Args:
+            request (HttpRequest): The HTTP request object.
+            user_data (dict): The user data containing the 'api_user_id'.
+
+        Returns:
+            HttpResponse: The HTTP response with a success message and status code 200.
+        """
+        user = Player.objects.get(api_user_id=user_data['api_user_id'])
+        login(request, user)
+        logger.info('User %s logged in successfully', user.username)
+        return self._response_with_message('Login successful', status.HTTP_200_OK)
+
+    def _create_user(self, request, user_data):
+        """
+        Create a user with the given user data.
+
+        Args:
+            request (HttpRequest): The HTTP request object.
+            user_data (dict): The user data containing the necessary information.
+
+        Returns:
+            HttpResponse: The HTTP response with a success message and status code 201.
+        """
+        player = create_player(user_data)
+        logger.info('Player %s created successfully', player.username)
+        return self._response_with_message('User created successfully', status.HTTP_201_CREATED)
+
+    def _get_access_token(self, code):
+        """
+        Retrieves the access token from the 42 API using the provided code.
+
+        Args:
+            code (str): The authorization code obtained from the user.
+
+        Returns:
+            str: The access token if successful, None otherwise.
+        """
+        try:
+            token_response = get_42_tokens(code)
+            return token_response.get('access_token')
+        except Exception as e:
+            logger.error('Error retrieving access token: %s', str(e))
+            return None
+
+    def _response_with_message(self, message, status_code):
+        """
+        Returns a response with the given message and status code.
+
+        Args:
+            message (str): The message to include in the response.
+            status_code (int): The HTTP status code for the response.
+
+        Returns:
+            Response: The response object containing the message and status code.
+        """
+        logger.debug(message)
+        return Response({'message': message}, status=status_code)
 
 
 class RegisterView(ListCreateAPIView):
