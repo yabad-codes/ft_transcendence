@@ -10,4 +10,5 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('update/', UpdatePlayerInfoView.as_view(), name='update_player'),
     path('update-password/', ChangePasswordView.as_view(), name='update_password'),
+    path('avatar/', UpdateAvatarView.as_view(), name='avatar'),
 ]

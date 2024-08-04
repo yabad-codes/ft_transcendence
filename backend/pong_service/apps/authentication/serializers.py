@@ -1,3 +1,6 @@
+from google.cloud import storage
+from django.conf import settings
+import uuid
 from django.core.validators import RegexValidator
 from rest_framework import serializers
 from .models import Player
@@ -11,6 +14,8 @@ GENERAL_ERROR = "An error occurred. Please try again."
 PASSWORD_ERROR = "Passwords do not match."
 USERNAME_FORMAT_ERROR = "Invalid username format."
 
+import logging
+logger = logging.getLogger(__name__)
 class PlayerRegistrationSerializer(serializers.ModelSerializer):
     """
     Serializer for player registration.
@@ -298,5 +303,31 @@ class ChangePasswordSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
         return helpers.update_password(self, instance, validated_data)
     
+
+def upload_to_google_cloud(image):
+    client = storage.Client(credentials=settings.GS_CREDENTIALS, project=settings.GS_PROJECT_ID)
+    bucket = client.bucket(settings.GS_BUCKET_NAME)
+    blob_name = f"avatars/{uuid.uuid4()}{image.name}"
+    blob = bucket.blob(blob_name)
+    blob.upload_from_file(image, content_type=image.content_type)
+    return blob.public_url 
+
+class UpdateAvatarSerializers(serializers.ModelSerializer):
+    avatar_url = serializers.ImageField(required=False)
     
+    class Meta:
+        model = Player
+        fields=['avatar_url','avatar']
+        read_only_fields=['avatar']
     
+    def update(self, instance, validated_data):
+        avatar_url = validated_data.get('avatar_url')
+        if avatar_url:
+            url = upload_to_google_cloud(avatar_url)
+            logger.debug(f"Avatar URL: {url}")
+            instance.avatar = url
+            instance.save()
+        return instance
+            
+        
+        

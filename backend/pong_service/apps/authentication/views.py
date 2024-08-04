@@ -7,6 +7,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import login, logout
 
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.StreamHandler())
 
 class LogoutView(APIView):
     """
@@ -136,4 +140,23 @@ class ChangePasswordView(generics.UpdateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         
+class UpdateAvatarView(generics.UpdateAPIView):
+    queryset = Player.objects.all()
+    permission_classes = [IsAuthenticated]
+    serializer_class =  UpdateAvatarSerializers
     
+    def get_object(self):
+        """
+        Get the player object of the currently authenticated user.
+        Returns:
+        - Player: The player object. 
+        """
+        return self.request.user
+    def patch(self, request):
+        player = request.user
+        serializers = UpdateAvatarSerializers(player, data=request.data, partial=True)
+        if serializers.is_valid():
+            serializers.save()
+            return Response({"message":"update avatar succefully"}, status=status.HTTP_200_OK)
+        return Response({"message":"update avatar failure"}, status=status.HTTP_400_BAD_REQUEST)
+
