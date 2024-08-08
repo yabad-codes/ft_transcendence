@@ -1,21 +1,17 @@
-from google.cloud import storage
-from django.conf import settings
-import uuid
 from django.core.validators import RegexValidator
 from rest_framework import serializers
 from .models import Player
 import pong_service.apps.authentication.validators as validators
 import pong_service.apps.authentication.helpers as helpers
 from django.contrib.auth.password_validation import validate_password
-
+from django.core.exceptions import ValidationError
+from PIL import Image
 
 # Error messages
 GENERAL_ERROR = "An error occurred. Please try again."
 PASSWORD_ERROR = "Passwords do not match."
 USERNAME_FORMAT_ERROR = "Invalid username format."
 
-import logging
-logger = logging.getLogger(__name__)
 class PlayerRegistrationSerializer(serializers.ModelSerializer):
     """
     Serializer for player registration.
@@ -169,19 +165,6 @@ class LoginSerializer(serializers.ModelSerializer):
 class UpdatePlayerInfoSerializer(serializers.ModelSerializer):
     """
     Serializer for updating player information.
-
-    Attributes:
-        username (CharField): The username field.
-        first_name (CharField): The first name field.
-        last_name (CharField): The last name field.
-
-    Meta:
-        model (Player): The model to be serialized.
-        fields (tuple): The fields to be included in the serialized representation.
-
-    Methods:
-        validate(data): Validates the input data.
-        update(instance, validated_data): Updates the instance with the validated data.
     """
     
     username = serializers.CharField(
@@ -304,27 +287,45 @@ class ChangePasswordSerializer(serializers.Serializer):
         return helpers.update_password(self, instance, validated_data)
     
 
-def upload_to_google_cloud(image):
-    client = storage.Client(credentials=settings.GS_CREDENTIALS, project=settings.GS_PROJECT_ID)
-    bucket = client.bucket(settings.GS_BUCKET_NAME)
-    blob_name = f"avatars/{uuid.uuid4()}{image.name}"
-    blob = bucket.blob(blob_name)
-    blob.upload_from_file(image, content_type=image.content_type)
-    return blob.public_url 
-
 class UpdateAvatarSerializers(serializers.ModelSerializer):
+    """
+    Serializer for updating the avatar of a Player instance.
+    """
+
     avatar_url = serializers.ImageField(required=False)
     
     class Meta:
         model = Player
-        fields=['avatar_url','avatar']
-        read_only_fields=['avatar']
+        fields = ['avatar_url', 'avatar']
+        read_only_fields = ['avatar']
+    
+        def validate_avatar_url(self, value):
+            try:
+                img = Image.open(value)
+                img.verify()
+                if img.format.lower() not in ['png', 'jpeg', 'jpg', 'gif']:
+                    raise ValidationError("Image format not supported")
+                value.seek(0)
+            except Exception as e:
+                raise ValidationError("Invalid image")
+            return value
+   
     
     def update(self, instance, validated_data):
+        """
+        Updates the instance with the validated data.
+
+        Args:
+            instance: The instance to be updated.
+            validated_data: The validated data to update the instance with.
+
+        Returns:
+            The updated instance.
+        """
         avatar_url = validated_data.get('avatar_url')
         if avatar_url:
-            url = upload_to_google_cloud(avatar_url)
-            logger.debug(f"Avatar URL: {url}")
+            url = helpers.upload_to_google_cloud(avatar_url, instance)
+          
             instance.avatar = url
             instance.save()
         return instance

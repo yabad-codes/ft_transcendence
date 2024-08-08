@@ -1,6 +1,8 @@
 import bleach
 from rest_framework import serializers
 from .models import Player
+from google.cloud import storage
+from django.conf import settings
 
 def sanitize_and_validate_data(validated_data):
 	"""
@@ -120,3 +122,22 @@ def update_password(self, instance, validated_data):
 		instance.set_password(validated_data['new_password'])
 		instance.save()
 	return instance
+
+def upload_to_google_cloud(image , instance):
+	"""
+	Uploads an image to Google Cloud Storage.
+
+	Args:
+		image (File): The image file to be uploaded.
+		instance: The instance associated with the image.
+
+	Returns:
+		str: The public URL of the uploaded image.
+	"""
+	client = storage.Client(credentials=settings.GS_CREDENTIALS, project=settings.GS_PROJECT_ID)
+	bucket = client.bucket(settings.GS_BUCKET_NAME)
+	extension = image.name.split('.')[-1]
+	blob_name = f"avatars/{instance.username}.{extension}"
+	blob = bucket.blob(blob_name)
+	blob.upload_from_file(image, content_type=image.content_type)
+	return blob.public_url
