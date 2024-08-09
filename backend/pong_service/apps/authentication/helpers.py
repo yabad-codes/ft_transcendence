@@ -1,5 +1,4 @@
 import bleach
-from rest_framework import serializers
 from .models import Player
 from google.cloud import storage
 from django.conf import settings
@@ -19,21 +18,6 @@ def sanitize_and_validate_data(validated_data):
 		if field in validated_data:
 			validated_data[field] = bleach.clean(validated_data[field])
 	return validated_data
-
-
-def process_avatar(avatar, username):
-    """
-    Process the avatar for a given username and store the image in google cloud.
-
-    Args:
-            avatar (str): The avatar image file.
-            username (str): The username of the user.
-
-    Returns:
-            avatar 
-    """
-    print('handle google cloud storage')
-
 
 def handle_avatar(validated_data):
 	"""

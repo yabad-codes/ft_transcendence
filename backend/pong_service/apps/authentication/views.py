@@ -7,11 +7,6 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import login, logout
 
-import logging
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler())
-
 class LogoutView(APIView):
     """
     View for logging out a user.
@@ -102,7 +97,7 @@ class UpdatePlayerInfoView(generics.UpdateAPIView):
         """
         return self.request.user
 
-    def patch(self, request):
+    def post(self, request):
         """
         Handle PATCH request to update player information.
 
@@ -119,7 +114,45 @@ class UpdatePlayerInfoView(generics.UpdateAPIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class UpdateAvatarView(generics.UpdateAPIView):
+    """
+    A view for updating the avatar of the player.
+    """
+    queryset = Player.objects.all()
+    permission_classes = [IsAuthenticated]
+    serializer_class =  UpdateAvatarSerializers
+    
+    def get_object(self):
+        """
+        Get the player object of the currently authenticated user.
+
+        Returns:
+        - Player: The player object. 
+        """
+        return self.request.user
+    
+    def post(self, request):
+        """
+        Handle the POST request to update the avatar of the player.
+
+        Args:
+            request (HttpRequest): The HTTP request object.
+
+        Returns:
+            Response: The HTTP response object.
+        """
+        player = request.user
+        serializers = UpdateAvatarSerializers(player, data=request.data, partial=True)
+        if serializers.is_valid():
+            serializers.save()
+            return Response({"message":"update avatar successfully"}, status=status.HTTP_200_OK)
+        return Response({"message":"update avatar failure"}, status=status.HTTP_400_BAD_REQUEST)
+
+
 class ChangePasswordView(generics.UpdateAPIView):
+    """
+    A view for changing the password of the authenticated player.
+    """
     queryset = Player.objects.all()
     permission_classes = [IsAuthenticated]
     serializer_class =  ChangePasswordSerializer
@@ -131,32 +164,22 @@ class ChangePasswordView(generics.UpdateAPIView):
         - Player: The player object. 
         """
         return self.request.user
-    def patch(self, request):
-        player=request.user
-        serializer=self.serializer_class(player, data=request.data)
+    
+    def post(self, request):
+        """
+        Handle the POST request to change the password of the authenticated player.
+
+        Args:
+            request (HttpRequest): The HTTP request object.
+
+        Returns:
+            Response: The HTTP response object containing the result of the password change operation.
+        """
+        self.object = self.get_object()
+        serializer= ChangePasswordSerializer(self.object, data=request.data, partial=True, context={'request': request}) 
+     
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "Password changed successfully"},status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-        
-class UpdateAvatarView(generics.UpdateAPIView):
-    queryset = Player.objects.all()
-    permission_classes = [IsAuthenticated]
-    serializer_class =  UpdateAvatarSerializers
-    
-    def get_object(self):
-        """
-        Get the player object of the currently authenticated user.
-        Returns:
-        - Player: The player object. 
-        """
-        return self.request.user
-    def patch(self, request):
-        player = request.user
-        serializers = UpdateAvatarSerializers(player, data=request.data, partial=True)
-        if serializers.is_valid():
-            serializers.save()
-            return Response({"message":"update avatar succefully"}, status=status.HTTP_200_OK)
-        return Response({"message":"update avatar failure"}, status=status.HTTP_400_BAD_REQUEST)
-

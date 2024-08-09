@@ -11,7 +11,8 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
-# import redis
+from google.oauth2 import service_account
+import redis
 import os
 ##adding logger for debugging
 
@@ -24,7 +25,7 @@ REDIS_HOST = os.environ.get('REDIS_HOST')
 REDIS_PORT = os.environ.get('REDIS_PORT')
 REDIS_DB = os.environ.get('REDIS_DB')
 
-# REDIS = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
+REDIS = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -98,18 +99,6 @@ DATABASES = {
     }
 }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'Database',
-#         'USER': 'hasna',
-#         'PASSWORD': 'hassna123',
-#         'HOST': 'localhost',
-#         'PORT': '5432',
-#     }
-# }
-# docker run --name postgres_container -e POSTGRES_USER=hasna -e POSTGRES_PASSWORD=hassna123 -e POSTGRES_DB=Database -p 5432:5432 -d postgres
-
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
@@ -144,19 +133,18 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-MEDIA_URL = '/media/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'avatars/')
 STATIC_URL = '/static/'
-##setting for google cloud storage
-from google.oauth2 import service_account
+
+##setting for link google cloud storage with django
+
 GS_CREDENTIALS = service_account.Credentials.from_service_account_file(os.path.join(BASE_DIR, 'credentials.json'))
-### Google Cloud Storage settings
 DEFAULT_FILE_STORAGE = 'pong_service.apps.authentication.gcloud.GoogleCloudMediaStorage'
 GS_PROJECT_ID = 'transcendencestorage'
 GS_BUCKET_NAME = 'avatars_ft_tran'
 MEDIA_ROOT = "https://storage.googleapis.com/{}/".format(GS_BUCKET_NAME)
 UPLOAD_ROOT = "https://storage.googleapis.com/{}/".format(GS_BUCKET_NAME)
 MEDIA_URL = "https://storage.googleapis.com/{}/".format(GS_BUCKET_NAME)
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
