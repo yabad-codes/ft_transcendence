@@ -322,3 +322,61 @@ class ChangePasswordSerializer(serializers.Serializer):
     
     def update(self, instance, validated_data):
         return helpers.update_password(self, instance, validated_data)
+
+
+class CreatePasswordSerializer(serializers.ModelSerializer):
+    """
+    Serializer class for creating a password.
+
+    This serializer is used to create a new password for a user.
+
+    Attributes:
+        password (CharField): The password field.
+        password_confirm (CharField): The password confirmation field.
+    """
+
+    password = serializers.CharField(
+        write_only=True,
+        required=True,
+        validators=[validators.password_validator]
+    )
+
+    password_confirm = serializers.CharField(
+        write_only=True,
+        required=True
+    )
+
+    def validate(self, validated_data):
+        """
+        Validates the validated_data provided in the serializer.
+
+        Args:
+            validated_data (dict): The validated_data to be validated.
+
+        Returns:
+            dict: The validated validated_data.
+
+        Raises:
+            serializers.ValidationError: If the password and password_confirm fields do not match.
+        """
+        if validated_data['password'] != validated_data['password_confirm']:
+            raise serializers.ValidationError(PASSWORD_ERROR)
+        return validated_data
+    
+    def create(self, instance, validated_data):
+        """
+        Create a new instance of the serializer's associated model.
+
+        Args:
+            instance: The instance of the serializer's associated model.
+            validated_data: The validated data for creating the instance.
+
+        Returns:
+            The created instance of the serializer's associated model.
+        """
+        validated_data.pop('password_confirm')
+        password = validated_data['password']
+        instance.set_password(password)
+        instance.save()
+        return instance
+    

@@ -149,6 +149,7 @@ class UpdateAvatarView(generics.UpdateAPIView):
         return Response({"message":"update avatar failure"}, status=status.HTTP_400_BAD_REQUEST)
 
 
+
 class ChangePasswordView(generics.UpdateAPIView):
     """
     A view for changing the password of the authenticated player.
@@ -176,10 +177,13 @@ class ChangePasswordView(generics.UpdateAPIView):
             Response: The HTTP response object containing the result of the password change operation.
         """
         self.object = self.get_object()
-        serializer= ChangePasswordSerializer(self.object, data=request.data, partial=True, context={'request': request}) 
-     
+        if self.object.password is None:
+            serializer = CreatePasswordSerializer(self.object, data=request.data, parial=True,context={'request': request})
+        else:    
+            serializer= ChangePasswordSerializer(self.object, data=request.data, partial=True, context={'request': request}) 
+        
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "Password changed successfully"},status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+            
