@@ -4,8 +4,7 @@ from .models import Player
 import pong_service.apps.authentication.validators as validators
 import pong_service.apps.authentication.helpers as helpers
 from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError
-from PIL import Image
+
 
 # Error messages
 GENERAL_ERROR = "An error occurred. Please try again."
@@ -53,7 +52,7 @@ class PlayerRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Player
         fields = ('username', 'first_name', 'last_name',
-                  'password', 'password_confirm', 'avatar')
+                  'password', 'password_confirm')
 
     def validate(self, data):
         """
@@ -112,7 +111,7 @@ class PlayerListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Player
         fields = ('username', 'first_name',
-                  'last_name', 'avatar', 'wins', 'losses')
+                  'last_name', 'avatar_url', 'wins', 'losses')
 
 
 class LoginSerializer(serializers.ModelSerializer):
@@ -217,19 +216,57 @@ class UpdatePlayerInfoSerializer(serializers.ModelSerializer):
         Raises:
             serializers.ValidationError: If an error occurs during the update process.
         """
-        
         return helpers.update_player_info(self, instance, validated_data)
-    
 
+class UpdateAvatarSerializers(serializers.ModelSerializer):
+    """
+    Serializer for updating the avatar of a Player instance.
+    """
+
+    avatar = serializers.ImageField(required=False)
+    
+    class Meta:
+        model = Player
+        fields = ['avatar', 'avatar_url']
+        read_only_fields = ['avatar_url']
+    
+    def validate_avatar(self, value):
+        """
+        Validates the avatar .
+
+        Args:
+            value: The avatar  to be validated.
+
+        Returns:
+            The validated avatar .
+
+        Raises:
+            ValidationError: If the avatar  is invalid.
+        """
+        return validators.validate_avatar(value)
+    
+    def update(self, instance, validated_data):
+        """
+        Updates the instance with the validated data.
+
+        Args:
+            instance: The instance to be updated.
+            validated_data: The validated data to update the instance with.
+
+        Returns:
+            The updated instance.
+        """
+        avatar = validated_data.get('avatar')
+        if avatar:
+            url = helpers.upload_to_google_cloud(avatar, instance)
+          
+            instance.avatar_url = url
+            instance.save()
+        return instance
 
 class ChangePasswordSerializer(serializers.Serializer):
     """
     Serializer class for changing password.
-
-    Attributes:
-        old_password (CharField): The old password field.
-        new_password (CharField): The new password field.
-        confirm_new_password (CharField): The confirm new password field.
     """
 
     old_password = serializers.CharField(
@@ -285,50 +322,3 @@ class ChangePasswordSerializer(serializers.Serializer):
     
     def update(self, instance, validated_data):
         return helpers.update_password(self, instance, validated_data)
-    
-
-class UpdateAvatarSerializers(serializers.ModelSerializer):
-    """
-    Serializer for updating the avatar of a Player instance.
-    """
-
-    avatar_url = serializers.ImageField(required=False)
-    
-    class Meta:
-        model = Player
-        fields = ['avatar_url', 'avatar']
-        read_only_fields = ['avatar']
-    
-        def validate_avatar_url(self, value):
-            try:
-                img = Image.open(value)
-                img.verify()
-                if img.format.lower() not in ['png', 'jpeg', 'jpg', 'gif']:
-                    raise ValidationError("Image format not supported")
-                value.seek(0)
-            except Exception as e:
-                raise ValidationError("Invalid image")
-            return value
-   
-    
-    def update(self, instance, validated_data):
-        """
-        Updates the instance with the validated data.
-
-        Args:
-            instance: The instance to be updated.
-            validated_data: The validated data to update the instance with.
-
-        Returns:
-            The updated instance.
-        """
-        avatar_url = validated_data.get('avatar_url')
-        if avatar_url:
-            url = helpers.upload_to_google_cloud(avatar_url, instance)
-          
-            instance.avatar = url
-            instance.save()
-        return instance
-            
-        
-        

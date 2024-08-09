@@ -6,6 +6,7 @@ from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import authenticate
 from rest_framework.validators import UniqueValidator
+from PIL import Image
 
 USERNAME_REGEX = r'^(?=[a-zA-Z0-9]*-?[a-zA-Z0-9]*$)[a-zA-Z][a-zA-Z0-9\-]{2,19}$'
 NAME_REGEX = r'^[a-zA-Z]+([ -][a-zA-Z]+)*$'
@@ -116,3 +117,26 @@ def validate_login_data(username, password):
     else:
         raise serializers.ValidationError(INCLUDE_USERNAME_AND_PASSWORD)
     return user
+
+def validate_avatar(value):
+    """
+    Validates the avatar image file.
+
+    Parameters:
+    value (file): The avatar image file to be validated.
+
+    Returns:
+    file: The validated avatar image file.
+
+    Raises:
+    ValidationError: If the image format is not supported or if the image is invalid.
+    """
+    try:
+        img = Image.open(value)
+        img.verify()
+        if img.format.lower() not in ['png', 'jpeg', 'jpg', 'gif']:
+            raise ValidationError("Image format not supported")
+        value.seek(0)
+    except Exception as e:
+        raise ValidationError("Invalid image")
+    return value

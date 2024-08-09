@@ -46,7 +46,7 @@ def handle_avatar(validated_data):
 		dict: The updated validated data dictionary with the 'avatar' field added.
     """
 	username = validated_data['username']
-	validated_data['avatar'] = f'https://robohash.org/{username}.jpg'
+	validated_data['avatar_url'] = f'https://robohash.org/{username}.jpg'
 	return validated_data
 
 
@@ -69,7 +69,7 @@ def create_player(validated_data):
 		first_name=validated_data['first_name'],
 		last_name=validated_data['last_name'],
 		password=validated_data['password'],
-		avatar=validated_data.get('avatar', None)
+		avatar_url=validated_data.get('avatar_url', None)
 	)
 
 def get_player_representation(player):
@@ -86,7 +86,7 @@ def get_player_representation(player):
 		'username': player.username,
 		'first_name': player.first_name,
 		'last_name': player.last_name,
-		'avatar': player.avatar if player.avatar else None
+		'avatar_url': player.avatar_url if player.avatar_url else None
 	}
  
 def update_player_info(self, instance, validated_data):
