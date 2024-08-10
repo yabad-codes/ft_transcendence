@@ -7,5 +7,8 @@ urlpatterns = [
     path('profile/<str:username>/',
          PlayerPublicProfileView.as_view(), name='player_profile'),
     path('login/', LoginView.as_view(), name='login'),
-    path('logout/', LogoutView.as_view(), name='logout'),
+    path('logout/', LogoutView.as_view(), name='logout'),	
+
+	path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+	path('token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
 ]
