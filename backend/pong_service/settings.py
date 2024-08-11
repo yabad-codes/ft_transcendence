@@ -80,6 +80,7 @@ AUTH_COOKIE_SECURE = getenv('AUTH_COOKIE_SECURE', 'True') == 'True'
 AUTH_COOKIE_HTTP_ONLY = True
 AUTH_COOKIE_PATH = '/'
 AUTH_COOKIE_SAMESITE = 'Strict'
+TOKEN_REFRESH_THRESHOLD = 2
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
