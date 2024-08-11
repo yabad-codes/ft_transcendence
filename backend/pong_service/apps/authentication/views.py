@@ -6,6 +6,7 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import login, logout
+from .helpers import set_cookie
 
 from rest_framework_simplejwt.views import (
     TokenObtainPairView, 
@@ -14,33 +15,55 @@ from rest_framework_simplejwt.views import (
 from django.conf import settings
 
 class CustomTokenObtainPairView(TokenObtainPairView):
+    """
+    Custom view for obtaining a new access and refresh token pair.
+    
+    Args:
+		TokenObtainPairView: The default view for obtaining a new access and refresh token pair.
+	
+	Returns:
+		Response: A response object with the new access and refresh tokens.
+    """
     def post(self, request, *args, **kwargs):
+        """
+        Handle POST request to obtain a new access and refresh token pair.
+		1. Call the parent class's post method to obtain the tokens.
+		2. If the response status code is 200, set the tokens in cookies.
+        """
         response = super().post(request, *args, **kwargs)
         if response.status_code == 200:
-            access = response.data['access']
-            response.set_cookie(
-				key='access',
-				value=access,
-				max_age=settings.AUTH_COOKIE_ACCESS_MAX_AGE,
-				secure=settings.AUTH_COOKIE_SECURE,
-				httponly=settings.AUTH_COOKIE_HTTP_ONLY,
-				samesite=settings.AUTH_COOKIE_SAMESITE,
-				path=settings.AUTH_COOKIE_PATH
-			)
-            refresh = response.data['refresh']
-            response.set_cookie(
-                key='refresh',
-                value=refresh,
-                max_age=settings.AUTH_COOKIE_REFRESH_MAX_AGE,
-                secure=settings.AUTH_COOKIE_SECURE,
-                httponly=settings.AUTH_COOKIE_HTTP_ONLY,
-                samesite=settings.AUTH_COOKIE_SAMESITE,
-                path=settings.AUTH_COOKIE_PATH
-			)
+            response = set_cookie(
+                response,
+                'access',
+                response.data['access'],
+                settings.AUTH_COOKIE_ACCESS_MAX_AGE
+            )
+            response = set_cookie(
+                response,
+            	'refresh',
+            	response.data['refresh'],
+            	settings.AUTH_COOKIE_REFRESH_MAX_AGE
+            )
         return response
 
 class CustomTokenRefreshView(TokenRefreshView):
+    """
+    Custom view for refreshing an access token.
+    
+    Args:
+		TokenRefreshView: The default view for refreshing an access token.
+	
+	Returns:
+		Response: A response object with the new access token.
+    """
     def post(self, request, *args, **kwargs):
+        """
+        Handle POST request to refresh the access token.
+        1. Get the refresh token from the request cookies.
+        2. If the refresh token is present, add it to the request data.
+        3. Call the parent class's post method to refresh the access token.
+        4. If the response status code is 200, set the new access token in a cookie.
+        """
         refresh = request.COOKIES.get('refresh')
         if refresh:
             data = request.data.copy()
@@ -48,16 +71,12 @@ class CustomTokenRefreshView(TokenRefreshView):
             request._full_data = data
         response = super().post(request, *args, **kwargs)
         if response.status_code == 200:
-            access = response.data['access']
-            response.set_cookie(
-				key='access',
-				value=access,
-				max_age=settings.AUTH_COOKIE_ACCESS_MAX_AGE,
-				secure=settings.AUTH_COOKIE_SECURE,
-				httponly=settings.AUTH_COOKIE_HTTP_ONLY,
-				samesite=settings.AUTH_COOKIE_SAMESITE,
-				path=settings.AUTH_COOKIE_PATH
-			)
+            response = set_cookie(
+                response,
+                'access',
+                response.data['access'],
+                settings.AUTH_COOKIE_ACCESS_MAX_AGE
+            )
         return response
 
 class LogoutView(APIView):
