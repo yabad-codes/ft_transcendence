@@ -318,6 +318,8 @@ class ChangePasswordSerializer(serializers.Serializer):
         """
         if data['new_password'] != data['confirm_new_password']:
                 raise serializers.ValidationError(PASSWORD_ERROR)
+        if data['new_password'] == data['old_password']:
+            raise serializers.ValidationError("New password cannot be the same as the old password.")
         return data
     
     def update(self, instance, validated_data):
@@ -334,7 +336,6 @@ class CreatePasswordSerializer(serializers.ModelSerializer):
         password (CharField): The password field.
         password_confirm (CharField): The password confirmation field.
     """
-
     password = serializers.CharField(
         write_only=True,
         required=True,

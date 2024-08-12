@@ -26,7 +26,6 @@ class LogoutView(APIView):
         logout(request)
         return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
 
-
 class LoginView(APIView):
     """
     View for handling user login.
@@ -40,12 +39,9 @@ class LoginView(APIView):
             user = serializer.validated_data['user']
             login(request, user)
             return Response({
-                'user_id': user.id,
-                'username': user.username,
                 'message': 'Login successful'
             }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class RegisterView(ListCreateAPIView):
     """
@@ -56,7 +52,6 @@ class RegisterView(ListCreateAPIView):
     queryset = Player.objects.all()
     serializer_class = PlayerRegistrationSerializer
     permission_classes = (AllowAny,)
-
 
 class PlayerListView(ListAPIView):
     """
@@ -70,7 +65,6 @@ class PlayerListView(ListAPIView):
     queryset = Player.objects.all()
     serializer_class = PlayerListSerializer
     permission_classes = [IsAuthenticated]
-
 
 class PlayerPublicProfileView(generics.RetrieveAPIView):
     """
@@ -107,11 +101,11 @@ class UpdatePlayerInfoView(generics.UpdateAPIView):
         Returns:
         - Response: The HTTP response object.
         """
-        player = request.user
+        player = self.get_object()
         serializer = self.serializer_class(player, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response({"message":"update info successfully"}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UpdateAvatarView(generics.UpdateAPIView):
@@ -141,14 +135,12 @@ class UpdateAvatarView(generics.UpdateAPIView):
         Returns:
             Response: The HTTP response object.
         """
-        player = request.user
+        player = self.get_object()
         serializers = UpdateAvatarSerializers(player, data=request.data, partial=True)
         if serializers.is_valid():
             serializers.save()
             return Response({"message":"update avatar successfully"}, status=status.HTTP_200_OK)
         return Response({"message":"update avatar failure"}, status=status.HTTP_400_BAD_REQUEST)
-
-
 
 class ChangePasswordView(generics.UpdateAPIView):
     """
@@ -167,23 +159,23 @@ class ChangePasswordView(generics.UpdateAPIView):
         return self.request.user
     
     def post(self, request):
-        """
-        Handle the POST request to change the password of the authenticated player.
+            """
+            Handle the POST request to change the password of the authenticated player.
 
-        Args:
-            request (HttpRequest): The HTTP request object.
+            Args:
+                request (HttpRequest): The HTTP request object.
 
-        Returns:
-            Response: The HTTP response object containing the result of the password change operation.
-        """
-        self.object = self.get_object()
-        if self.object.password is None:
-            serializer = CreatePasswordSerializer(self.object, data=request.data, parial=True,context={'request': request})
-        else:    
-            serializer= ChangePasswordSerializer(self.object, data=request.data, partial=True, context={'request': request}) 
-        
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"message": "Password changed successfully"},status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            Returns:
+                Response: The HTTP response object containing the result of the password change operation.
+            """
+            self.object = self.get_object()
+            if self.object.password is None:
+                serializer = CreatePasswordSerializer(self.object, data=request.data, parial=True,context={'request': request})
+            else:    
+                serializer= ChangePasswordSerializer(self.object, data=request.data, partial=True, context={'request': request}) 
+            
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message": "Password changed successfully"},status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             

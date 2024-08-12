@@ -150,3 +150,6 @@ MEDIA_URL = "https://storage.googleapis.com/{}/".format(GS_BUCKET_NAME)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'authentication.Player'
+
+#for fixe the  CSRF error we can add it after
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8081']
