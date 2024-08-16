@@ -169,10 +169,10 @@ class ConversationClearView(APIView):
 
         self.check_object_permissions(request, conversation)
         if user == conversation.player1:
-            Messages.objects.filter(sender=user, atConversation=conversation).update(
+            Messages.objects.filter(atConversation=conversation).update(
                 IsVisibleToPlayer1=False)
         else:
-            Messages.objects.filter(sender=user, atConversation=conversation).update(
+            Messages.objects.filter(atConversation=conversation).update(
                 IsVisibleToPlayer2=False)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
