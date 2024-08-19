@@ -36,7 +36,9 @@ class ConversationSerializer(serializers.ModelSerializer):
         read_only_fields = ['player1']
     
     def get_last_message(self, obj):
-        return obj.lastMessage.content
+        if obj.lastMessage:
+            return obj.lastMessage.content
+        return None
 
     def create(self, validated_data):
         player1 = self.context['request'].user
