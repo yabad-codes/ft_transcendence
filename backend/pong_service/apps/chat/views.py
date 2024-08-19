@@ -66,14 +66,18 @@ class ConversationViewSet(viewsets.ModelViewSet):
             None
         """
         user = self.request.user
-        player2_id = self.request.data.get('player2')
+        player2_username = self.request.data.get('player2_username')
 
-        # Ensure player2 is provided
-        if not player2_id:
+        # Ensure player2_username is provided
+        if not player2_username:
             raise serializers.ValidationError(
-                'player2 is required to create a conversation.')
+                'player2_username is required to create a conversation.')
 
-        player2 = Player.objects.get(pk=player2_id)
+        # Look up player2 by username
+        try:
+            player2 = Player.objects.get(username=player2_username)
+        except Player.DoesNotExist:
+            raise serializers.ValidationError('Player with the provided username does not exist.')
 
         # Check if a conversation already exists between these two players
         existing_conversation = Conversations.objects.filter(
@@ -186,8 +190,6 @@ class FriendshipViewSet(viewsets.ModelViewSet):
     - `list`: Get a list of all friendships.
     - `create`: Create a new friendship request.
     - `retrieve`: Get details of a specific friendship.
-    - `update`: Update the details of a specific friendship.
-    - `partial_update`: Partially update the details of a specific friendship.
     - `destroy`: Delete a specific friendship.
     - `accept_friendship`: Accept a friendship request.
     - `reject_friendship`: Reject a friendship request.
@@ -218,13 +220,13 @@ class FriendshipViewSet(viewsets.ModelViewSet):
                 or if a friendship already exists between the players, or if the player tries to send a friend request to themselves.
         """
         user = self.request.user
-        player2_id = self.request.data.get('player2')
+        player2_username = self.request.data.get('player2_username')
 
-        if not player2_id:
+        if not player2_username:
             raise serializers.ValidationError(
                 'player2 is required to create a friend request.')
 
-        player2 = Player.objects.get(pk=player2_id)
+        player2 = Player.objects.get(username=player2_username)
 
         # Prevent self-friending
         if player2 == user:
