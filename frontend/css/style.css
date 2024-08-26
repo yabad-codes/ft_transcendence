@@ -3,6 +3,7 @@
 
 /* Import custom CSS stylings */
 @import url("./components/Navbar.css");
+@import url("./components/ChatMessage.css");
 
 @import url("./pages/HomePage.css");
 @import url("./pages/GamePage.css");
