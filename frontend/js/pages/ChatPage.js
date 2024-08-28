@@ -251,7 +251,7 @@ export class ChatPage extends BaseHTMLElement {
         >
         <h6 class="text-start m-0">${conversationParticipant.first_name} ${conversationParticipant.last_name}</h6>
         <p class="direct_message_text text-start m-0">
-            ${conversation.last_message}
+            ${conversation.last_message != null ? conversation.last_message : ""}
         </p>
         <span
             class="direct_message_notification_icon position-absolute top-0 end-0 border border-light badge rounded-circle d-flex justify-content-center align-items-center"

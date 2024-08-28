@@ -8,6 +8,8 @@ class Conversations(models.Model):
 	player1 = models.ForeignKey(Player, models.SET_NULL, null=True, related_name='conversations_as_player1')
 	player2 = models.ForeignKey(Player, models.SET_NULL, null=True, related_name='conversations_as_player2')
 	lastMessage = models.ForeignKey('Messages', models.SET_NULL, null=True)
+	IsVisibleToPlayer1 = models.BooleanField(default=True)
+	IsVisibleToPlayer2 = models.BooleanField(default=True)
 	lastMessageTimeStamp = models.DateTimeField(auto_now=True)
 
 class Messages(models.Model):
@@ -31,4 +33,3 @@ class Friendship(models.Model):
 	player2 = models.ForeignKey(Player, models.CASCADE, related_name='friendships_as_player2')
 	friendshipTimestamp = models.DateTimeField(auto_now_add=True)
 	friendshipAccepted = models.BooleanField(default=False)
-	friendshipRejected = models.BooleanField(default=False)

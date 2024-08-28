@@ -44,4 +44,6 @@ urlpatterns = [
          MessageListCreateAPI.as_view(), name='message_list_create'),
     path('conversations/<int:conversation_id>/clear',
          ConversationClearView.as_view(), name='conversation_clear'),
+    path('conversations/<int:conversation_id>/delete',
+    ConversationDeleteView.as_view(), name='conversation_clear'),
 ]

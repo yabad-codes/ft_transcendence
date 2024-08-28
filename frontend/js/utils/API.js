@@ -14,7 +14,8 @@ const API = {
 			},
 			body: JSON.stringify(data),
 		});
-		return response.json();
+		const text = await response.text();
+		return text ? JSON.parse(text) : {};
 	},
 }
 

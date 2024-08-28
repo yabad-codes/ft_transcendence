@@ -26,6 +26,8 @@ export class ChatMessage extends BaseHTMLElement {
     userProfile.querySelector(
       "span > span"
     ).textContent = `${this._conversation.player.first_name} ${this._conversation.player.last_name}`;
+
+    this.handleDropdown();
   }
 
   set conversation(conversation) {
@@ -53,7 +55,7 @@ export class ChatMessage extends BaseHTMLElement {
     const messageContainer = this.querySelector(".chat_messages");
 
     // add new element to the chat message
-    if (messageContainer.lastElementChild) {
+    if (messageContainer.lastElementChild && this.state.messages.length > 0) {
       const lastMessage = this.state.messages[this.state.messages.length - 1];
       console.log(lastMessage);
       messageContainer.innerHTML += this.createMessageElement(lastMessage);
@@ -150,7 +152,9 @@ export class ChatMessage extends BaseHTMLElement {
       `[data-conversation-id="${this._conversation.id}"]`
     );
     console.log(conversationElement);
-    const conversationText = conversationElement.querySelector(".direct_message_text");
+    const conversationText = conversationElement.querySelector(
+      ".direct_message_text"
+    );
     conversationText.textContent =
       this.state.messages[this.state.messages.length - 1].content;
     // update the last message of the conversation and move it to the top in the conversation list
@@ -160,9 +164,12 @@ export class ChatMessage extends BaseHTMLElement {
     );
     chatPage.state.conversations[conversationIndex].last_message =
       this.state.messages[this.state.messages.length - 1].content;
-    
+
     // Remove the conversation from its current position
-    const [conversation] = chatPage.state.conversations.splice(conversationIndex, 1);
+    const [conversation] = chatPage.state.conversations.splice(
+      conversationIndex,
+      1
+    );
 
     // Add the conversation to the beginning of the array
     chatPage.state.conversations.unshift(conversation);
@@ -172,6 +179,85 @@ export class ChatMessage extends BaseHTMLElement {
     }
     conversationContainer.removeChild(conversationElement);
     conversationContainer.prepend(conversationElement);
+  }
+
+  handleDropdown() {
+    const dropdownButton = document.getElementById("dropdownButton");
+    const dropdownMenu = document.getElementById("dropdownMenu");
+
+    // Toggle dropdown menu visibility
+    dropdownButton.addEventListener("click", function () {
+      dropdownMenu.classList.toggle("show");
+    });
+
+    // Close dropdown if clicked outside
+    document.addEventListener("click", function (event) {
+      if (
+        !dropdownButton.contains(event.target) &&
+        !dropdownMenu.contains(event.target)
+      ) {
+        dropdownMenu.classList.remove("show");
+      }
+    });
+
+    // Add event listeners to each action
+    const dropdownItems = dropdownMenu.querySelectorAll(".dropdown-item");
+    dropdownItems.forEach((item) => {
+      item.addEventListener("click", (event) => {
+        event.preventDefault();
+        const action = event.target.getAttribute("data-action");
+        this.handleDropdownItemAction(action);
+        dropdownMenu.classList.remove("show");
+      });
+    });
+  }
+
+  handleDropdownItemAction(action) {
+    console.log(action);
+    switch (action) {
+      case "clear":
+        this.clearChatMessages();
+        break;
+      default:
+        this.deleteConversation();
+    }
+  }
+
+  clearChatMessages() {
+    app.api.post("/api/conversations/" + this._conversation.id + "/clear", {});
+    this.state.messages = [];
+
+    // update the last message of the conversation
+    const chatPage = document.querySelector("chat-page");
+    const conversationContainer = document.querySelector(
+      ".direct_message_container"
+    );
+    const conversationElement = conversationContainer.querySelector(
+      `[data-conversation-id="${this._conversation.id}"]`
+    );
+    conversationElement.querySelector(".direct_message_text").textContent = "";
+    const conversationIndex = chatPage.state.conversations.findIndex(
+      (conversation) => conversation.conversationID === this._conversation.id
+    );
+    chatPage.state.conversations[conversationIndex].last_message = "";
+  }
+
+  deleteConversation() {
+    app.api.post("/api/conversations/" + this._conversation.id + "/delete", {});
+    const chatPage = document.querySelector("chat-page");
+    const conversationContainer = document.querySelector(
+      ".direct_message_container"
+    );
+    const conversationElement = conversationContainer.querySelector(
+      `[data-conversation-id="${this._conversation.id}"]`
+    );
+    conversationContainer.removeChild(conversationElement);
+    const conversationIndex = chatPage.state.conversations.findIndex(
+      (conversation) => conversation.conversationID === this._conversation.id
+    );
+    chatPage.state.conversations.splice(conversationIndex, 1);
+    // remove the current parent element
+    this.parentElement.removeChild(this);
   }
 }
 
