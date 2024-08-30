@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'pong_service.apps.chat',
     'pong_service.apps.player',
     'pong_service.apps.pong',
+	'channels',
 ]
 
 MIDDLEWARE = [
@@ -82,7 +83,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'pong_service.wsgi.application'
+ASGI_APPLICATION = 'pong_service.asgi.application'
 
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [(REDIS_HOST, REDIS_PORT)],
+        },
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases

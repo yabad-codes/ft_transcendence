@@ -6,3 +6,6 @@ gunicorn==22.0.0
 Pillow==10.4.0
 bleach==6.1.0
 redis
+channels
+channels_redis
+daphne

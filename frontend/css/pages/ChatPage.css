@@ -53,7 +53,7 @@ chat-page {
   color: #7b7b7b;
 }
 
-.direct_message_notification_icon {
+.direct_message_notification_icon.style {
   font-size: xx-small;
   width: 20px;
   height: 20px;

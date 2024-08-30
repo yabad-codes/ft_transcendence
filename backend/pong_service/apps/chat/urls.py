@@ -29,6 +29,19 @@ reject_friendship = FriendshipViewSet.as_view({
     'patch': 'reject_friendship'
 })
 
+message_list_create = MessageViewSet.as_view({
+    'get': 'list',
+    'post': 'create'
+})
+
+message_detail = MessageViewSet.as_view({
+    'get': 'retrieve'
+})
+
+message_mark_as_read = MessageViewSet.as_view({
+    'patch': 'mark_as_read'
+})
+
 urlpatterns = [
     path('friendships/', friendship_list, name='friendship-list-create'),
     path('friendships/<int:pk>/', friendship_detail, name='friendship-detail'),
@@ -41,7 +54,10 @@ urlpatterns = [
     path('conversations/<int:pk>/', conversation_detail,
          name='conversation-detail'),
     path('conversations/<int:conversation_id>/messages',
-         MessageListCreateAPI.as_view(), name='message_list_create'),
+         message_list_create, name='message_list_create'),
+    path('conversations/<int:conversation_id>/messages/<int:pk>', message_detail, name='message_detail'),
+    path('conversations/<int:conversation_id>/messages/<int:pk>/mark_as_read/',
+         message_mark_as_read, name='message_mark_as_read'),
     path('conversations/<int:conversation_id>/clear',
          ConversationClearView.as_view(), name='conversation_clear'),
     path('conversations/<int:conversation_id>/delete',

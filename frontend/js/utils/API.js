@@ -17,6 +17,18 @@ const API = {
 		const text = await response.text();
 		return text ? JSON.parse(text) : {};
 	},
+	patch: async (url, data) => {
+		const response = await fetch(url, {
+			method: "PATCH",
+			headers: {
+				"Content-Type": "application/json",
+				"X-CSRFToken": Cookies.get("csrftoken"),
+			},
+			body: JSON.stringify(data),
+		});
+		const text = await response.text();
+		return text ? JSON.parse(text) : {};
+	},
 }
 
 export default API;

@@ -10,6 +10,7 @@ from rest_framework import serializers
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action
 from django.http import Http404
+from .consumers import send_message
 
 # Create your views here.
 
@@ -62,7 +63,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
             serializer (Serializer): The serializer instance.
 
         Raises:
-            ValidationError: If player2 is not provided or if a conversation already exists between the two players.
+            ValidationError: If player2_username is not provided, or if the player2 does not exist.
 
         Returns:
             None
@@ -96,7 +97,6 @@ class ConversationViewSet(viewsets.ModelViewSet):
                 existing_conversation.IsVisibleToPlayer2 = True
             existing_conversation.save()
 
-            
             # Update the serializer instance with the existing conversation
             serializer.instance = existing_conversation
         else:
@@ -104,7 +104,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
             serializer.save(player1=user, player2=player2)
 
 
-class MessageListCreateAPI(generics.ListCreateAPIView):
+class MessageViewSet(viewsets.ModelViewSet):
     """
     API view for listing and creating messages in a conversation.
 
@@ -140,7 +140,7 @@ class MessageListCreateAPI(generics.ListCreateAPIView):
             atMessage__atConversation=conversation,
             receiver=user,
             IsRead=False
-        ).update(IsRead=True)
+        ).delete()
 
         # Check if the conversation is visible to the user
         if (user == conversation.player1 and not conversation.IsVisibleToPlayer1) or \
@@ -183,6 +183,24 @@ class MessageListCreateAPI(generics.ListCreateAPIView):
             conversation.IsVisibleToPlayer1 = True
 
         conversation.save()
+
+        # Mark the message as unread for the other player
+        MessageReadStatus.objects.create(
+            atMessage=serializer.instance, receiver=conversation.player1 if self.request.user == conversation.player2 else conversation.player2)
+        # send message to the other player via websocket
+        send_message(conversation.player1.id if self.request.user ==
+                     conversation.player2 else conversation.player2.id, conversation.conversationID, serializer.data)
+
+    @action(detail=True, methods=['patch'], url_path='mark_as_read')
+    def mark_as_read(self, request, conversation_id, pk=None):
+        message = self.get_object()
+        user = request.user
+
+        # delete the message read status for the user
+        MessageReadStatus.objects.filter(
+            atMessage=message, receiver=user).delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ConversationClearView(APIView):

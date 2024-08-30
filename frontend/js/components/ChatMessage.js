@@ -17,9 +17,7 @@ export class ChatMessage extends BaseHTMLElement {
   connectedCallback() {
     super.connectedCallback();
     // Add additional logic for the game page ...
-    console.log("ChatMessage connected");
     this.submitMessage();
-    console.log(this._conversation);
     const userProfile = this.querySelector(".user_profile_bar");
     userProfile.querySelector(".avatar_image").src =
       this._conversation.player.avatar;
@@ -32,7 +30,6 @@ export class ChatMessage extends BaseHTMLElement {
 
   set conversation(conversation) {
     this._conversation = conversation;
-    console.log(conversation);
     if (conversation.id) {
       this.getMessages(conversation);
     }
@@ -57,7 +54,6 @@ export class ChatMessage extends BaseHTMLElement {
     // add new element to the chat message
     if (messageContainer.lastElementChild && this.state.messages.length > 0) {
       const lastMessage = this.state.messages[this.state.messages.length - 1];
-      console.log(lastMessage);
       messageContainer.innerHTML += this.createMessageElement(lastMessage);
       return;
     }
@@ -151,7 +147,6 @@ export class ChatMessage extends BaseHTMLElement {
     const conversationElement = conversationContainer.querySelector(
       `[data-conversation-id="${this._conversation.id}"]`
     );
-    console.log(conversationElement);
     const conversationText = conversationElement.querySelector(
       ".direct_message_text"
     );
@@ -184,10 +179,11 @@ export class ChatMessage extends BaseHTMLElement {
   handleDropdown() {
     const dropdownButton = document.getElementById("dropdownButton");
     const dropdownMenu = document.getElementById("dropdownMenu");
-
+    const clearButton = dropdownMenu.querySelector(".dropdown-item[data-action='clear']");
     // Toggle dropdown menu visibility
-    dropdownButton.addEventListener("click", function () {
+    dropdownButton.addEventListener("click", () => {
       dropdownMenu.classList.toggle("show");
+      clearButton.style.display = this._conversation.id === 0 ? "none" : "block";
     });
 
     // Close dropdown if clicked outside
@@ -213,7 +209,6 @@ export class ChatMessage extends BaseHTMLElement {
   }
 
   handleDropdownItemAction(action) {
-    console.log(action);
     switch (action) {
       case "clear":
         this.clearChatMessages();
@@ -243,6 +238,10 @@ export class ChatMessage extends BaseHTMLElement {
   }
 
   deleteConversation() {
+    if (this._conversation.id === 0) {
+      this.parentElement.removeChild(this);
+      return;
+    }
     app.api.post("/api/conversations/" + this._conversation.id + "/delete", {});
     const chatPage = document.querySelector("chat-page");
     const conversationContainer = document.querySelector(
@@ -256,6 +255,10 @@ export class ChatMessage extends BaseHTMLElement {
       (conversation) => conversation.conversationID === this._conversation.id
     );
     chatPage.state.conversations.splice(conversationIndex, 1);
+    // remove the opened conversation from the object
+    chatPage.prevOpenedConversations = null;
+    delete chatPage.openedConversations[this._conversation.id];
+
     // remove the current parent element
     this.parentElement.removeChild(this);
   }
