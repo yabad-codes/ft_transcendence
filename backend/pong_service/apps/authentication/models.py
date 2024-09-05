@@ -1,7 +1,4 @@
-# Standard library imports
 import uuid
-
-# Django library imports
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
 
@@ -12,8 +9,7 @@ class Player(AbstractUser):
     """
     id = models.UUIDField(default=uuid.uuid4, editable=False,
                           unique=True, primary_key=True)
-    api_user_id = models.IntegerField(blank=True, null=True, unique=True)
-    avatar = models.CharField(max_length=500, null=True, blank=True)
+    avatar = models.URLField(max_length=500, null=True, blank=True)
     tournament_name = models.CharField(
         max_length=30, blank=True, unique=True, null=True)
     wins = models.PositiveIntegerField(default=0)

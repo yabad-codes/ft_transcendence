@@ -27,12 +27,6 @@ REDIS_DB = os.environ.get('REDIS_DB')
 
 REDIS = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
 
-# 42 API
-UID = os.environ.get('UID')
-SECRET = os.environ.get('SECRET')
-AUTH_URL = os.environ.get('AUTH_URL')
-REDIRECT_URL = os.environ.get('REDIRECT_URL')
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
