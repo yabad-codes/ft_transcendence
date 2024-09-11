@@ -13,7 +13,7 @@ export class ChatPage extends BaseHTMLElement {
 
     this.state = state;
     this.chatSocket = null;
-    this.openedConversation = {};
+    this.openedConversations = {};
     this.prevOpenedConversation = null;
     this.registerUpdate = registerUpdate;
     this.registerLocalFunctions();
@@ -58,7 +58,7 @@ export class ChatPage extends BaseHTMLElement {
       }
       this.moveConversationToTop(data.message.conversation_id, data.message.data);
       // If the conversation is opened then add the message to the chat message
-      if (this.openedConversation[data.message.conversation_id]) {
+      if (this.openedConversations[data.message.conversation_id]) {
         const chatMessage = this.querySelector("chat-message");
         chatMessage.state.messages = [
           ...chatMessage.state.messages,
@@ -96,11 +96,11 @@ export class ChatPage extends BaseHTMLElement {
     notificationElement.classList.toggle("style", !isOpened);
     notificationElement.textContent = isOpened
       ? ""
-      : parseInt(notificationElement.textContent) + 1;
+      : parseInt(notificationElement.textContent ? notificationElement.textContent : "0") + 1;
   }
 
   moveConversationToTop(conversation_id, message) {
-    const conversationContainer = document.querySelector(
+    const conversationContainer = this.querySelector(
       ".direct_message_container"
     );
     const conversationElement = conversationContainer.querySelector(
@@ -112,21 +112,20 @@ export class ChatPage extends BaseHTMLElement {
     conversationText.textContent =
       message.content;
     // update the last message of the conversation and move it to the top in the conversation list
-    const chatPage = document.querySelector("chat-page");
-    const conversationIndex = chatPage.state.conversations.findIndex(
+    const conversationIndex = this.state.conversations.findIndex(
       (conversation) => conversation.conversationID === conversation_id
     );
-    chatPage.state.conversations[conversationIndex].last_message =
+    this.state.conversations[conversationIndex].last_message =
       message.content;
 
     // Remove the conversation from its current position
-    const [conversation] = chatPage.state.conversations.splice(
+    const [conversation] = this.state.conversations.splice(
       conversationIndex,
       1
     );
 
     // Add the conversation to the beginning of the array
-    chatPage.state.conversations.unshift(conversation);
+    this.state.conversations.unshift(conversation);
     // check if the conversation is already at the top
     if (conversationContainer.firstElementChild === conversationElement) {
       return;
@@ -144,21 +143,27 @@ export class ChatPage extends BaseHTMLElement {
     this.registerUpdate("searchFriends", this.updateUIfriends.bind(this));
   }
 
-  conversationActions() {
-    const messageButtons = this.querySelectorAll(".direct_message_btn");
+  setConversationsActions() {
+    const conversationButtons = this.querySelectorAll(".direct_message_btn");
 
-    messageButtons.forEach((button, index) => {
+    conversationButtons.forEach((button, index) => {
       const conversationID = button.getAttribute("data-conversation-id");
-      this.openedConversation[conversationID] = false;
+      this.openedConversations[conversationID] = false;
       button.addEventListener("click", (event) => {
-        if (this.openedConversation[conversationID]) {
+        if (this.openedConversations[conversationID]) {
           return;
         }
         if (this.prevOpenedConversation) {
-          this.openedConversation[this.prevOpenedConversation] = false;
+          const prevConversationBtn = this.querySelector(`.direct_message_btn[data-conversation-id='${this.prevOpenedConversation}']`);
+          prevConversationBtn.classList.remove("active");
+          this.openedConversations[this.prevOpenedConversation] = false;
         }
+
         this.prevOpenedConversation = conversationID;
-        this.openedConversation[conversationID] = true;
+        this.openedConversations[conversationID] = true;
+
+        // add style to the selected conversation
+        button.classList.add("active");
         this.openConversationEvent(index);
         this.notificationConversationMonitor(conversationID, true);
       });
@@ -166,23 +171,17 @@ export class ChatPage extends BaseHTMLElement {
   }
 
   openConversationEvent(index) {
-    const chatMessageElement = document.createElement("chat-message");
     const chatContainer = this.querySelector(".chat_message_container");
-    if (chatContainer.lastElementChild.nodeName === "CHAT-MESSAGE") {
-      // maybe I won't need this check If I track opened conversations
-      if (
-        chatContainer.lastElementChild._conversation.id ===
-        this.state.conversations[index].conversationID
-      ) {
-        return;
-      }
-      chatContainer.removeChild(chatContainer.lastElementChild);
-    }
+    const chatMessageElement = document.createElement("chat-message");
+
     const currentConversation = this.state.conversations[index];
     chatMessageElement.conversation = {
       id: currentConversation.conversationID,
       player: this.choosePlayerConversation(currentConversation),
     };
+    if (chatContainer.lastElementChild.nodeName === "CHAT-MESSAGE") {
+      chatContainer.removeChild(chatContainer.lastElementChild);
+    }
     chatContainer.appendChild(chatMessageElement);
   }
 
@@ -238,53 +237,8 @@ export class ChatPage extends BaseHTMLElement {
       button.addEventListener("click", (event) => {
         const popupContainer = this.querySelector(".popup-container");
         const player = this.choosePlayerFriend(this.state.searchFriends[index]);
-        // search the player in the conversation
-        const existConversation = this.state.conversations.find(
-          (conversation) =>
-            conversation.player1.username === player.username ||
-            conversation.player2.username === player.username
-        );
-        if (existConversation) {
-          // if the conversation already exists, open it
-          const conversationBtn = this.querySelector(
-            "button[data-conversation-id='" +
-              existConversation.conversationID +
-              "']"
-          );
-          conversationBtn.click();
-        } else {
-          // if the conversation does not exist, open a temporary conversation
-          // app.api
-          //   .post("/api/conversations/", {
-          //     player2_username: player.username,
-          //   })
-          //   .then((response) => {
-          //     this.state.conversations = [
-          //       response,
-          //       ...this.state.conversations,
-          //     ];
-          //     this.openConversationEvent(0);
-          //     const conversationBtn = this.querySelector(
-          //       "button[data-conversation-id='" + response.conversationID + "']"
-          //     );
-          //     conversationBtn.click();
-          //   });
-          const chatMessage = document.createElement("chat-message");
-          const chatContainer = this.querySelector(".chat_message_container");
-          if (chatContainer.lastElementChild.nodeName === "CHAT-MESSAGE") {
-            if (chatContainer.lastElementChild._conversation.id === 0) {
-              popupContainer.classList.add("hidden");
-              return;
-            }
-            chatContainer.removeChild(chatContainer.lastElementChild);
-          }
-          chatMessage.conversation = {
-            id: 0,
-            player: player,
-          };
-          chatContainer.appendChild(chatMessage);
-        }
 
+        this.createTemporayConversation(player);
         popupContainer.classList.add("hidden");
         const searchInput = this.querySelector(
           "input[name='popup-search-players']"
@@ -294,6 +248,40 @@ export class ChatPage extends BaseHTMLElement {
     });
   }
 
+  // create a temporary conversation with the player but not saved in the database
+  createTemporayConversation(player) {
+    // search the player in the conversation
+    const existConversation = this.state.conversations.find(
+      (conversation) =>
+        conversation.player1.username === player.username ||
+        conversation.player2.username === player.username
+    );
+    if (existConversation) {
+      // if the conversation already exists, open it
+      const conversationBtn = this.querySelector(
+        "button[data-conversation-id='" +
+          existConversation.conversationID +
+          "']"
+      );
+      conversationBtn.click();
+    } else {
+      const chatMessage = document.createElement("chat-message");
+      const chatContainer = this.querySelector(".chat_message_container");
+      if (chatContainer.lastElementChild.nodeName === "CHAT-MESSAGE") {
+        if (chatContainer.lastElementChild._conversation.id === 0) {
+          return;
+        }
+        chatContainer.removeChild(chatContainer.lastElementChild);
+      }
+      chatMessage.conversation = {
+        id: 0,
+        player: player,
+      };
+      chatContainer.appendChild(chatMessage);
+    }
+  }
+
+  // app.route.go(chat) ==> select the chat-page element
   searchConversations() {
     const searchInput = this.querySelector(
       "input[name='search-conversations']"
@@ -349,7 +337,7 @@ export class ChatPage extends BaseHTMLElement {
       return conversationElement;
     });
     conversationContainer.innerHTML = conversationElements.join("");
-    this.conversationActions();
+    this.setConversationsActions();
   }
 
   createConversationElement(conversation) {
@@ -406,6 +394,7 @@ export class ChatPage extends BaseHTMLElement {
       return friend.player1;
     }
   }
+
 }
 
 customElements.define("chat-page", ChatPage);

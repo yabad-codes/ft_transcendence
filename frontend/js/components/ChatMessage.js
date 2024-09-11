@@ -32,6 +32,7 @@ export class ChatMessage extends BaseHTMLElement {
     this._conversation = conversation;
     if (conversation.id) {
       this.getMessages(conversation);
+      ("I am here");
     }
   }
 
@@ -51,13 +52,14 @@ export class ChatMessage extends BaseHTMLElement {
   updateUIMessages() {
     const messageContainer = this.querySelector(".chat_messages");
 
+    (messageContainer);
     // add new element to the chat message
     if (messageContainer.lastElementChild && this.state.messages.length > 0) {
       const lastMessage = this.state.messages[this.state.messages.length - 1];
       messageContainer.innerHTML += this.createMessageElement(lastMessage);
       return;
     }
-    console.log(this.state.messages);
+    (this.state.messages);
     const messageElements = this.state.messages.map((message) => {
       const messageElement = this.createMessageElement(message);
       return messageElement;
@@ -72,7 +74,7 @@ export class ChatMessage extends BaseHTMLElement {
 
   createNewMessage() {
     const messageInput = this.querySelector("input[name='message-input']");
-    console.log(messageInput);
+    (messageInput);
     const message = {
       content: messageInput.value,
     };
@@ -112,6 +114,8 @@ export class ChatMessage extends BaseHTMLElement {
       this.state.newConversation,
       ...chatPage.state.conversations,
     ];
+    chatPage.openedConversations[this.state.newConversation.conversationID] = true;
+    chatPage.prevOpenedConversation = this.state.newConversation.conversationID;
   }
 
   createMessageElement(message) {

@@ -61,6 +61,15 @@ chat-page {
 }
 
 .direct_message_btn {
+  background-color: transparent;
+  transition: background 0.2s ease-in-out;
+}
+
+.direct_message_btn:hover {
+  background-color: #f0f2f5;
+}
+
+.direct_message_btn.active {
   background-color: #f0f2f5;
 }
 
