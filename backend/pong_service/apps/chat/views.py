@@ -63,7 +63,8 @@ class ConversationViewSet(viewsets.ModelViewSet):
             serializer (Serializer): The serializer instance.
 
         Raises:
-            ValidationError: If player2_username is not provided, or if the player2 does not exist.
+            ValidationError: If player2_username is not provided, or if the player2 does not exist, 
+            or if the user has blocked the other player.
 
         Returns:
             None
@@ -82,6 +83,11 @@ class ConversationViewSet(viewsets.ModelViewSet):
         except Player.DoesNotExist:
             raise serializers.ValidationError(
                 'Player with the provided username does not exist.')
+
+        # Check if the user has blocked the other player or vice versa
+        if BlockedUsers.objects.filter(Q(player=user, blockedUser=player2) | Q(player=player2, blockedUser=user)).exists():
+            raise serializers.ValidationError(
+                'You cannot start a conversation with this player.')
 
         # Check if a conversation already exists between these two players
         existing_conversation = Conversations.objects.filter(
@@ -162,33 +168,39 @@ class MessageViewSet(viewsets.ModelViewSet):
         Returns:
             None
         """
+        user = self.request.user
         conversation_id = self.kwargs['conversation_id']
         conversation = get_object_or_404(Conversations, pk=conversation_id)
 
         # Check if the conversation is visible to the user
-        if (self.request.user == conversation.player1 and not conversation.IsVisibleToPlayer1) or \
-                (self.request.user == conversation.player2 and not conversation.IsVisibleToPlayer2):
+        if (user == conversation.player1 and not conversation.IsVisibleToPlayer1) or \
+                (user == conversation.player2 and not conversation.IsVisibleToPlayer2):
             raise Http404("Conversation not found or has been deleted.")
 
-        serializer.save(sender=self.request.user,
+        # Check if the conversation is blocked by the player1 or player2
+        if conversation.IsBlockedByPlayer1 or conversation.IsBlockedByPlayer2:
+            raise serializers.ValidationError(
+                'You cannot send a message to this conversation.')
+
+        serializer.save(sender=user,
                         atConversation=conversation)
 
         # Update last message
         conversation.lastMessage = serializer.instance
 
         # Check if the other player's visibility needs to be reset
-        if self.request.user == conversation.player1 and not conversation.IsVisibleToPlayer2:
+        if user == conversation.player1 and not conversation.IsVisibleToPlayer2:
             conversation.IsVisibleToPlayer2 = True
-        elif self.request.user == conversation.player2 and not conversation.IsVisibleToPlayer1:
+        elif user == conversation.player2 and not conversation.IsVisibleToPlayer1:
             conversation.IsVisibleToPlayer1 = True
 
         conversation.save()
 
         # Mark the message as unread for the other player
         MessageReadStatus.objects.create(
-            atMessage=serializer.instance, receiver=conversation.player1 if self.request.user == conversation.player2 else conversation.player2)
+            atMessage=serializer.instance, receiver=conversation.player1 if user == conversation.player2 else conversation.player2)
         # send message to the other player via websocket
-        send_message(conversation.player1.id if self.request.user ==
+        send_message(conversation.player1.id if user ==
                      conversation.player2 else conversation.player2.id, conversation.conversationID, serializer.data)
 
     @action(detail=True, methods=['patch'], url_path='mark_as_read')
@@ -329,6 +341,11 @@ class FriendshipViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(
                 'A friendship already exists between these players.')
 
+        # Prevent sending a friend request to a blocked user or from a blocked user
+        if BlockedUsers.objects.filter(Q(player=user, blockedUser=player2) | Q(player=player2, blockedUser=user)).exists():
+            raise serializers.ValidationError(
+                f'You are blocked or have blocked {player2_username}.')
+
         # Create a new friendship request
         serializer.save(player1=user, player2=player2)
 
@@ -368,3 +385,87 @@ class FriendshipViewSet(viewsets.ModelViewSet):
             friendship.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_403_FORBIDDEN)
+
+
+class BlockedUsersViewSet(viewsets.ViewSet):
+    """
+    ViewSet for managing blocked users.
+
+    This ViewSet provides the following actions:
+    - `block_user`: Block a user.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    @action(detail=False, methods=['patch'])
+    def block_user(self, request, username=None):
+        """
+        Block a user.
+
+        Args:
+            request (Request): The request object.
+            username (str): The username of the user to block.
+
+        Returns:
+            Response: The response indicating the success or failure of the operation.
+        """
+        user = request.user
+        blocked_user = get_object_or_404(Player, username=username)
+
+        # Prevent blocking oneself
+        if blocked_user == user:
+            return Response({'error': 'You cannot block yourself.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if the user is already blocked
+        if BlockedUsers.objects.filter(player=user, blockedUser=blocked_user).exists():
+            return Response({'error': 'User is already blocked.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Remove any existing friendships between the users
+        Friendship.objects.filter(models.Q(player1=user, player2=blocked_user) |
+                                  models.Q(player1=blocked_user, player2=user)).delete()
+
+        # Block the conversation between the users by setting IsBlockedByPlayer1 or IsBlockedByPlayer2 to True
+        conversation = Conversations.objects.filter(models.Q(player1=user, player2=blocked_user) |
+                                                    models.Q(player1=blocked_user, player2=user)).first()
+        if conversation:
+            if user == conversation.player1:
+                conversation.IsBlockedByPlayer1 = True
+            else:
+                conversation.IsBlockedByPlayer2 = True
+            conversation.save()
+
+        BlockedUsers.objects.create(player=user, blockedUser=blocked_user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=['delete'])
+    def unblock_user(self, request, username=None):
+        """
+        Unblock a user.
+
+        Args:
+            request (Request): The request object.
+            username (str): The username of the user to unblock.
+
+        Returns:
+            Response: The response indicating the success or failure of the operation.
+        """
+        user = request.user
+        blocked_user = get_object_or_404(Player, username=username)
+
+        # Check if the user is blocked
+        blocked_user = BlockedUsers.objects.filter(player=user, blockedUser=blocked_user).first()
+        if blocked_user:
+            blocked_user.delete()
+
+            # Unblock the conversation between the users by setting IsBlockedByPlayer1 or IsBlockedByPlayer2 to False
+            conversation = Conversations.objects.filter(models.Q(player1=user, player2=blocked_user.blockedUser) |
+                                                        models.Q(player1=blocked_user.blockedUser, player2=user)).first()
+            if conversation:
+                if user == conversation.player1:
+                    conversation.IsBlockedByPlayer1 = False
+                else:
+                    conversation.IsBlockedByPlayer2 = False
+                conversation.save()
+
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({'error': 'User is not blocked.'}, status=status.HTTP_400_BAD_REQUEST)

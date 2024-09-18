@@ -177,6 +177,8 @@ export class ChatPage extends BaseHTMLElement {
     const currentConversation = this.state.conversations[index];
     chatMessageElement.conversation = {
       id: currentConversation.conversationID,
+      IsBlockedByMe: currentConversation.IsBlockedByMe,
+      IsBlockedByOtherPlayer: currentConversation.IsBlockedByOtherPlayer,                                                                                                                                                                   
       player: this.choosePlayerConversation(currentConversation),
     };
     if (chatContainer.lastElementChild.nodeName === "CHAT-MESSAGE") {
@@ -238,7 +240,7 @@ export class ChatPage extends BaseHTMLElement {
         const popupContainer = this.querySelector(".popup-container");
         const player = this.choosePlayerFriend(this.state.searchFriends[index]);
 
-        this.createTemporayConversation(player);
+        this.createTemporayConversationOrOpenExistingOne(player);
         popupContainer.classList.add("hidden");
         const searchInput = this.querySelector(
           "input[name='popup-search-players']"
@@ -249,7 +251,7 @@ export class ChatPage extends BaseHTMLElement {
   }
 
   // create a temporary conversation with the player but not saved in the database
-  createTemporayConversation(player) {
+  createTemporayConversationOrOpenExistingOne(player) {
     // search the player in the conversation
     const existConversation = this.state.conversations.find(
       (conversation) =>
@@ -273,10 +275,13 @@ export class ChatPage extends BaseHTMLElement {
         }
         chatContainer.removeChild(chatContainer.lastElementChild);
       }
-      chatMessage.conversation = {
-        id: 0,
-        player: player,
-      };
+      chatMessage._conversation.id = 0;
+      chatMessage._conversation.player = player;
+      if (this.prevOpenedConversation) { // close the previous conversation if exists
+        const prevConversationBtn = this.querySelector(`.direct_message_btn[data-conversation-id='${this.prevOpenedConversation}']`);
+        prevConversationBtn.classList.remove("active");
+        this.openedConversations[this.prevOpenedConversation] = false;
+      }
       chatContainer.appendChild(chatMessage);
     }
   }

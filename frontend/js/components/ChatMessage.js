@@ -8,7 +8,7 @@ export class ChatMessage extends BaseHTMLElement {
       messages: [],
       newConversation: null,
     });
-    this._conversation = { id: 0, player: null };
+    this._conversation = { id: 0, IsBlockedByMe: false, IsBlockedByOtherPlayer: false ,player: null };
     this.state = state;
     this.registerUpdate = registerUpdate;
     this.registerLocalFunctions();
@@ -26,13 +26,13 @@ export class ChatMessage extends BaseHTMLElement {
     ).textContent = `${this._conversation.player.first_name} ${this._conversation.player.last_name}`;
 
     this.handleDropdown();
+    this.updateMessageInputUIBasedOnBlockStatus();
   }
 
   set conversation(conversation) {
     this._conversation = conversation;
     if (conversation.id) {
       this.getMessages(conversation);
-      ("I am here");
     }
   }
 
@@ -46,7 +46,7 @@ export class ChatMessage extends BaseHTMLElement {
       .get("/api/conversations/" + conversation.id + "/messages")
       .then((messages) => {
         this.state.messages = messages;
-      });
+      })
   }
 
   updateUIMessages() {
@@ -59,7 +59,6 @@ export class ChatMessage extends BaseHTMLElement {
       messageContainer.innerHTML += this.createMessageElement(lastMessage);
       return;
     }
-    (this.state.messages);
     const messageElements = this.state.messages.map((message) => {
       const messageElement = this.createMessageElement(message);
       return messageElement;
@@ -184,10 +183,15 @@ export class ChatMessage extends BaseHTMLElement {
     const dropdownButton = document.getElementById("dropdownButton");
     const dropdownMenu = document.getElementById("dropdownMenu");
     const clearButton = dropdownMenu.querySelector(".dropdown-item[data-action='clear']");
+    const blockButton = dropdownMenu.querySelector(".dropdown-item[data-action='block']");
+    const unblockButton = dropdownMenu.querySelector(".dropdown-item[data-action='unblock']");
+
     // Toggle dropdown menu visibility
     dropdownButton.addEventListener("click", () => {
       dropdownMenu.classList.toggle("show");
       clearButton.style.display = this._conversation.id === 0 ? "none" : "block";
+      blockButton.style.display = this._conversation.IsBlockedByMe ? "none" : "block";
+      unblockButton.style.display = this._conversation.IsBlockedByMe ? "block" : "none";
     });
 
     // Close dropdown if clicked outside
@@ -217,8 +221,47 @@ export class ChatMessage extends BaseHTMLElement {
       case "clear":
         this.clearChatMessages();
         break;
+      case "block":
+        this.blockUser();
+        break;
+      case "unblock":
+        this.unblockUser();
+        break;
       default:
         this.deleteConversation();
+    }
+  }
+
+  blockUser() {
+    app.api.patch("/api/profile/" + this._conversation.player.username + "/block", {});
+    this._conversation.IsBlockedByMe = true;
+    this.updateMessageInputUIBasedOnBlockStatus();
+  }
+
+  unblockUser() {
+    app.api.delete("/api/profile/" + this._conversation.player.username + "/unblock");
+    this._conversation.IsBlockedByMe = false;
+    this.updateMessageInputUIBasedOnBlockStatus();
+  }
+
+  updateMessageInputUIBasedOnBlockStatus() {
+    const messageInputContainer = this.querySelector(".send_message_container");
+    const messageInputContainerParent = messageInputContainer.parentElement;
+    const blockMessage = messageInputContainerParent.querySelector("p");
+
+    if (this._conversation.IsBlockedByMe) {
+      messageInputContainer.style.display = "none";
+      blockMessage.style.display = "block";
+      blockMessage.textContent = "You have blocked this user, you can't send messages.";
+    }
+    else if (this._conversation.IsBlockedByOtherPlayer) {
+      messageInputContainer.style.display = "none";
+      blockMessage.style.display = "block";
+      blockMessage.textContent = "This user has blocked you, you can't send messages.";
+    }
+    else {
+      messageInputContainer.style.display = "flex";
+      blockMessage.style.display = "none";
     }
   }
 

@@ -29,6 +29,15 @@ const API = {
 		const text = await response.text();
 		return text ? JSON.parse(text) : {};
 	},
+	delete: async (url) => {
+		const response = await fetch(url, {
+			method: "DELETE",
+			headers: {
+				"X-CSRFToken": Cookies.get("csrftoken"),
+			},
+		});
+		return response;
+	},
 }
 
 export default API;

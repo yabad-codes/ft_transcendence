@@ -10,6 +10,8 @@ class Conversations(models.Model):
 	lastMessage = models.ForeignKey('Messages', models.SET_NULL, null=True)
 	IsVisibleToPlayer1 = models.BooleanField(default=True)
 	IsVisibleToPlayer2 = models.BooleanField(default=True)
+	IsBlockedByPlayer1 = models.BooleanField(default=False)
+	IsBlockedByPlayer2 = models.BooleanField(default=False)
 	lastMessageTimeStamp = models.DateTimeField(auto_now=True)
 
 class Messages(models.Model):
@@ -33,3 +35,9 @@ class Friendship(models.Model):
 	player2 = models.ForeignKey(Player, models.CASCADE, related_name='friendships_as_player2')
 	friendshipTimestamp = models.DateTimeField(auto_now_add=True)
 	friendshipAccepted = models.BooleanField(default=False)
+
+class BlockedUsers(models.Model):
+	blockID = models.BigAutoField(primary_key=True)
+	player = models.ForeignKey(Player, models.CASCADE)
+	blockedUser = models.ForeignKey(Player, models.CASCADE, related_name='blocked_user')
+	blockTimestamp = models.DateTimeField(auto_now_add=True)

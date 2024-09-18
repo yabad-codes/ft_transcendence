@@ -7,7 +7,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import login, logout
 from pong_service.permissions import IsUnauthenticated
-
+from pong_service.apps.chat.models import BlockedUsers
+from django.db.models import Q
+from django.http import Http404
 
 class LogoutView(APIView):
     """
@@ -73,6 +75,16 @@ class PlayerListView(ListAPIView):
     serializer_class = PlayerListSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        """
+        Exclude blocked users from the queryset.
+        """
+        blocked_users = BlockedUsers.objects.filter(
+            Q(player=self.request.user) | Q(blockedUser=self.request.user)
+        )
+        blocked_user_ids = blocked_users.values_list('blockedUser', flat=True)
+        return Player.objects.exclude(id__in=blocked_user_ids)
+
 
 class PlayerPublicProfileView(generics.RetrieveAPIView):
     """
@@ -82,3 +94,15 @@ class PlayerPublicProfileView(generics.RetrieveAPIView):
     serializer_class = PlayerListSerializer
     lookup_field = 'username'
     permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        """
+        Exclude blocked users from the queryset.
+        """
+        username = self.kwargs['username']
+        if BlockedUsers.objects.filter(
+            Q(player=self.request.user, blockedUser__username=username) |
+            Q(player__username=username, blockedUser=self.request.user)
+        ).exists():
+            raise Http404("Player not found")
+        return super().get_object()

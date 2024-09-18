@@ -31,15 +31,30 @@ class ConversationSerializer(serializers.ModelSerializer):
     unread_messages_count = serializers.SerializerMethodField()
     player1 = PlayerListSerializer(read_only=True)
     player2 = PlayerListSerializer(read_only=True)
-
+    IsBlockedByMe = serializers.SerializerMethodField()
+    IsBlockedByOtherPlayer = serializers.SerializerMethodField()
     player2_username = serializers.CharField(write_only=True)
 
     class Meta:
         model = Conversations
-        fields = ['conversationID', 'player1', 'player2', 'player2_username', 'IsVisibleToPlayer1', 'IsVisibleToPlayer2',
+        fields = ['conversationID', 'player1', 'player2', 'player2_username', 'IsVisibleToPlayer1', 'IsVisibleToPlayer2', 'IsBlockedByMe', 'IsBlockedByOtherPlayer',
                   'last_message', 'unread_messages_count', 'lastMessageTimeStamp']
         read_only_fields = ['player1',
-                            'IsVisibleToPlayer1', 'IsVisibleToPlayer2']
+                            'IsVisibleToPlayer1', 'IsBlockedByPlayer1', 'IsBlockedByPlayer2' ,'IsVisibleToPlayer2']
+
+    def get_IsBlockedByMe(self, obj):
+        user = self.context['request'].user
+        if obj.player1 == user:
+            return obj.IsBlockedByPlayer1
+        else:
+            return obj.IsBlockedByPlayer2
+    
+    def get_IsBlockedByOtherPlayer(self, obj):
+        user = self.context['request'].user
+        if obj.player1 == user:
+            return obj.IsBlockedByPlayer2
+        else:
+            return obj.IsBlockedByPlayer1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
 
     def get_last_message(self, obj):
         # Ensure we're working with a Conversations instance
