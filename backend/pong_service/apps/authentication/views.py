@@ -6,27 +6,86 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import login, logout
-from .helpers import set_cookie
+import pong_service.apps.authentication.helpers as helpers
 import logging
 from django.shortcuts import redirect
-
+from django.http import JsonResponse
 from rest_framework_simplejwt.views import (
     TokenObtainPairView, 
     TokenRefreshView
 )
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.conf import settings
+from django.db.utils import IntegrityError
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 class OAuthLoginView(APIView):
+    permission_classes = (AllowAny,)
+
     def get(self, request):
         logger.debug('Redirecting to OAuth login page')
+        logger.info('AUTH_URL: %s', settings.AUTH_URL)
         return redirect(settings.AUTH_URL)
     
 class OAuthCallbackView(APIView):
+    permission_classes = (AllowAny,)
+
     def get(self, request):
-        pass
+        logger.debug('Received OAuth callback')
+        
+        code = request.GET.get('code')
+        if not code:
+            return self._response_with_message('No code in request', status.HTTP_400_BAD_REQUEST)
+        
+        access_token = self._get_access_token(code)
+        if not access_token:
+            return self._response_with_message('Failed to get access token', status.HTTP_400_BAD_REQUEST)
+        
+        user_data = helpers.get_42_user_data(access_token)
+        if not user_data:
+            return self._response_with_message('Failed to get user data', status.HTTP_400_BAD_REQUEST)
+        
+        user_data = helpers.construct_user_data(user_data)
+        try:
+            if helpers.user_already_exists(user_data):
+                return self._login_user(request, user_data)
+            return self._create_user(request, user_data)
+        except IntegrityError as e:
+            return self._response_with_message('Failed to create user', status.HTTP_400_BAD_REQUEST)
+        except KeyError as e:
+            return self._response_with_message('Failed to get user data', status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return self._response_with_message('An error occurred', status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def _response_with_message(self, message, status_code):
+        logger.debug(message)
+        return Response({'message': message}, status=status_code)
+    
+    def _get_access_token(self, code):
+        try:
+            token_response = helpers.get_42_token(code)
+            logger.debug('Access token response: %s', token_response)
+            return token_response.get('access_token')
+        except Exception as e:
+            logger.error(f'Failed to get access token: {e}')
+            return None
+        
+    def _login_user(self, request, user_data):
+        user = Player.objects.get(api_user_id=user_data['api_user_id'])
+        refresh_token = RefreshToken.for_user(user)
+        access_token = str(refresh_token.access_token)
+        response = JsonResponse({'status': 'success', 'message': 'Login successful'})
+        helpers.set_cookie(response, 'access', access_token, settings.AUTH_COOKIE_ACCESS_MAX_AGE)
+        helpers.set_cookie(response, 'refresh', refresh_token, settings.AUTH_COOKIE_REFRESH_MAX_AGE)
+        logger.debug('User %s logged in successfully', user.username)
+        return response
+    
+    def _create_user(self, request, user_data):
+        player = create_player(user_data)
+        logger.debug('User %s created successfully', player.username)
+        return self._response_with_message('User created successfully', status.HTTP_201_CREATED)
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     """
@@ -46,13 +105,13 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         """
         response = super().post(request, *args, **kwargs)
         if response.status_code == 200:
-            response = set_cookie(
+            response = helpers.set_cookie(
                 response,
                 'access',
                 response.data['access'],
                 settings.AUTH_COOKIE_ACCESS_MAX_AGE
             )
-            response = set_cookie(
+            response = helpers.set_cookie(
                 response,
             	'refresh',
             	response.data['refresh'],
@@ -85,7 +144,7 @@ class CustomTokenRefreshView(TokenRefreshView):
             request._full_data = data
         response = super().post(request, *args, **kwargs)
         if response.status_code == 200:
-            response = set_cookie(
+            response = helpers.set_cookie(
                 response,
                 'access',
                 response.data['access'],
