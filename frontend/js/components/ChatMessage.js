@@ -67,12 +67,18 @@ export class ChatMessage extends BaseHTMLElement {
   }
 
   submitMessage() {
-    const submitButton = this.querySelector("button[type='submit']");
-    submitButton.addEventListener("click", this.createNewMessage.bind(this));
+    const submitForm = this.querySelector(".send_message_container");
+    submitForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      this.createNewMessage();
+    });
   }
 
   createNewMessage() {
     const messageInput = this.querySelector("input[name='message-input']");
+    if (!messageInput.value) {
+      return;
+    }
     (messageInput);
     const message = {
       content: messageInput.value,
@@ -124,21 +130,19 @@ export class ChatMessage extends BaseHTMLElement {
       ? `
 	<span class="mine_message fw-medium">
 		<p
-		class="pe-4 ps-4 pt-2 pb-2 d-inline-block rounded-top-4 rounded-end-4 me-2"
+		class="p-3 d-inline-block rounded-top-4 rounded-end-4 me-2"
 		>
 		${message.content}
 		</p>
-		3:15PM
 	</span>
 	`
       : `
 	<span class="friend_message fw-medium align-self-end">
 		<p
-		class="pe-4 ps-4 pt-2 pb-2 d-inline-block text-light rounded-top-4 rounded-start-4 me-2"
+		class="p-3 d-inline-block text-light rounded-top-4 rounded-start-4 me-2"
 		>
 		${message.content}
 		</p>
-		3:15PM
 	</span>
 	`;
   }
@@ -235,12 +239,28 @@ export class ChatMessage extends BaseHTMLElement {
   blockUser() {
     app.api.patch("/api/profile/" + this._conversation.player.username + "/block", {});
     this._conversation.IsBlockedByMe = true;
+    if (this._conversation.id !== 0) {
+      // set the conversation to be blocked
+      const chatPage = document.querySelector("chat-page");
+      const conversationIndex = chatPage.state.conversations.findIndex(
+        (conversation) => conversation.conversationID === this._conversation.id
+      );
+      chatPage.state.conversations[conversationIndex].IsBlockedByMe = true;
+    }
+
+
     this.updateMessageInputUIBasedOnBlockStatus();
   }
 
   unblockUser() {
     app.api.delete("/api/profile/" + this._conversation.player.username + "/unblock");
     this._conversation.IsBlockedByMe = false;
+    if (this._conversation.id !== 0) {
+      // set the conversation to be unblocked
+      const chatPage = document.querySelector("chat-page");
+      const conversationIndex = chatPage.state.conversations.findIndex((conversation) => conversation.conversationID === this._conversation.id);
+      chatPage.state.conversations[conversationIndex].IsBlockedByMe = false;
+    }
     this.updateMessageInputUIBasedOnBlockStatus();
   }
 

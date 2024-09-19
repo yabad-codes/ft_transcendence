@@ -73,6 +73,13 @@ chat-page {
   background-color: #f0f2f5;
 }
 
+.direct_message_text {
+  max-width: 500px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .opacity-7 {
   opacity: 7%;
 }
@@ -127,18 +134,23 @@ chat-page {
   font-size: x-small;
   color: rgba(123, 123, 123, 0.8);
   max-width: 40%;
-  display: inline-flex;
-  align-items: center;
   margin-bottom: 10px;
 }
 
 .chat_messages span p {
+  max-width: 600px;
   font-size: 16px;
   margin: 0;
+  word-wrap: break-word;
+}
+
+.chat_messages .friend_message {
+  /* text-align: right; */
 }
 
 .chat_messages .friend_message p {
   background-color: #0097b2;
+  /* text-align: left; */
 }
 
 .chat_messages .mine_message p {
