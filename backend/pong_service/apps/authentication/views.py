@@ -7,12 +7,26 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import login, logout
 from .helpers import set_cookie
+import logging
+from django.shortcuts import redirect
 
 from rest_framework_simplejwt.views import (
     TokenObtainPairView, 
     TokenRefreshView
 )
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+class OAuthLoginView(APIView):
+    def get(self, request):
+        logger.debug('Redirecting to OAuth login page')
+        return redirect(settings.AUTH_URL)
+    
+class OAuthCallbackView(APIView):
+    def get(self, request):
+        pass
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     """
