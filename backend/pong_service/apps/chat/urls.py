@@ -42,6 +42,10 @@ message_mark_as_read = MessageViewSet.as_view({
     'patch': 'mark_as_read'
 })
 
+list_blocked_users = BlockedUsersViewSet.as_view({
+    'get': 'list',
+})
+
 block_user = BlockedUsersViewSet.as_view({
     'patch': 'block_user',
 })
@@ -72,4 +76,5 @@ urlpatterns = [
     ConversationDeleteView.as_view(), name='conversation_clear'),
     path('profile/<str:username>/block', block_user, name='block_user'),
     path('profile/<str:username>/unblock', unblock_user, name='unblock_user'),
+    path('blocked/', list_blocked_users, name='list_blocked_users'),
 ]

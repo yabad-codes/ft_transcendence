@@ -393,9 +393,26 @@ class BlockedUsersViewSet(viewsets.ViewSet):
 
     This ViewSet provides the following actions:
     - `block_user`: Block a user.
+    - `unblock_user`: Unblock a user.
     """
 
+    serializer_class = BlockSerializer
     permission_classes = [IsAuthenticated]
+
+    def list(self, request):
+        """
+        Get a list of blocked users.
+
+        Args:
+            request (Request): The request object.
+
+        Returns:
+            Response: The response containing the list of blocked users.
+        """
+        user = request.user
+        blocked_users = BlockedUsers.objects.filter(player=user)
+        serializer = BlockSerializer(blocked_users, many=True)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['patch'])
     def block_user(self, request, username=None):

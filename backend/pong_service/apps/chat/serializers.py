@@ -120,3 +120,11 @@ class FriendshipSerializer(serializers.ModelSerializer):
         friendship = Friendship.objects.create(
             player1=player1, player2=player2)
         return friendship
+
+
+class BlockSerializer(serializers.ModelSerializer):
+
+    blockedUser = PlayerListSerializer(read_only=True)
+    class Meta:
+        model = BlockedUsers
+        fields = ['blockID', 'blockedUser', 'blockTimestamp']
