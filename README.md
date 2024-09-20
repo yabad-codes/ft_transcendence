@@ -1,3 +1,4 @@
 # ft_transcendence
 ## Three-Tier Architecture
-![three tier architecture](https://github.com/user-attachments/assets/4f74eec3-f019-4e00-a089-c7e0148506f5)
+
+<img width="1282" alt="Screen Shot 2024-09-20 at 9 05 52 PM" src="https://github.com/user-attachments/assets/aff2dada-23e3-4e97-8c7b-75bf3eef2bd2">
