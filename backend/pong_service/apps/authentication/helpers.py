@@ -1,6 +1,7 @@
 import bleach
 from rest_framework import serializers
 from .models import Player
+from django.conf import settings
 
 
 def sanitize_and_validate_data(validated_data):
@@ -97,3 +98,27 @@ def get_player_representation(player):
 		'last_name': player.last_name,
 		'avatar': player.avatar if player.avatar else None
 	}
+
+def set_cookie(response, key, value, max_age):
+    """
+    Set a cookie in the response object.
+    
+    Args:
+		response (Response): The response object.
+		key (str): The cookie key.
+		value (str): The cookie value.
+		max_age (int): The cookie's max age in seconds.
+  
+    Returns:
+		Response: The response object with the cookie set.
+    """
+    response.set_cookie(
+        key=key,
+        value=value,
+        max_age=max_age,
+        secure=settings.AUTH_COOKIE_SECURE,
+        httponly=settings.AUTH_COOKIE_HTTP_ONLY,
+        samesite=settings.AUTH_COOKIE_SAMESITE,
+        path=settings.AUTH_COOKIE_PATH
+    )
+    return response
