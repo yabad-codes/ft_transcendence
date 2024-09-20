@@ -6,6 +6,7 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import login, logout
+from pong_service.permissions import IsUnauthenticated
 from .helpers import set_cookie
 
 from rest_framework_simplejwt.views import (
@@ -88,7 +89,7 @@ class LogoutView(APIView):
 
     permission_classes = (IsAuthenticated,)
 
-    def post(self, request):
+    def get(self, request):
         """
         Handle POST request to log out the user.
 
@@ -127,7 +128,7 @@ class RegisterView(ListCreateAPIView):
     """
     queryset = Player.objects.all()
     serializer_class = PlayerRegistrationSerializer
-    permission_classes = (AllowAny,)
+    permission_classes = (IsUnauthenticated,)
 
 
 class PlayerListView(ListAPIView):

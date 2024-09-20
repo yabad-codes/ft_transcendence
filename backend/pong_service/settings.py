@@ -169,10 +169,17 @@ USE_TZ = True
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'pong_service', 'avatars')
+# STATIC_URL = '/static/'
+
 STATIC_URL = '/static/'
+STATIC_ROOT = '/app/static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'authentication.Player'
+
+CSRF_TRUSTED_ORIGINS = [
+	'http://localhost:8081'
+]

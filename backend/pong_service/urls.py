@@ -22,9 +22,11 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('pong_service.apps.authentication.urls')),
+    path('api/', include('pong_service.apps.chat.urls')),
 ]
 
 # Add media URL configuration for development
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-
+# Add static URL configuration for development
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
