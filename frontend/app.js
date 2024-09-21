@@ -5,6 +5,7 @@ import { HomePage } from "./js/pages/HomePage.js";
 import { LoginPage } from "./js/pages/LoginPage.js";
 import { ChatMessage } from "./js/components/ChatMessage.js";
 import API from "./js/utils/API.js";
+import { LeaderboardPage } from "./js/pages/LeaderboardPage.js";
 import Router from "./js/utils/Router.js";
 
 // global app object that is available on all JS source code, later will be modified as our needs
