@@ -3,6 +3,8 @@ import { ChatPage } from "./js/pages/ChatPage.js";
 import { GamePage } from "./js/pages/GamePage.js";
 import { HomePage } from "./js/pages/HomePage.js";
 import { LoginPage } from "./js/pages/LoginPage.js";
+import { ChatMessage } from "./js/components/ChatMessage.js";
+import API from "./js/utils/API.js";
 import { LeaderboardPage } from "./js/pages/LeaderboardPage.js";
 import Router from "./js/utils/Router.js";
 
@@ -10,8 +12,11 @@ import Router from "./js/utils/Router.js";
 window.app = {};
 
 app.router = Router;
+app.api = API;
 app.isLoggedIn = true;
-
+app.profile = {
+  username: "aelmaar",
+};
 window.addEventListener("DOMContentLoaded", () => {
   app.router.init();
 });
