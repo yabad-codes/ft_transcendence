@@ -19,7 +19,7 @@ export class LeaderboardPage extends BaseHTMLElement {
 	try {
 		const response = await api.getPlayers();
 		//! Backend API response should include a success member like this : { success: true, players: [] }
-		if (response[0]) {
+		if (response.success) {
 			this.players = response;
 			this.calculateRank();
 		}
