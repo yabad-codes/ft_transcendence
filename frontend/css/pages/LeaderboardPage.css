@@ -1,4 +1,4 @@
-.container-fluid {
+leaderboard-page .container-fluid {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -31,6 +31,11 @@ img.trophy-icon {
     gap: 20px;
     justify-content: space-between;
     padding: 20px 39px;
+	transition: all 0.3s ease;
+}
+
+.player-card:hover {
+	transform: scale(1.05);
 }
 
 .rank-container {
@@ -101,8 +106,7 @@ img.trophy-icon {
 
 .matches-container,
 .wins-container,
-.ratio-container,
-.achievements-container {
+.losses-container {
     justify-content: center;
     align-self: stretch;
     display: flex;
@@ -113,7 +117,7 @@ img.trophy-icon {
 
 .matches-value,
 .wins-value,
-.ratio-value,
+.losses-value,
 .achievements-value {
 	font-weight: 600;
 	font-size: 1.2rem;
@@ -121,7 +125,7 @@ img.trophy-icon {
 
 .matches-label,
 .wins-label,
-.ratio-label,
+.losses-label,
 .achievements-label {
 	color: #8b8b8b;
 	font-weight: 400;
@@ -134,4 +138,90 @@ img.trophy-icon {
     width: 27px;
     align-self: stretch;
     margin: auto 0;
+}
+
+@keyframes pulse {
+	0% { transform: scale(1); }
+	50% { transform: scale(1.05); }
+	100% { transform: scale(1); }
+}
+
+@keyframes searchAnimation {
+	0% { transform: translateX(0); }
+	25% { transform: translateX(5px); }
+	75% { transform: translateX(-5px); }
+	100% { transform: translateX(0); }
+}
+
+.trophy-icon {
+	font-size: 6rem;
+	animation: pulse 2s infinite;
+}
+
+.search-animation {
+	display: inline-block;
+	animation: searchAnimation 2s infinite;
+}
+
+.no-player-card {
+	background-color: #f8f9fa;
+	border-radius: 15px;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	transition: all 0.3s ease;
+}
+
+.no-player-card:hover {
+	transform: translateY(-5px);
+	box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-refresh {
+	transition: all 0.3s ease;
+}
+
+.btn-refresh:hover {
+	transform: rotate(15deg);
+}
+
+@keyframes float {
+	0% { transform: translateY(0px); }
+	50% { transform: translateY(-10px); }
+	100% { transform: translateY(0px); }
+}
+
+.podium {
+	height: 200px;
+}
+
+.podium-item {
+	transition: all 0.3s ease;
+}
+
+.podium-item:hover {
+	transform: scale(1.05);
+}
+
+.first-place {
+	background-color: #ffd700;
+	z-index: 3;
+}
+
+.second-place {
+	background-color: #c0c0c0;
+	z-index: 2;
+}
+
+.third-place {
+	background-color: #cd7f32;
+	z-index: 1;
+}
+
+.trophy {
+	font-size: 2rem;
+	animation: float 3s ease-in-out infinite;
+}
+
+.player-avatar {
+	width: 50px;
+	height: 50px;
 }
