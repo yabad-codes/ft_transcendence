@@ -324,7 +324,7 @@ class FriendshipViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError(
                 'player2 is required to create a friend request.')
 
-        player2 = Player.objects.get(username=player2_username)
+        player2 = get_object_or_404(Player, username=player2_username)
 
         # Prevent self-friending
         if player2 == user:
@@ -381,7 +381,7 @@ class FriendshipViewSet(viewsets.ModelViewSet):
             Response: The response indicating the success or failure of the operation.
         """
         friendship = self.get_object()
-        if friendship.player2 == request.user:
+        if friendship.player2 == request.user and not friendship.friendshipAccepted:
             friendship.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_403_FORBIDDEN)
