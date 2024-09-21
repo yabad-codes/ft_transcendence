@@ -79,12 +79,9 @@ export class LeaderboardPage extends BaseHTMLElement {
 		this.player_rank = player.rank || 0;
 		this.avatar_src = player.avatar || this.avatar_src;
 		this.player_name = player.username;
-		this.coalition_src = player.coalition || this.coalition_src;
-		this.cloalition_name = player.coalition_name || '';
 		this.matches_played = player.matches_played || 0;
 		this.wins_number = player.wins || 0;
 		this.losses_value = player.losses || 0;
-		this.player_achievements = player.achievements || 0;
 
 		this.LeaderboardContainer.insertAdjacentHTML('beforeend', this.generateCard());
 	});
