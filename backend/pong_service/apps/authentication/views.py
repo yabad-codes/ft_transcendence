@@ -244,3 +244,68 @@ class VerifyTwoFactorView(APIView):
             return error_response('Invalid 2FA code', status.HTTP_400_BAD_REQUEST)
         
         return handle_successful_verification(request)
+
+class DisableTwoFactorView(APIView):
+    """
+	API view for disabling two-factor authentication (2FA).
+ 
+	This view handles the disabling of 2FA for a player. It sets the player's two_factor_enabled field to False,
+	clears the two_factor_secret and backup_codes fields, and saves the player object.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        player = request.user
+        player.two_factor_enabled = False
+        player.two_factor_secret = None
+        player.backup_codes = []
+        player.save()
+        return Response({'success': True})
+
+class UseBackupCodeView(APIView):
+    """
+	API view for using a backup code to verify 2FA.
+ 
+	This view handles the verification of a 2FA code using a backup code. It validates the code,
+	retrieves the player object, and upon successful verification, sets the access and refresh tokens in the response cookies.
+    """
+    permission_classes = [AllowAny]
+    def post(self, request):
+        access_token = request.session.get('temp_access_token')
+        if not access_token:
+            return error_response('Authentication required', status.HTTP_401_UNAUTHORIZED)
+        
+        try:
+            decode_token = jwt.decode(access_token, settings.SECRET_KEY, algorithms=['HS256'])
+            username = decode_token.get('username')
+            
+            if not username:
+                return error_response('Username is required', status.HTTP_400_BAD_REQUEST)
+        except jwt.ExpiredSignatureError:
+            return error_response('Token expired', status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return error_response('Invalid token', status.HTTP_401_UNAUTHORIZED)
+        
+        form = BackupCodeForm(request.data)
+        if form.is_valid():
+            player = Player.objects.get(username=username)
+            if player.use_backup_code(form.cleaned_data['code']):
+                response = Response({'success': True})
+                response = set_cookie(
+                    response,
+                    'access',
+                    request.session['temp_access_token'],
+                    settings.AUTH_COOKIE_ACCESS_MAX_AGE
+                )
+                response = set_cookie(
+                    response,
+                    'refresh',
+                    request.session['temp_refresh_token'],
+                    settings.AUTH_COOKIE_REFRESH_MAX_AGE
+                )
+                del request.session['temp_access_token']
+                del request.session['temp_refresh_token']
+                return response
+            else:
+                return Response({'error': 'Invalid backup code'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
