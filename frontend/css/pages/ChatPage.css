@@ -1,5 +1,6 @@
 chat-page {
   display: flex;
+  position: relative;
   height: 100%;
 }
 
@@ -52,7 +53,7 @@ chat-page {
   color: #7b7b7b;
 }
 
-.direct_message_notification_icon {
+.direct_message_notification_icon.style {
   font-size: xx-small;
   width: 20px;
   height: 20px;
@@ -60,7 +61,23 @@ chat-page {
 }
 
 .direct_message_btn {
+  background-color: transparent;
+  transition: background 0.2s ease-in-out;
+}
+
+.direct_message_btn:hover {
   background-color: #f0f2f5;
+}
+
+.direct_message_btn.active {
+  background-color: #f0f2f5;
+}
+
+.direct_message_text {
+  max-width: 500px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .opacity-7 {
@@ -70,6 +87,7 @@ chat-page {
 .user_profile_bar {
   border-bottom-left-radius: 50px;
   background-color: #f0f2f5;
+  height: 92px;
 }
 
 .send_message_container {
@@ -116,18 +134,23 @@ chat-page {
   font-size: x-small;
   color: rgba(123, 123, 123, 0.8);
   max-width: 40%;
-  display: inline-flex;
-  align-items: center;
   margin-bottom: 10px;
 }
 
 .chat_messages span p {
+  max-width: 600px;
   font-size: 16px;
   margin: 0;
+  word-wrap: break-word;
+}
+
+.chat_messages .friend_message {
+  /* text-align: right; */
 }
 
 .chat_messages .friend_message p {
   background-color: #0097b2;
+  /* text-align: left; */
 }
 
 .chat_messages .mine_message p {
@@ -137,6 +160,38 @@ chat-page {
 }
 
 .chat_message_container {
-  background-image: url('../../images/chat_bg.svg');
+  background-image: url("../../images/chat_bg.svg");
   background-size: contain;
+}
+
+.popup-container {
+  z-index: 4;
+  cursor: pointer;
+}
+
+.popup-container.hidden {
+  display: none;
+}
+
+.popup {
+  background-color: #f0f2f5;
+}
+
+.popup-btn {
+  /* border: none;
+  border-bottom: 0.5px solid black; */
+  background-color: #f0f2f5;
+  color: black;
+  font-weight: 600;
+  transition: background 0.1s ease-in-out;
+}
+
+.popup-btn:hover {
+  background-color: #0097b2;
+  color: white;
+}
+
+input[name="popup-search-players"] {
+  outline: none;
+  border: none;
 }
