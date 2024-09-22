@@ -60,10 +60,7 @@ INSTALLED_APPS = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
 		'pong_service.apps.authentication.auth.CustomJWTAuthentication',
-	],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ]
+	]
 }
 
 SIMPLE_JWT = {
@@ -192,3 +189,6 @@ AUTH_USER_MODEL = 'authentication.Player'
 CSRF_TRUSTED_ORIGINS = [
 	'http://localhost:8081'
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
