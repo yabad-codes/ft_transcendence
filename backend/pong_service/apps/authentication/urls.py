@@ -12,4 +12,6 @@ urlpatterns = [
 
 	path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
 	path('token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
+ 
+	path('setup-2fa/', SetupTwoFactorView.as_view(), name='setup_2fa'),
 ]

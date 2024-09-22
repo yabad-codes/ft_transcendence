@@ -2,7 +2,7 @@ import bleach
 from rest_framework import serializers
 from .models import Player
 from django.conf import settings
-
+from rest_framework.response import Response
 
 def sanitize_and_validate_data(validated_data):
 	"""
@@ -122,3 +122,9 @@ def set_cookie(response, key, value, max_age):
         path=settings.AUTH_COOKIE_PATH
     )
     return response
+
+def error_response(message, status_code):
+    """
+	Create an error response with the given message and status code.
+    """
+    return Response({'error': message}, status=status_code)

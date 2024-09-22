@@ -7,13 +7,19 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import login, logout
 from pong_service.permissions import IsUnauthenticated
-from .helpers import set_cookie
-
 from rest_framework_simplejwt.views import (
     TokenObtainPairView, 
     TokenRefreshView
 )
 from django.conf import settings
+from .forms import TwoFactorAuthForm, BackupCodeForm
+import qrcode
+import io
+import base64
+from .helpers import (
+    set_cookie,
+    error_response,
+)
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     """
@@ -153,3 +159,40 @@ class PlayerPublicProfileView(generics.RetrieveAPIView):
     serializer_class = PlayerListSerializer
     lookup_field = 'username'
     permission_classes = [IsAuthenticated]
+
+class SetupTwoFactorView(APIView):
+    """
+	API view for setting up two-factor authentication (2FA).
+ 
+	This view handles the setup of 2FA for a player. It generates a 2FA secret for the player,
+	generates a QR code for the player to scan with their 2FA app, and returns the secret and QR code.
+    """
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        player = request.user
+        if not player.two_factor_secret:
+            player.two_factor_secret = player.generate_two_factor_secret()
+            player.save()
+        totp = player.get_totp()
+        qr = qrcode.make(totp.provisioning_uri(player.username, issuer_name="Pong Talk"))
+        buffered = io.BytesIO()
+        qr.save(buffered, format="PNG")
+        qr_base64 = base64.b64encode(buffered.getvalue()).decode()
+        
+        return Response({
+            'secret': player.two_factor_secret,
+            'qr_code': f"data:image/png;base64,{qr_base64}"
+        })
+        
+    def post(self, request):
+        form = TwoFactorAuthForm(request.data)
+        if not form.is_valid():
+            return error_response(form.errors, status.HTTP_400_BAD_REQUEST)
+        player = request.user
+        if player.verify_two_factor_code(form.cleaned_data['code']):
+            player.two_factor_enabled = True
+            player.backup_codes = player.generate_backup_codes()
+            player.save()
+            return Response({'success': True, 'backup_codes': player.backup_codes})
+        else:
+            return error_response({'error': 'Invalid code'}, status.HTTP_400_BAD_REQUEST)
