@@ -61,9 +61,6 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
 		'pong_service.apps.authentication.auth.CustomJWTAuthentication',
 	],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ]
 }
 
 SIMPLE_JWT = {
