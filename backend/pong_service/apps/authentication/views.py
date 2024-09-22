@@ -107,7 +107,7 @@ class LoginView(APIView):
     """
     View for handling user login.
     """
-    permission_classes = (AllowAny,)
+    permission_classes = (IsUnauthenticated,)
     serializer_class = LoginSerializer
 
     def post(self, request):
