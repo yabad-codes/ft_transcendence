@@ -1,11 +1,10 @@
 import re
 from .models import Player
-from django.core.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError
 from django.core.validators import RegexValidator 
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import authenticate
-from rest_framework.validators import UniqueValidator
 from PIL import Image
 
 USERNAME_REGEX = r'^(?=[a-zA-Z0-9]*-?[a-zA-Z0-9]*$)[a-zA-Z][a-zA-Z0-9\-]{2,19}$'
@@ -16,7 +15,6 @@ NAME_ERROR = "First and last name must contain only letters, or a single space o
 
 INCLUDE_USERNAME_AND_PASSWORD = "Must include 'username' and 'password'."
 INVALID_USERNAME_OR_PASSWORD = "Invalid username or password."
-
 
 def password_validator(password):
     """
@@ -47,7 +45,6 @@ def password_validator(password):
         raise ValidationError(
             'Password must contain at least one special character.')
 
-
 def username_validator(username):
     """
     Validates the given username.
@@ -65,13 +62,13 @@ def username_validator(username):
             None
     """
     
-    regex_validator= UniqueValidator(queryset=Player.objects.all())
+    if Player.objects.filter(username=username).exists():
+        raise ValidationError('Username already exists.')
     regex_validator = RegexValidator(
         regex=USERNAME_REGEX,
         message=USERNAME_ERROR
     )
     regex_validator(username)
-
 
 def name_validator(name):
     """
@@ -92,7 +89,6 @@ def name_validator(name):
         message=NAME_ERROR
     )
     regex_validator(name)
-
 
 def validate_login_data(username, password):
     """

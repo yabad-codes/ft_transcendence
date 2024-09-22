@@ -1,4 +1,4 @@
-from rest_framework.generics import ListCreateAPIView, ListAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView
 from .serializers import *
 from .models import Player
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -43,15 +43,29 @@ class LoginView(APIView):
             }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class RegisterView(ListCreateAPIView):
+class RegisterView(CreateAPIView):
     """
     View for registering a new player.
 
-    Inherits from ListCreateAPIView, which provides GET (list) and POST (create) methods.
+    Inherits from CreateAPIView, which provides POST (create) method.
     """
-    queryset = Player.objects.all()
-    serializer_class = PlayerRegistrationSerializer
     permission_classes = (AllowAny,)
+    serializer_class = PlayerRegistrationSerializer
+    queryset = Player.objects.all()
+    
+    def post(self, request):
+        """
+        Handle POST request to register a new player.
+
+        :param request: The HTTP request object.
+        :return: A Response object with a success message.
+        """
+        
+        serializer = PlayerRegistrationSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'Registration successful'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class PlayerListView(ListAPIView):
     """
