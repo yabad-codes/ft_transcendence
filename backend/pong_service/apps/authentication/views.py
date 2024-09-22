@@ -16,9 +16,11 @@ from .forms import TwoFactorAuthForm, BackupCodeForm
 import qrcode
 import io
 import base64
+import jwt
 from .helpers import (
     set_cookie,
     error_response,
+    handle_successful_verification
 )
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -31,6 +33,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 	Returns:
 		Response: A response object with the new access and refresh tokens.
     """
+    serializer_class = CustomTokenObtainPairSerializer
     def post(self, request, *args, **kwargs):
         """
         Handle POST request to obtain a new access and refresh token pair.
@@ -38,7 +41,13 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 		2. If the response status code is 200, set the tokens in cookies.
         """
         response = super().post(request, *args, **kwargs)
-        if response.status_code == 200:
+        if response.status_code == status.HTTP_200_OK:
+            player = Player.objects.get(username=request.data['username'])
+            if player.two_factor_enabled:
+                request.session['temp_access_token'] = response.data['access']
+                request.session['temp_refresh_token'] = response.data['refresh']
+                return Response({'require_2fa': True}, status=status.HTTP_202_ACCEPTED)
+
             response = set_cookie(
                 response,
                 'access',
@@ -196,3 +205,42 @@ class SetupTwoFactorView(APIView):
             return Response({'success': True, 'backup_codes': player.backup_codes})
         else:
             return error_response({'error': 'Invalid code'}, status.HTTP_400_BAD_REQUEST)
+
+class VerifyTwoFactorView(APIView):
+    """
+    API view for verifying two-factor authentication (2FA) codes.
+
+    This view handles the verification of 2FA codes submitted by users during the authentication process.
+    It validates the submitted code, retrieves the player object, and upon successful verification,
+    sets the access and refresh tokens in the response cookies.
+    """
+    permission_classes = [AllowAny]
+    def post(self, request):
+        access_token = request.session.get('temp_access_token')
+        if not access_token:
+            return error_response('Authentication required', status.HTTP_401_UNAUTHORIZED)
+        
+        try:
+            decode_token = jwt.decode(access_token, settings.SECRET_KEY, algorithms=['HS256'])
+            username = decode_token.get('username')
+            
+            if not username:
+                return error_response('Username is required', status.HTTP_400_BAD_REQUEST)
+        except jwt.ExpiredSignatureError:
+            return error_response('Token expired', status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return error_response('Invalid token', status.HTTP_401_UNAUTHORIZED)
+        
+        form = TwoFactorAuthForm(request.data)
+        if not form.is_valid():
+            return error_response(form.errors, status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            player = Player.objects.get(username=username)
+        except Player.DoesNotExist:
+            return error_response('Player not found', status.HTTP_404_NOT_FOUND)
+        
+        if not player.verify_two_factor_code(form.cleaned_data['code']):
+            return error_response('Invalid 2FA code', status.HTTP_400_BAD_REQUEST)
+        
+        return handle_successful_verification(request)

@@ -14,4 +14,5 @@ urlpatterns = [
 	path('token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
  
 	path('setup-2fa/', SetupTwoFactorView.as_view(), name='setup_2fa'),
+	path('verify-2fa/', VerifyTwoFactorView.as_view(), name='verify_2fa'),
 ]

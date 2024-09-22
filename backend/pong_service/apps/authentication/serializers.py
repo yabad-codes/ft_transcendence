@@ -4,6 +4,7 @@ from .models import Player
 import pong_service.apps.authentication.validators as validators
 from pong_service.apps.authentication.helpers import create_player, get_player_representation
 from django.contrib.auth.password_validation import validate_password
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 # Error messages
 GENERAL_ERROR = "An error occurred. Please try again."
@@ -159,3 +160,13 @@ class LoginSerializer(serializers.ModelSerializer):
         user = validators.validate_login_data(username, password)
         data['user'] = user
         return data
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """
+	Custom TokenObtainPairSerializer that includes the username in the token response.
+    """
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token['username'] = user.username
+        return token
