@@ -280,14 +280,3 @@ class ChangePasswordView(generics.UpdateAPIView):
                 return Response({"message": "Password changed successfully"},status=status.HTTP_200_OK)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def get_object(self):
-        """
-        Exclude blocked users from the queryset.
-        """
-        username = self.kwargs['username']
-        if BlockedUsers.objects.filter(
-            Q(player=self.request.user, blockedUser__username=username) |
-            Q(player__username=username, blockedUser=self.request.user)
-        ).exists():
-            raise Http404("Player not found")
-        return super().get_object()
