@@ -11,4 +11,5 @@ redis
 channels
 channels_redis
 daphne
+django-cors-headers
 pytz==2024.1
