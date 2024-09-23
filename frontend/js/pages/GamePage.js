@@ -34,21 +34,24 @@ export class GamePage extends BaseHTMLElement {
 
   async requestGame() {
     try {
-      const response = await fetch("http://localhost:8081/api/play/request-game/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // Include authentication headers if required
-          // 'Authorization': 'Bearer YOUR_TOKEN_HERE'
-        },
-        credentials: "include",
-        mode: "cors",
-      });
+      const response = await fetch(
+        "http://localhost:8081/api/play/request-game/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            // Include authentication headers if required
+            // 'Authorization': 'Bearer YOUR_TOKEN_HERE'
+          },
+          credentials: "include",
+          mode: "cors",
+        }
+      );
       const data = await response.json();
 
       if (response.ok) {
         this.updateStatus("Connecting to matchmaking...");
-        this.connectToMatchmaking(data.websocket_url, data.player_username);
+        this.connectToMatchmaking(data.websocket_url);
       } else {
         this.updateStatus(`Error: ${data.message}`);
       }
@@ -57,10 +60,10 @@ export class GamePage extends BaseHTMLElement {
     }
   }
 
-  connectToMatchmaking(websocketUrl, playerUsername) {
-    websocketUrl = websocketUrl.replace(/\/$/, '');
+  connectToMatchmaking(websocketUrl) {
+    websocketUrl = websocketUrl.replace(/\/$/, "");
     this.matchmakingSocket = new WebSocket(
-      `ws://localhost:8081${websocketUrl}/${playerUsername}/`
+      `ws://localhost:8081${websocketUrl}/`
     );
 
     this.matchmakingSocket.onopen = (e) => {
