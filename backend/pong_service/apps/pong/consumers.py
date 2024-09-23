@@ -4,6 +4,8 @@ from asgiref.sync import sync_to_async, async_to_sync
 from channels.db import database_sync_to_async
 from jwt import decode as jwt_decode
 
+active_connections = {}
+
 
 def get_redis_client():
     from django.conf import settings
@@ -28,6 +30,7 @@ class MatchMakingConsumer(AsyncWebsocketConsumer):
             await self.close()
         else:
             print(f'Player {self.player.username} connected to matchmaking')
+            active_connections[str(self.player.id)] = self
             await self.accept()
             await self.add_to_queue(str(self.player.id))
 
@@ -49,7 +52,9 @@ class MatchMakingConsumer(AsyncWebsocketConsumer):
             return None
 
     async def disconnect(self, code):
-        await self.remove_from_queue(str(self.player.id))
+        if hasattr(self, 'player') and self.player:
+            active_connections.pop(str(self.player.id), None)
+            await self.remove_from_queue(str(self.player.id))
 
     async def receive(self, text_data):
         data = json.loads(text_data)
@@ -111,23 +116,20 @@ class MatchMakingConsumer(AsyncWebsocketConsumer):
         )
         return game.id
 
-    @sync_to_async
-    def notify_players(self, player1_id, player2_id, game_id):
-        channel_layer = self.channel_layer
-        for player_id in [player1_id, player2_id]:
-            async_to_sync(channel_layer.group_send)(
-                f'matchmaking_{player_id}',
-                {
-                    'type': 'game_matched',
-                    'game_id': game_id
-                }
-            )
+    @database_sync_to_async
+    def get_player_connection(self, player_id):
+        return active_connections.get(player_id)
 
-    async def game_matched(self, event):
-        await self.send(text_data=json.dumps({
-            'status': 'matched',
-            'game_id': event['game_id']
-        }))
+    async def notify_players(self, player1_id, player2_id, game_id):
+        for player_id in [player1_id, player2_id]:
+            connection = await self.get_player_connection(player_id)
+            if connection:
+                await connection.send(text_data=json.dumps({
+                    'status': 'matched',
+                    'game_id': str(game_id)
+                }))
+            else:
+                print(f"Warning: No active connection for player {player_id}")
 
 
 class PongConsumer(AsyncWebsocketConsumer):
