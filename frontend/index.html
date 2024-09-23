@@ -70,10 +70,12 @@
     <!-- Game Page -->
     <template id="gamepage">
       <div class="game-btns">
-        <button class="btn">New Game</button>
+        <button class="btn" id="requestGameBtn">Find Match</button>
+        <button class="btn" id="cancelMatchmakingBtn" disabled>Cancel Matchmaking</button>
         <button class="btn">vs Computer</button>
         <button class="btn">Play a Friend</button>
       </div>
+      <div id="matchmakingStatus" class="mt-3"></div>
     </template>
 
     <!-- Login Page -->
