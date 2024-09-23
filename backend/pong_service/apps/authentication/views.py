@@ -176,6 +176,18 @@ class PlayerPublicProfileView(generics.RetrieveAPIView):
     lookup_field = 'username'
     permission_classes = [IsAuthenticated]
     
+    def get_object(self):
+        """
+        Exclude blocked users from the queryset.
+        """
+        username = self.kwargs['username']
+        if BlockedUsers.objects.filter(
+            Q(player=self.request.user, blockedUser__username=username) |
+            Q(player__username=username, blockedUser=self.request.user)
+        ).exists():
+            raise Http404("Player not found")
+        return super().get_object()
+    
 class UpdatePlayerInfoView(generics.UpdateAPIView):
     """
     API view for updating player information.
