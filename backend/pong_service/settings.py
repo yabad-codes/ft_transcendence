@@ -53,15 +53,15 @@ INSTALLED_APPS = [
     'pong_service.apps.chat',
     'pong_service.apps.player',
     'pong_service.apps.pong',
-	'channels',
+    'channels',
     'corsheaders',
     'rest_framework_simplejwt.token_blacklist',
 ]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-		'pong_service.apps.authentication.auth.CustomJWTAuthentication',
-	]
+        'pong_service.apps.authentication.auth.CustomJWTAuthentication',
+    ]
 }
 
 SIMPLE_JWT = {
@@ -93,7 +93,7 @@ MIDDLEWARE = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-	'django.contrib.auth.backends.ModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 ROOT_URLCONF = 'pong_service.urls'
@@ -189,7 +189,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'authentication.Player'
 
 CSRF_TRUSTED_ORIGINS = [
-	'http://localhost:8081'
+    'http://localhost:8081'
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
