@@ -44,5 +44,6 @@ class RequestGameView(APIView):
         return Response({
             'status': 'success',
             'message': 'Please connect to the matchmaking websocket',
-            'websocket_url': '/ws/matchmaking/'
+            'websocket_url': '/ws/matchmaking/',
+            'player_username': player.username
         }, status=status.HTTP_200_OK)
