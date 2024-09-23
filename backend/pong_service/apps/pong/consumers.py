@@ -1,10 +1,7 @@
 import json
-import logging
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async, async_to_sync
 from channels.db import database_sync_to_async
-
-logger = logging.getLogger('daphne')
 
 
 def get_redis_client():
@@ -14,9 +11,14 @@ def get_redis_client():
 
 class MatchMakingConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.player = self.scope['user']
-        await self.accept()
-        await self.add_to_queue(str(self.player.id))
+        self.player_username = self.scope['url_route']['kwargs']['player_username']
+        self.player = await self.get_player(self.player_username)
+
+        if not self.player:
+            await self.close()
+        else:
+            await self.accept()
+            await self.add_to_queue(str(self.player.id))
 
     async def disconnect(self, code):
         await self.remove_from_queue(str(self.player.id))
@@ -30,25 +32,46 @@ class MatchMakingConsumer(AsyncWebsocketConsumer):
                 'message': 'Matchmaking cancelled'
             }))
 
+    @database_sync_to_async
+    def get_player(self, username):
+        from pong_service.apps.authentication.models import Player
+        try:
+            return Player.objects.get(username=username)
+        except Player.DoesNotExist:
+            return None
+
+    async def add_to_queue(self, player_id):
+        await self.add_to_redis_queue(player_id)
+        await self.match_players()
+
     @sync_to_async
-    def add_to_queue(self, player_id):
+    def add_to_redis_queue(self, player_id):
         redis_client = get_redis_client()
         redis_client.rpush('game_queue', player_id)
-        self.match_players()
 
     @sync_to_async
     def remove_from_queue(self, player_id):
         redis_client = get_redis_client()
         redis_client.lrem('game_queue', 0, player_id)
 
+    async def match_players(self):
+        queue_length = await self.get_queue_length()
+        if queue_length >= 2:
+            player1_id, player2_id = await self.get_players_from_queue()
+            game_id = await self.create_game(player1_id, player2_id)
+            await self.notify_players(player1_id, player2_id, str(game_id))
+
     @sync_to_async
-    def match_players(self):
+    def get_queue_length(self):
         redis_client = get_redis_client()
-        if redis_client.llen('game_queue') >= 2:
-            player1_id = redis_client.lpop('game_queue').decode('utf-8')
-            player2_id = redis_client.lpop('game_queue').decode('utf-8')
-            game_id = self.create_game(player1_id, player2_id)
-            self.notify_players(player1_id, player2_id, str(game_id))
+        return redis_client.llen('game_queue')
+
+    @sync_to_async
+    def get_players_from_queue(self):
+        redis_client = get_redis_client()
+        player1_id = redis_client.lpop('game_queue').decode('utf-8')
+        player2_id = redis_client.lpop('game_queue').decode('utf-8')
+        return player1_id, player2_id
 
     @database_sync_to_async
     def create_game(self, player1_id, player2_id):
