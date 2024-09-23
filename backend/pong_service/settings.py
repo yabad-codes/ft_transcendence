@@ -53,7 +53,8 @@ INSTALLED_APPS = [
     'pong_service.apps.chat',
     'pong_service.apps.player',
     'pong_service.apps.pong',
-	  'channels',
+	'channels',
+    'corsheaders',
     'rest_framework_simplejwt.token_blacklist',
 ]
 
@@ -80,6 +81,7 @@ AUTH_COOKIE_SAMESITE = 'Strict'
 TOKEN_REFRESH_THRESHOLD = 2
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -192,3 +194,29 @@ CSRF_TRUSTED_ORIGINS = [
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:8081',
+    'http://127.0.0.1:8081',
+]
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
