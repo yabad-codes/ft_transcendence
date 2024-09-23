@@ -1,8 +1,10 @@
 import bleach
-from rest_framework import serializers
 from .models import Player
+from google.cloud import storage
 from django.conf import settings
 from rest_framework.response import Response
+
+
 
 def sanitize_and_validate_data(validated_data):
 	"""
@@ -16,47 +18,22 @@ def sanitize_and_validate_data(validated_data):
 	"""
 	fields = ['username', 'first_name', 'last_name']
 	for field in fields:
-		validated_data[field] = bleach.clean(validated_data[field])
+		if field in validated_data:
+			validated_data[field] = bleach.clean(validated_data[field])
 	return validated_data
-
-
-def process_avatar(avatar, username):
-    """
-    Process the avatar for a given username and store the image in google cloud.
-
-    Args:
-            avatar (str): The avatar image file.
-            username (str): The username of the user.
-
-    Returns:
-            avatar 
-    """
-    print('handle google cloud storage')
-
 
 def handle_avatar(validated_data):
 	"""
-	Handle the avatar for a user.
+	Generates an avatar URL based on the provided username.
 
 	Args:
-		validated_data (dict): The validated data containing the avatar and username.
+		validated_data (dict): A dictionary containing the validated data.
 
 	Returns:
-		dict: The updated validated data with the avatar URL.
-
-	Raises:
-		serializers.ValidationError: If there is an error uploading the avatar to Google Cloud.
-	"""
-	if 'avatar' in validated_data and validated_data['avatar']:
-		try:
-			validated_data['avatar'] = process_avatar(
-				validated_data['avatar'], validated_data['username'])
-		except:
-			raise serializers.ValidationError(
-				f"Failed to upload avatar to google cloud.")
-	else:
-		username = validated_data['username']
-		validated_data['avatar'] = f'https://robohash.org/{username}.jpg'
+		dict: The updated validated data dictionary with the 'avatar' field added.
+    """
+	username = validated_data['username']
+	validated_data['avatar_url'] = f'https://robohash.org/{username}.jpg'
 	return validated_data
 
 
@@ -79,7 +56,7 @@ def create_player(validated_data):
 		first_name=validated_data['first_name'],
 		last_name=validated_data['last_name'],
 		password=validated_data['password'],
-		avatar=validated_data.get('avatar', None)
+		avatar_url=validated_data.get('avatar_url', None)
 	)
 
 def get_player_representation(player):
@@ -96,8 +73,61 @@ def get_player_representation(player):
 		'username': player.username,
 		'first_name': player.first_name,
 		'last_name': player.last_name,
-		'avatar': player.avatar if player.avatar else None
+		'avatar_url': player.avatar_url if player.avatar_url else None
 	}
+ 
+def update_player_info(self, instance, validated_data):
+	"""
+	Update the player's information with the provided validated data.
+
+	Args:
+		instance: The player instance to be updated.
+		validated_data: A dictionary containing the validated data.
+
+	Returns:
+		The updated player instance.
+	"""
+	fields = ['username', 'first_name', 'last_name']
+	for field in fields:
+		if field in validated_data:
+			setattr(instance, field, validated_data[field])
+	instance.save()
+	return instance
+	
+def update_password(self, instance, validated_data):
+	"""
+	Update the password for the given instance.
+
+	Args:
+		instance: The instance of the user model.
+		validated_data: The validated data containing the new password.
+
+	Returns:
+		The updated instance with the new password.
+	"""
+	if 'new_password' in validated_data and 'confirm_new_password' in validated_data:
+		instance.set_password(validated_data['new_password'])
+		instance.save()
+	return instance
+
+def upload_to_google_cloud(image , instance):
+	"""
+	Uploads an image to Google Cloud Storage.
+
+	Args:
+		image (File): The image file to be uploaded.
+		instance: The instance associated with the image.
+
+	Returns:
+		str: The public URL of the uploaded image.
+	"""
+	client = storage.Client(credentials=settings.GS_CREDENTIALS, project=settings.GS_PROJECT_ID)
+	bucket = client.bucket(settings.GS_BUCKET_NAME)
+	extension = image.name.split('.')[-1]
+	blob_name = f"avatars/{instance.username}.{extension}"
+	blob = bucket.blob(blob_name)
+	blob.upload_from_file(image, content_type=image.content_type)
+	return blob.public_url
 
 def set_cookie(response, key, value, max_age):
     """

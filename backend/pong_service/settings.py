@@ -13,8 +13,10 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from datetime import timedelta
 from os import getenv
 from pathlib import Path
+from google.oauth2 import service_account
 import redis
 import os
+##adding logger for debugging
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -53,7 +55,7 @@ INSTALLED_APPS = [
     'pong_service.apps.chat',
     'pong_service.apps.player',
     'pong_service.apps.pong',
-    
+	  'channels',
     'rest_framework_simplejwt.token_blacklist',
 ]
 
@@ -113,7 +115,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'pong_service.wsgi.application'
+ASGI_APPLICATION = 'pong_service.asgi.application'
 
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [(REDIS_HOST, REDIS_PORT)],
+        },
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -128,7 +139,6 @@ DATABASES = {
         'PORT': os.environ.get('POSTGRES_PORT'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -164,12 +174,18 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'pong_service', 'avatars')
-# STATIC_URL = '/static/'
-
 STATIC_URL = '/static/'
 STATIC_ROOT = '/app/static/'
+
+##setting for link google cloud storage with django
+
+GS_CREDENTIALS = service_account.Credentials.from_service_account_file(os.path.join(BASE_DIR, 'credentials.json'))
+DEFAULT_FILE_STORAGE = 'pong_service.apps.authentication.gcloud.GoogleCloudMediaStorage'
+GS_PROJECT_ID = 'transcendencestorage'
+GS_BUCKET_NAME = 'avatars_ft_tran'
+MEDIA_ROOT = "https://storage.googleapis.com/{}/".format(GS_BUCKET_NAME)
+UPLOAD_ROOT = "https://storage.googleapis.com/{}/".format(GS_BUCKET_NAME)
+MEDIA_URL = "https://storage.googleapis.com/{}/".format(GS_BUCKET_NAME)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -177,6 +193,8 @@ STATIC_ROOT = '/app/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'authentication.Player'
 
+#for fixe the  CSRF error we can add it after
 CSRF_TRUSTED_ORIGINS = [
-	'http://localhost:8081'
+    'http://localhost:8081',  # For local development
+    'https://127.0.0.1:8081',  # Your production domain
 ]
