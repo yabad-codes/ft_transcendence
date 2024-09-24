@@ -197,7 +197,7 @@ AUTH_USER_MODEL = 'authentication.Player'
 
 #for fixe the  CSRF error we can add it after
 CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:8081',  # For local development
+    'https://localhost:8081',  # For local development
     'https://127.0.0.1:8081',  # Your production domain
 ]
 
@@ -205,8 +205,8 @@ CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:8081',
-    'http://127.0.0.1:8081',
+    'https://localhost:8081',
+    'https://127.0.0.1:8081',
 ]
 
 CORS_ALLOW_METHODS = [
