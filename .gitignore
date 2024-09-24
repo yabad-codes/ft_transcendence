@@ -9,3 +9,4 @@ pyvenv.cfg
 db.sqlite3
 logs
 avatars
+credentials.json
