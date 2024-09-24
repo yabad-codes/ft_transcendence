@@ -27,7 +27,7 @@ export class GamePage extends BaseHTMLElement {
   async requestGame() {
     try {
       const response = await fetch(
-        "http://localhost:8081/api/play/request-game/",
+        "https://localhost:8081/api/play/request-game/",
         {
           method: "POST",
           headers: {
@@ -54,7 +54,7 @@ export class GamePage extends BaseHTMLElement {
   connectToMatchmaking(websocketUrl) {
     websocketUrl = websocketUrl.replace(/\/$/, "");
     this.matchmakingSocket = new WebSocket(
-      `ws://localhost:8081${websocketUrl}/`
+      `wss://localhost:8081${websocketUrl}/`
     );
 
     this.matchmakingSocket.onopen = () => {
@@ -119,7 +119,7 @@ export class GamePage extends BaseHTMLElement {
   }
 
   initGameWebSocket(gameId) {
-    const ws = new WebSocket(`ws://localhost:8081/ws/pong/${gameId}/`);
+    const ws = new WebSocket(`wss://localhost:8081/ws/pong/${gameId}/`);
 
     ws.onopen = () => {
       console.log("Connected to game websocket");
