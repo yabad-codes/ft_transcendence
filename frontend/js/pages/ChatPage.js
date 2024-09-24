@@ -33,7 +33,7 @@ export class ChatPage extends BaseHTMLElement {
 
   setupWebsocket() {
     this.chatSocket = new WebSocket(
-      "ws://" + window.location.host + "/ws/chat/"
+      "wss://" + window.location.host + "/ws/chat/"
     );
 
     this.chatSocket.onopen = (e) => {
@@ -220,7 +220,7 @@ export class ChatPage extends BaseHTMLElement {
       <div class="avatar me-2">
         <img
           class="avatar_image shadow-sm"
-          src="${player.avatar}"
+          src="${player.avatar_url}"
           alt="Avatar image"
         />
         <span class="avatar_status"></span>
@@ -356,7 +356,7 @@ export class ChatPage extends BaseHTMLElement {
         <div class="avatar me-2">
         <img
             class="avatar_image"
-            src="${conversationParticipant.avatar}"
+            src="${conversationParticipant.avatar_url}"
             alt="Avatar image"
         />
         <span class="avatar_status"></span>

@@ -20,7 +20,7 @@ export class ChatMessage extends BaseHTMLElement {
     this.submitMessage();
     const userProfile = this.querySelector(".user_profile_bar");
     userProfile.querySelector(".avatar_image").src =
-      this._conversation.player.avatar;
+      this._conversation.player.avatar_url;
     userProfile.querySelector(
       "span > span"
     ).textContent = `${this._conversation.player.first_name} ${this._conversation.player.last_name}`;
