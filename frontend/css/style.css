@@ -7,6 +7,7 @@
 
 @import url("./pages/HomePage.css");
 @import url("./pages/GamePage.css");
+@import url("./pages/GameScreen.css");
 @import url("./pages/LoginPage.css");
 @import url("./pages/ChatPage.css");
 @import url("./pages/LeaderboardPage.css");

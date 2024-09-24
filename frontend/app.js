@@ -1,6 +1,7 @@
 import { NavBar } from "./js/components/Navbar.js";
 import { ChatPage } from "./js/pages/ChatPage.js";
 import { GamePage } from "./js/pages/GamePage.js";
+import { GameScreen } from "./js/pages/GameScreen.js";
 import { HomePage } from "./js/pages/HomePage.js";
 import { LoginPage } from "./js/pages/LoginPage.js";
 import { ChatMessage } from "./js/components/ChatMessage.js";

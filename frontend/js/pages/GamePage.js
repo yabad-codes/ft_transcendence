@@ -4,25 +4,17 @@ export class GamePage extends BaseHTMLElement {
   constructor() {
     super("gamepage");
     this.matchmakingSocket = null;
+    this.gameState = "matchmaking";
   }
 
   connectedCallback() {
     super.connectedCallback();
-    this.createShadowRoot();
     this.setupEventListeners();
   }
 
-  createShadowRoot() {
-    const template = document.getElementById("gamepage");
-    const templateContent = template.content;
-
-    this.attachShadow({ mode: "open" });
-    this.shadowRoot.appendChild(templateContent.cloneNode(true));
-  }
-
   setupEventListeners() {
-    const requestGameBtn = this.shadowRoot.getElementById("requestGameBtn");
-    const cancelMatchmakingBtn = this.shadowRoot.getElementById(
+    const requestGameBtn = document.getElementById("requestGameBtn");
+    const cancelMatchmakingBtn = document.getElementById(
       "cancelMatchmakingBtn"
     );
 
@@ -40,13 +32,12 @@ export class GamePage extends BaseHTMLElement {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            // Include authentication headers if required
-            // 'Authorization': 'Bearer YOUR_TOKEN_HERE'
           },
           credentials: "include",
           mode: "cors",
         }
       );
+
       const data = await response.json();
 
       if (response.ok) {
@@ -66,8 +57,8 @@ export class GamePage extends BaseHTMLElement {
       `ws://localhost:8081${websocketUrl}/`
     );
 
-    this.matchmakingSocket.onopen = (e) => {
-      this.updateStatus("Connected to matchmaking. Waiting for opponent...");
+    this.matchmakingSocket.onopen = () => {
+      this.updateStatus("Waiting for opponent...");
       this.toggleButtons(true);
     };
 
@@ -75,12 +66,11 @@ export class GamePage extends BaseHTMLElement {
       const data = JSON.parse(e.data);
       if (data.status === "matched") {
         this.updateStatus(`Matched! Game ID: ${data.game_id}`);
-        // Here you would typically start the game or redirect to a game page
-        console.log(`Starting game with ID: ${data.game_id}`);
+        this.renderGameScreen(data.game_id);
       }
     };
 
-    this.matchmakingSocket.onclose = (e) => {
+    this.matchmakingSocket.onclose = () => {
       this.updateStatus("Disconnected from matchmaking");
       this.toggleButtons(false);
     };
@@ -101,17 +91,29 @@ export class GamePage extends BaseHTMLElement {
   }
 
   updateStatus(message) {
-    const statusElement = this.shadowRoot.getElementById("matchmakingStatus");
+    const statusElement = document.getElementById("matchmakingStatus");
     statusElement.textContent = message;
   }
 
   toggleButtons(isMatchmaking) {
-    const requestGameBtn = this.shadowRoot.getElementById("requestGameBtn");
-    const cancelMatchmakingBtn = this.shadowRoot.getElementById(
+    const requestGameBtn = document.getElementById("requestGameBtn");
+    const cancelMatchmakingBtn = document.getElementById(
       "cancelMatchmakingBtn"
     );
     requestGameBtn.disabled = isMatchmaking;
     cancelMatchmakingBtn.disabled = !isMatchmaking;
+  }
+
+  renderGameScreen(gameId) {
+    const gameScreenTemplate = document
+      .getElementById("gamescreen")
+      .content.cloneNode(true);
+    const gameIdElement = gameScreenTemplate.querySelector("#gameId");
+    gameIdElement.textContent = gameId;
+
+    const gameContainer = document.querySelector(".game-container");
+    gameContainer.innerHTML = ""; // Clear the existing content
+    gameContainer.appendChild(gameScreenTemplate); // Load the new game screen
   }
 }
 
