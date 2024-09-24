@@ -156,6 +156,8 @@ class PongConsumer(AsyncWebsocketConsumer):
               self.game_id}')
         await self.accept()
 
+        await self.check_if_game_ready()
+
     async def disconnect(self, close_code):
         if not self.player:
             return
@@ -185,3 +187,27 @@ class PongConsumer(AsyncWebsocketConsumer):
             return user
         except (TokenError, InvalidTokenError, Player.DoesNotExist):
             return None
+
+    async def check_if_game_ready(self):
+        is_ready = await self.get_game_ready_status()
+        if is_ready:
+            print('Game is ready')
+            await self.channel_layer.group_send(
+                self.room_name,
+                {
+                    'type': 'game_start',
+                    'game_id': self.game_id
+                }
+            )
+
+    async def game_start(self, event):
+        await self.send(text_data=json.dumps({
+            'status': 'game_start',
+            'game_id': event['game_id']
+        }))
+
+    @database_sync_to_async
+    def get_game_ready_status(self):
+        from pong_service.apps.pong.models import PongGame
+        game = PongGame.objects.get(id=self.game_id)
+        return bool(game.player1 and game.player2)
