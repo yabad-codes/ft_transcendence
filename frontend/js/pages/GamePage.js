@@ -66,6 +66,7 @@ export class GamePage extends BaseHTMLElement {
       const data = JSON.parse(e.data);
       if (data.status === "matched") {
         this.updateStatus(`Matched! Game ID: ${data.game_id}`);
+        this.matchmakingSocket.close();
         this.renderGameScreen(data.game_id);
       }
     };
@@ -114,6 +115,28 @@ export class GamePage extends BaseHTMLElement {
     const gameContainer = document.querySelector(".game-container");
     gameContainer.innerHTML = ""; // Clear the existing content
     gameContainer.appendChild(gameScreenTemplate); // Load the new game screen
+    this.initGameWebSocket(gameId);
+  }
+
+  initGameWebSocket(gameId) {
+    const ws = new WebSocket(`ws://localhost:8081/ws/pong/${gameId}/`);
+
+    ws.onopen = () => {
+      console.log("Connected to game websocket");
+    };
+
+    ws.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      console.log(data);
+    };
+
+    ws.onclose = () => {
+      console.log("Disconnected from game websocket");
+    };
+
+    ws.onerror = (error) => {
+      console.error("Game websocket error", error);
+    };
   }
 }
 

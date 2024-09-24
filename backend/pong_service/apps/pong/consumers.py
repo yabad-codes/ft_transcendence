@@ -134,18 +134,54 @@ class MatchMakingConsumer(AsyncWebsocketConsumer):
 
 class PongConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        self.cookies = self.scope['cookies']
+        self.game_id = self.scope['url_route']['kwargs']['game_id']
+        self.room_name = f'pong_{self.game_id}'
+        access = self.cookies.get('access')
+
+        if not access:
+            self.player = None
+        else:
+            self.player = await self.get_user_from_access_token(self.cookies.get('access'))
+
+        if not self.player:
+            await self.close()
+            return
+
+        await self.channel_layer.group_add(
+            self.room_name,
+            self.channel_name
+        )
+        print(f'Player {self.player.username} connected to game {
+              self.game_id}')
         await self.accept()
-        await self.send(text_data=json.dumps(
-                        {'message': 'Connected to Pong Websocket'}
-                        ))
 
     async def disconnect(self, close_code):
-        pass
+        if not self.player:
+            return
+        print(f'Player {self.player.username} disconnected from game {
+              self.game_id}')
+        await self.channel_layer.group_discard(
+            self.room_name,
+            self.channel_name
+        )
 
     async def receive(self, text_data):
-        text_data_json = json.loads(text_data)
-        message = text_data_json['message']
+        pass
 
-        await self.send(text_data=json.dumps({
-                        'message': f'yabadwashere : {message}'
-                        }))
+    async def get_user_from_access_token(self, access_token):
+        from django.conf import settings
+        from pong_service.apps.authentication.models import Player
+        from jwt import InvalidTokenError
+        from rest_framework_simplejwt.exceptions import TokenError
+        try:
+            decoded_token = await sync_to_async(jwt_decode)(access_token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = decoded_token.get('user_id')
+
+            if user_id is None:
+                return None
+
+            user = await sync_to_async(Player.objects.get)(id=user_id)
+            return user
+        except (TokenError, InvalidTokenError, Player.DoesNotExist):
+            return None
