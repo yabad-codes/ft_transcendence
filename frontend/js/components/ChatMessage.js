@@ -1,6 +1,6 @@
 import BaseHTMLElement from "../pages/BaseHTMLElement.js";
 import { createState } from "../utils/stateManager.js";
-import { displayRequestStatus } from "../utils/notification.js";
+import { displayRequestStatus } from "../utils/errorManagement.js";
 
 export class ChatMessage extends BaseHTMLElement {
   constructor() {

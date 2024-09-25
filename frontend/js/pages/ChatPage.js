@@ -1,6 +1,6 @@
 import BaseHTMLElement from "./BaseHTMLElement.js";
 import { createState } from "../utils/stateManager.js";
-import { displayRequestStatus } from "../utils/notification.js";
+import { displayRequestStatus } from "../utils/errorManagement.js";
 
 export class ChatPage extends BaseHTMLElement {
   constructor() {
@@ -47,7 +47,6 @@ export class ChatPage extends BaseHTMLElement {
 
     this.chatSocket.onmessage = (e) => {
       const data = JSON.parse(e.data);
-      console.log(`Data: ${data}`);
       const conversation = this.state.conversations.find(
         (conversation) =>
           conversation.conversationID === data.message.conversation_id
@@ -57,7 +56,11 @@ export class ChatPage extends BaseHTMLElement {
         app.api
           .get("/api/conversations/" + data.message.conversation_id)
           .then((response) => {
-            this.state.conversations = [response, ...this.state.conversations];
+            if (response.status >= 400) {
+              displayRequestStatus("error", response.data);
+              return;
+            }
+            this.state.conversations = [response.data, ...this.state.conversations];
           });
         return;
       }
