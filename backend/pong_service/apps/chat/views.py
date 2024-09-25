@@ -431,11 +431,13 @@ class BlockedUsersViewSet(viewsets.ViewSet):
 
         # Prevent blocking oneself
         if blocked_user == user:
-            return Response({'error': 'You cannot block yourself.'}, status=status.HTTP_400_BAD_REQUEST)
+            return serializers.ValidationError(
+                'You cannot block yourself.')
 
         # Check if the user is already blocked
         if BlockedUsers.objects.filter(player=user, blockedUser=blocked_user).exists():
-            return Response({'error': 'User is already blocked.'}, status=status.HTTP_400_BAD_REQUEST)
+            return serializers.ValidationError(
+                'User is already blocked.')
 
         # Remove any existing friendships between the users
         Friendship.objects.filter(models.Q(player1=user, player2=blocked_user) |
@@ -485,4 +487,4 @@ class BlockedUsersViewSet(viewsets.ViewSet):
                 conversation.save()
 
             return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response({'error': 'User is not blocked.'}, status=status.HTTP_400_BAD_REQUEST)
+        return serializers.ValidationError('User is not blocked.')

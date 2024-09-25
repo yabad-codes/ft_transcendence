@@ -1,30 +1,30 @@
-export function addNotification(type, message) {
-    const notification = document.createElement("div");
-    notification.classList.add("notification", type);
-    notification.innerHTML = `
+export function displayRequestStatus(type, message) {
+    const error = document.createElement("div");
+    error.classList.add("error", type);
+    error.innerHTML = `
           <span>${message}</span>
           <span class="close-btn">&times;</span>
       `;
   
-    const notifications = document.getElementById("notifications");
-    notifications.appendChild(notification);
+    const errorManager = document.getElementById("error-management");
+    errorManager.appendChild(notification);
 
     setTimeout(() => {
-      notification.classList.add("show");
+      error.classList.add("show");
     }, 100);
 
     setTimeout(() => {
-      removeNotification(notification);
+      removeNotification(error);
     }, 5000);
 
-    notification.querySelector(".close-btn").addEventListener("click", () => {
-      removeNotification(notification);
+    error.querySelector(".close-btn").addEventListener("click", () => {
+      removeNotification(error);
     });
   }
   
-  function removeNotification(notification) {
-    notification.classList.remove("show");
+  function removeNotification(error) {
+    error.classList.remove("show");
     setTimeout(() => {
-      notification.remove();
+      error.remove();
     }, 500);
 }

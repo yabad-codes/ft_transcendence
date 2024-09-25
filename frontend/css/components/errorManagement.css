@@ -1,4 +1,4 @@
-#notifications {
+#error-management {
     position: fixed;
     top: 20px;
     right: 20px;
@@ -6,7 +6,7 @@
     z-index: 1000;
 }
 
-.notification {
+.error {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -20,19 +20,19 @@
     transition: opacity 0.5s ease-in-out;
 }
 
-.notification.show {
+.error.show {
     opacity: 1;
 }
 
-.notification.error {
+.error.error {
     background-color: #e74c3c;
 }
 
-.notification.success {
+.error.success {
     background-color: #2ecc71;
 }
 
-.notification .close-btn {
+.error .close-btn {
     cursor: pointer;
     margin-left: 10px;
 }

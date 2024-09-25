@@ -1,5 +1,6 @@
 import BaseHTMLElement from "./BaseHTMLElement.js";
 import { createState } from "../utils/stateManager.js";
+import { displayRequestStatus } from "../utils/notification.js";
 
 export class ChatPage extends BaseHTMLElement {
   constructor() {
@@ -22,8 +23,12 @@ export class ChatPage extends BaseHTMLElement {
   connectedCallback() {
     super.connectedCallback();
     // Add additional logic for the chat page ...
-    app.api.get("/api/conversations/").then((conversations) => {
-      this.state.conversations = conversations;
+    app.api.get("/api/conversations/").then((response) => {
+      if (response.status >= 400) {
+        displayRequestStatus("error", response.data);
+        return;
+      }
+      this.state.conversations = response.data;
     });
     this.popupConversationActions();
     this.searchFriends();
@@ -193,9 +198,13 @@ export class ChatPage extends BaseHTMLElement {
       "click",
       (event) => {
         popupContainer.classList.remove("hidden");
-        app.api.get("/api/friendships/").then((friends) => {
-          this.state.friends = friends;
-          this.state.searchFriends = friends;
+        app.api.get("/api/friendships/").then((response) => {
+          if (response.status >= 400) {
+            displayRequestStatus("error", response.data);
+            return;
+          }
+          this.state.friends = response.data;
+          this.state.searchFriends = response.data;
         });
       }
     );

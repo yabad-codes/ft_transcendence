@@ -1,5 +1,6 @@
 import BaseHTMLElement from "../pages/BaseHTMLElement.js";
 import { createState } from "../utils/stateManager.js";
+import { displayRequestStatus } from "../utils/notification.js";
 
 export class ChatMessage extends BaseHTMLElement {
   constructor() {
@@ -44,8 +45,12 @@ export class ChatMessage extends BaseHTMLElement {
   getMessages(conversation) {
     app.api
       .get("/api/conversations/" + conversation.id + "/messages")
-      .then((messages) => {
-        this.state.messages = messages;
+      .then((response) => {
+        if (response.status >= 400) {
+          displayRequestStatus("error", response.data)
+          return;
+        }
+        this.state.messages = response.data;
       })
   }
 
@@ -91,8 +96,12 @@ export class ChatMessage extends BaseHTMLElement {
           player2_username: this._conversation.player.username,
         })
         .then((response) => {
-          this._conversation.id = response.conversationID;
-          this.state.newConversation = response;
+          if (response.status >= 400) {
+            displayRequestStatus("error", response.data)
+            return;
+          }
+          this._conversation.id = response.data.conversationID;
+          this.state.newConversation = response.data;
           this.postNewMessage(message);
         });
       return;
@@ -107,7 +116,11 @@ export class ChatMessage extends BaseHTMLElement {
         message
       )
       .then((response) => {
-        this.state.messages = [...this.state.messages, response];
+        if (response.status >= 400) {
+          displayRequestStatus("error", response.data)
+          return;
+        }
+        this.state.messages = [...this.state.messages, response.data];
         this.moveConversationToTop();
       });
   }

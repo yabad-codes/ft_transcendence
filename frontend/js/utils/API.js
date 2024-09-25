@@ -3,7 +3,8 @@ import Cookies from "./Cookies.js";
 const API = {
 	get: async (url) => {
 		const response = await fetch(url);
-		return response.json();
+		const data = await response.json();
+		return {status: response.status, data};
 	},
 	post: async (url, data) => {
 		const response = await fetch(url, {
@@ -15,7 +16,7 @@ const API = {
 			body: JSON.stringify(data),
 		});
 		const text = await response.text();
-		return text ? JSON.parse(text) : {};
+		return {status: response.status, data: text ? JSON.parse(text) : {}};
 	},
 	patch: async (url, data) => {
 		const response = await fetch(url, {
@@ -27,7 +28,7 @@ const API = {
 			body: JSON.stringify(data),
 		});
 		const text = await response.text();
-		return text ? JSON.parse(text) : {};
+		return {status: response.status, data: text ? JSON.parse(text) : {}};
 	},
 	delete: async (url) => {
 		const response = await fetch(url, {
@@ -36,7 +37,7 @@ const API = {
 				"X-CSRFToken": Cookies.get("csrftoken"),
 			},
 		});
-		return response;
+		return {status: response.status, data: await response.text()};
 	},
 }
 
