@@ -187,7 +187,23 @@ class PlayerPublicProfileView(generics.RetrieveAPIView):
         ).exists():
             raise Http404("Player not found")
         return super().get_object()
-    
+
+class PlayerProfileView(generics.RetrieveAPIView):
+    """
+    API view to retrieve the profile of the currently authenticated player.
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = PlayerListSerializer
+
+    def get_object(self):
+        """
+        Get the player object of the currently authenticated user.
+        Returns:
+        - Player: The player object. 
+        """
+
+        return self.request.user
+
 class UpdatePlayerInfoView(generics.UpdateAPIView):
     """
     API view for updating player information.

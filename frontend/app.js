@@ -15,9 +15,8 @@ window.app = {};
 app.router = Router;
 app.api = API;
 app.isLoggedIn = true;
-app.profile = {
-  username: "aelmaar",
-};
+app.profile = null;
+
 window.addEventListener("DOMContentLoaded", () => {
   app.router.init();
 });
