@@ -126,8 +126,7 @@ export class GamePage extends BaseHTMLElement {
     };
 
     ws.onmessage = (e) => {
-      const data = JSON.parse(e.data);
-      console.log(data);
+      this.handleWebSocketMessage(e);
     };
 
     ws.onclose = () => {
@@ -136,6 +135,43 @@ export class GamePage extends BaseHTMLElement {
 
     ws.onerror = (error) => {
       console.error("Game websocket error", error);
+    };
+  }
+
+  async handleWebSocketMessage(event) {
+    if (typeof event.data === "string") {
+      console.log("Received string message : ", event.data);
+      try {
+        const jsonData = JSON.parse(event.data);
+        if (jsonData.type === "game_start") {
+          console.log("Game started", jsonData);
+        }
+      } catch (error) {
+        console.error("Error parsing message", error);
+      }
+    } else if (event.data instanceof Blob) {
+      console.log("Received binary message : ", event.data);
+      try {
+        const arrayBuffer = await event.data.arrayBuffer();
+        console.log("Received binary data : ", new Uint8Array(arrayBuffer));
+        this.decodeGameState(arrayBuffer);
+        console.log("Decoded game state : ", this.gameState);
+        console.log("rendering game state");
+      } catch (error) {
+        console.error("Error parsing binary message", error);
+      }
+    }
+  }
+
+  decodeGameState(arrayBuffer) {
+    const view = new DataView(arrayBuffer);
+    this.gameState = {
+      ballX: view.getFloat32(0),
+      ballY: view.getFloat32(4),
+      player1Y: view.getFloat32(8),
+      player2Y: view.getFloat32(12),
+      score1: view.getUint32(16),
+      score2: view.getUint32(20),
     };
   }
 }

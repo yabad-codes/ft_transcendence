@@ -1,4 +1,6 @@
 import json
+import struct
+import random
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async, async_to_sync
 from channels.db import database_sync_to_async
@@ -6,10 +8,27 @@ from jwt import decode as jwt_decode
 
 active_connections = {}
 
+# Constants for the game
+PADDLE_HEIGHT = 120
+PADDLE_WIDTH = 12
+BALL_SIZE = 20
+GAME_WIDTH = 1400
+GAME_HEIGHT = 700
+
 
 def get_redis_client():
     from django.conf import settings
     return settings.REDIS
+
+
+class BinaryProtocol:
+    @staticmethod
+    def encode_game_state(ball_x, ball_y, pad1_y, pad2_y, score1, score2):
+        return struct.pack('!ffffII', ball_x, ball_y, pad1_y, pad2_y, score1, score2)
+
+    @staticmethod
+    def decode_game_state(data):
+        return struct.unpack('!ffffII', data)
 
 
 class MatchMakingConsumer(AsyncWebsocketConsumer):
@@ -168,8 +187,9 @@ class PongConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
 
-    async def receive(self, text_data):
-        pass
+    async def receive(self, bytes_data):
+        paddle_y = struct.unpack('!f', bytes_data)[0]
+        await self.update_paddle_position(paddle_y)
 
     async def get_user_from_access_token(self, access_token):
         from django.conf import settings
@@ -192,6 +212,7 @@ class PongConsumer(AsyncWebsocketConsumer):
         is_ready = await self.get_game_ready_status()
         if is_ready:
             print('Game is ready')
+            await self.initialize_game()
             await self.channel_layer.group_send(
                 self.room_name,
                 {
@@ -211,3 +232,67 @@ class PongConsumer(AsyncWebsocketConsumer):
         from pong_service.apps.pong.models import PongGame
         game = PongGame.objects.get(id=self.game_id)
         return bool(game.player1 and game.player2)
+
+    async def initialize_game(self):
+        print('Initializing game')
+        self.ball_x = GAME_WIDTH / 2
+        self.ball_y = GAME_HEIGHT / 2
+        self.paddle1_y = GAME_HEIGHT / 2 - PADDLE_HEIGHT / 2
+        self.paddle2_y = GAME_HEIGHT / 2 - PADDLE_HEIGHT / 2
+        self.score1 = 0
+        self.score2 = 0
+        self.ball_dx = random.choice([-1, 1]) * 5
+        self.ball_dy = random.choice([-1, 1]) * 5
+
+        await self.send_game_state()
+        print('Game initialized and initial game state sent')
+
+    async def send_game_state(self):
+        game_state = BinaryProtocol.encode_game_state(
+            self.ball_x, self.ball_y, self.paddle1_y, self.paddle2_y, self.score1, self.score2
+        )
+        print('Sending game state data : ', game_state)
+        await self.channel_layer.group_send(
+            self.room_name,
+            {
+                'type': 'binary_game_state',
+                'game_state': game_state
+            }
+        )
+
+    async def binary_game_state(self, event):
+        await self.send(bytes_data=event['game_state'])
+
+    async def update_paddle_position(self, paddle_y):
+        if self.player == self.game.player1:
+            self.paddle1_y = paddle_y
+        else:
+            self.paddle2_y = paddle_y
+
+        await self.send_game_state()
+
+    @database_sync_to_async
+    def update_game_state(self):
+        self.ball_x += self.ball_dx
+        self.ball_y += self.ball_dy
+
+        if self.ball_y <= 0 or self.ball_y >= GAME_HEIGHT - BALL_SIZE:
+            self.ball_dy *= -1
+
+        if (0 < self.ball_x < PADDLE_WIDTH and self.paddle1_y < self.ball_y < self.paddle1_y + PADDLE_HEIGHT) or \
+           (GAME_WIDTH - PADDLE_WIDTH < self.ball_x < GAME_WIDTH and self.paddle2_y < self.ball_y < self.paddle2_y + PADDLE_HEIGHT):
+            self.ball_dx *= -1
+
+        # Score points
+        if self.ball_x <= 0:
+            self.score2 += 1
+            self.reset_ball()
+        elif self.ball_x >= GAME_WIDTH:
+            self.score1 += 1
+            self.reset_ball()
+
+    def reset_ball(self):
+        self.ball_x = GAME_WIDTH / 2
+        self.ball_y = GAME_HEIGHT / 2
+        self.ball_dx = random.choice([-1, 1]) * 5
+        self.ball_dy = random.choice([-1, 1]) * 5
