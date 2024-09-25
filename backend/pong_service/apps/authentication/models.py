@@ -9,7 +9,7 @@ class Player(AbstractUser):
     """
     id = models.UUIDField(default=uuid.uuid4, editable=False,
                           unique=True, primary_key=True)
-    avatar = models.URLField(max_length=500, null=True, blank=True)
+    avatar_url = models.URLField(max_length=500, null=True, blank=True)
     tournament_name = models.CharField(
         max_length=30, blank=True, unique=True, null=True)
     wins = models.PositiveIntegerField(default=0)
