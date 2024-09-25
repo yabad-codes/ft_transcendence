@@ -1,6 +1,9 @@
 /* Import Bootstrap */
 @import url("../bootstrap-5.3.3-dist/css/bootstrap.min.css");
 
+/* Import notification management css */
+@import url("./components/errorManagement.css");
+
 /* Import custom CSS stylings */
 @import url("./components/Navbar.css");
 @import url("./components/ChatMessage.css");
