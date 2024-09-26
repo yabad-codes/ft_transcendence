@@ -89,7 +89,7 @@ class OAuthCallbackView(APIView):
         return response
     
     def _create_user(self, request, user_data):
-        player = create_player(user_data)
+        player = helpers.create_player(user_data)
         logger.debug('User %s created successfully', player.username)
         return self._response_with_message('User created successfully', status.HTTP_201_CREATED)
 
