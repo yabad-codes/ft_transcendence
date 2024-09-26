@@ -7,22 +7,22 @@ export function displayRequestStatus(type, message) {
       `;
   
     const errorManager = document.getElementById("error-management");
-    errorManager.appendChild(notification);
+    errorManager.appendChild(error);
 
     setTimeout(() => {
       error.classList.add("show");
     }, 100);
 
     setTimeout(() => {
-      removeNotification(error);
+      removeError(error);
     }, 5000);
 
     error.querySelector(".close-btn").addEventListener("click", () => {
-      removeNotification(error);
+      removeError(error);
     });
   }
   
-  function removeNotification(error) {
+  function removeError(error) {
     error.classList.remove("show");
     setTimeout(() => {
       error.remove();
