@@ -1,75 +1,44 @@
+/* Game screen styles */
 .game-screen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  margin-top: 20px;
+  background-color: #000;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
 }
 
+/* Game ID styles */
 .game-id {
-  font-size: 18px;
-  margin-bottom: 20px;
+  color: #fff;
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 10px;
 }
 
+/* Players info styles */
 .players-info {
   display: flex;
   justify-content: space-between;
-  width: 500px;
   margin-bottom: 20px;
 }
 
 .player {
-  text-align: center;
+  display: flex;
+  align-items: center;
 }
 
 .player-avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
 }
 
 .player-score {
-  display: block;
-  font-size: 50px;
+  color: #fff;
+  font-size: 24px;
   font-weight: bold;
-  margin-top: 5px;
-  color: #3498db;
 }
 
-.game-board {
-  position: relative;
-  width: 800px;
-  height: 600px;
-  background-color: #ecf0f1;
-  border: 5px solid #34495e;
-  border-radius: 15px;
-  overflow: hidden;
-}
-
-.paddle {
-  position: absolute;
-  width: 10px;
-  height: 100px;
-  /* Remove the transform property */
-}
-
-.player1-paddle {
-  left: 10px;
-  background-color: #3498db;
-}
-
-.player2-paddle {
-  right: 10px;
-  background-color: #e74c3c;
-}
-
-.ball {
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  background-color: #f1c40f;
-  border-radius: 50%;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+/* Canvas styles */
+#game {
+  border: 2px solid #fff;
 }

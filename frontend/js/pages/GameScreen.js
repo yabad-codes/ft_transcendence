@@ -7,114 +7,66 @@ export class GameScreen extends BaseHTMLElement {
     this.gameSocket = null;
     this.gameState = null;
     this.playerRole = null;
-    this.paddle1 = null;
-    this.paddle2 = null;
-    this.ball = null;
-    this.board = null;
-    console.log("GameScreen constructor");
+    this.canvas = null;
+    this.ctx = null;
   }
 
   connectedCallback() {
-    console.log("GameScreen connectedCallback");
     this.render();
     this.initializeGame();
+    this.drawInitialGame();
+    this.connectToGameServer();
   }
 
   render() {
     this.innerHTML = `
-      <div class="game-board">
-        <div class="paddle player1-paddle" id="paddle1"></div>
-        <div class="paddle player2-paddle" id="paddle2"></div>
-        <div class="ball" id="ball"></div>
+      <div id="gameScreen">
+        <canvas id="game" width="800" height="600"></canvas>
       </div>
     `;
+    this.canvas = this.querySelector("#game");
+    this.ctx = this.canvas.getContext("2d");
   }
 
   initializeGame() {
-    this.board = this.querySelector(".game-board");
-    this.paddle1 = document.getElementById("paddle1");
-    this.paddle2 = document.getElementById("paddle2");
-    this.ball = document.getElementById("ball");
-
-    this.initializePaddlePositions();
-    this.initializeBallPosition();
-    this.connectToGameServer();
-    this.addEventListeners();
+    this.gameState = {
+      ballX: 400,
+      ballY: 300,
+      player1Y: 250,
+      player2Y: 250,
+      score1: 0,
+      score2: 0,
+    };
+    // this.setupEventListeners();
   }
 
-  getTopPosition(paddle) {
-    return parseFloat(paddle.style.top) || 0;
-  }
+  drawInitialGame() {
+    // Clear the canvas
+    this.ctx.fillStyle = "black";
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-  movePaddle(paddle, direction) {
-    const step = 10; // pixels to move the paddle
-    const currentTop = this.getTopPosition(paddle);
-    const boardHeight = this.board.clientHeight;
-    const paddleHeight = paddle.clientHeight;
+    // Draw the paddles
+    this.ctx.fillStyle = "white";
+    this.ctx.fillRect(10, this.gameState.player1Y, 10, 100); // Left paddle
+    this.ctx.fillRect(780, this.gameState.player2Y, 10, 100); // Right paddle
 
-    let newTop = currentTop + direction * step;
+    // Draw the ball
+    this.ctx.beginPath();
+    this.ctx.arc(
+      this.gameState.ballX,
+      this.gameState.ballY,
+      10,
+      0,
+      Math.PI * 2
+    );
+    this.ctx.fillStyle = "white";
+    this.ctx.fill();
+    this.ctx.closePath();
 
-    // Ensure the paddle stays within the game board
-    newTop = Math.max(0, Math.min(newTop, boardHeight - paddleHeight));
-
-    this.setPaddlePosition(paddle, newTop);
-  }
-
-  initializePaddlePositions() {
-    const boardHeight = this.board.clientHeight;
-    const paddleHeight = this.paddle1.clientHeight;
-    const initialTop = (boardHeight - paddleHeight) / 2;
-    console.log(initialTop);
-
-    this.setPaddlePosition(this.paddle1, initialTop);
-    this.setPaddlePosition(this.paddle2, initialTop);
-  }
-
-  setPaddlePosition(paddle, y) {
-    paddle.style.top = `${y}px`;
-  }
-
-  initializeBallPosition() {
-    const boardWidth = this.board.clientWidth;
-    const boardHeight = this.board.clientHeight;
-    const ballSize = this.ball.clientWidth;
-    const ballX = (boardWidth - ballSize) / 2;
-    const ballY = (boardHeight - ballSize) / 2;
-
-    this.setBallPosition(ballX, ballY);
-  }
-
-  setBallPosition(x, y) {
-    this.ball.style.left = `${x}px`;
-    this.ball.style.top = `${y}px`;
-  }
-
-  addEventListeners() {
-    document.addEventListener("keydown", this.handleKeyDown.bind(this));
-  }
-
-  handleKeyDown(e) {
-    switch (e.key) {
-      case "w":
-      case "s":
-        if (this.playerRole === "player1") {
-          this.handlePaddleMove(e.key, this.paddle1);
-        } else if (this.playerRole === "player2") {
-          this.handlePaddleMove(e.key, this.paddle2);
-        }
-        break;
-    }
-  }
-
-  handlePaddleMove(key, paddle) {
-    switch (key) {
-      case "w":
-        this.movePaddle(paddle, -1);
-        break;
-      case "s":
-        this.movePaddle(paddle, 1);
-        break;
-    }
+    // Draw the scores
+    this.ctx.font = "32px Arial";
+    this.ctx.fillText(this.gameState.score1, this.canvas.width / 4, 50);
+    this.ctx.fillText(this.gameState.score2, (3 * this.canvas.width) / 4, 50);
   }
 
   connectToGameServer() {
@@ -128,17 +80,17 @@ export class GameScreen extends BaseHTMLElement {
       if (e.data instanceof Blob) {
         e.data.arrayBuffer().then((buffer) => {
           this.decodeGameState(buffer);
-          console.log(this.gameState);
-          this.updateGame();
+          this.drawGame();
         });
       } else if (e.data instanceof ArrayBuffer) {
         this.decodeGameState(e.data);
-        console.log(this.gameState);
+        this.drawGame();
       } else {
         try {
           const jsonData = JSON.parse(e.data);
           if (jsonData.status === "player-role") {
             this.setPlayerRole(jsonData.role);
+            console.log(`You are player ${jsonData.role}`);
           }
         } catch (e) {
           console.error("Unexpected message from game server");
@@ -165,14 +117,56 @@ export class GameScreen extends BaseHTMLElement {
     };
   }
 
-  updateGame() {
-    this.setBallPosition(this.gameState.ballX, this.gameState.ballY);
-    this.setPaddlePosition(this.paddle1, this.gameState.player1Y);
-    this.setPaddlePosition(this.paddle2, this.gameState.player2Y);
-  }
-
   setPlayerRole(role) {
     this.playerRole = role;
+  }
+
+  setupEventListeners() {
+    window.addEventListener("keydown", (e) => this.handleKeyPress(e));
+  }
+
+  handleKeyPress(e) {
+    if (e.key === "w" || e.key === "s") {
+      this.sendPaddleMove(e.key);
+    }
+  }
+
+  sendPaddleMove(key) {
+    if (this.gameSocket && this.gameSocket.readyState === WebSocket.OPEN) {
+      this.gameSocket.send(`${key}${this.playerRole}`);
+      console.log(`Sent ${key}${this.playerRole}`);
+    }
+  }
+
+  drawGame() {
+    if (!this.gameState) return;
+
+    // Clear the canvas
+    this.ctx.fillStyle = "black";
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+    // Draw the paddles
+    this.ctx.fillStyle = "white";
+    this.ctx.fillRect(10, this.gameState.player1Y, 10, 100); // Left paddle
+    this.ctx.fillRect(780, this.gameState.player2Y, 10, 100); // Right paddle
+
+    // Draw the ball
+    this.ctx.beginPath();
+    this.ctx.arc(
+      this.gameState.ballX,
+      this.gameState.ballY,
+      10,
+      0,
+      Math.PI * 2
+    );
+    this.ctx.fillStyle = "white";
+    this.ctx.fill();
+    this.ctx.closePath();
+
+    // Draw the scores
+    this.ctx.font = "32px Arial";
+    this.ctx.fillText(this.gameState.score1, this.canvas.width / 4, 50);
+    this.ctx.fillText(this.gameState.score2, (3 * this.canvas.width) / 4, 50);
   }
 }
 

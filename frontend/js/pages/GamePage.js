@@ -68,7 +68,6 @@ export class GamePage extends BaseHTMLElement {
         this.updateStatus(`Matched! Game ID: ${data.game_id}`);
         this.matchmakingSocket.close();
         // render the game screen
-        console.log("game screen displayed");
         const gameScreen = document.createElement("game-screen");
         gameScreen.gameId = data.game_id;
         document.body.innerHTML = "";
