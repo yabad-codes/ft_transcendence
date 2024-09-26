@@ -6,6 +6,7 @@ export class GameScreen extends BaseHTMLElement {
     this.gameId = null;
     this.gameSocket = null;
     this.gameState = null;
+    this.playerRole = null;
     this.paddle1 = null;
     this.paddle2 = null;
     this.ball = null;
@@ -89,22 +90,31 @@ export class GameScreen extends BaseHTMLElement {
   }
 
   addEventListeners() {
-    document.addEventListener("keydown", (e) => {
-      switch (e.key) {
-        case "w":
-          this.movePaddle(this.paddle1, -1); // Move up
-          break;
-        case "s":
-          this.movePaddle(this.paddle1, 1); // Move down
-          break;
-        case "ArrowUp":
-          this.movePaddle(this.paddle2, -1); // Move up
-          break;
-        case "ArrowDown":
-          this.movePaddle(this.paddle2, 1); // Move down
-          break;
-      }
-    });
+    document.addEventListener("keydown", this.handleKeyDown.bind(this));
+  }
+
+  handleKeyDown(e) {
+    switch (e.key) {
+      case "w":
+      case "s":
+        if (this.playerRole === "player1") {
+          this.handlePaddleMove(e.key, this.paddle1);
+        } else if (this.playerRole === "player2") {
+          this.handlePaddleMove(e.key, this.paddle2);
+        }
+        break;
+    }
+  }
+
+  handlePaddleMove(key, paddle) {
+    switch (key) {
+      case "w":
+        this.movePaddle(paddle, -1);
+        break;
+      case "s":
+        this.movePaddle(paddle, 1);
+        break;
+    }
   }
 
   connectToGameServer() {
@@ -115,7 +125,6 @@ export class GameScreen extends BaseHTMLElement {
     };
 
     ws.onmessage = (e) => {
-      console.log("Received message from game server");
       if (e.data instanceof Blob) {
         e.data.arrayBuffer().then((buffer) => {
           this.decodeGameState(buffer);
@@ -126,7 +135,14 @@ export class GameScreen extends BaseHTMLElement {
         this.decodeGameState(e.data);
         console.log(this.gameState);
       } else {
-        console.error("Unexpected message from game server");
+        try {
+          const jsonData = JSON.parse(e.data);
+          if (jsonData.status === "player-role") {
+            this.setPlayerRole(jsonData.role);
+          }
+        } catch (e) {
+          console.error("Unexpected message from game server");
+        }
       }
     };
 
@@ -153,6 +169,10 @@ export class GameScreen extends BaseHTMLElement {
     this.setBallPosition(this.gameState.ballX, this.gameState.ballY);
     this.setPaddlePosition(this.paddle1, this.gameState.player1Y);
     this.setPaddlePosition(this.paddle2, this.gameState.player2Y);
+  }
+
+  setPlayerRole(role) {
+    this.playerRole = role;
   }
 }
 
