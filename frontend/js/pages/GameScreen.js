@@ -4,143 +4,155 @@ export class GameScreen extends BaseHTMLElement {
   constructor() {
     super();
     this.gameId = null;
-    this.ballDirectionX = 1;
-    this.ballDirectionY = 1;
-    this.ballSpeed = 2;
-    this.player1Score = 0;
-    this.player2Score = 0;
+    this.gameSocket = null;
+    this.gameState = null;
+    this.paddle1 = null;
+    this.paddle2 = null;
+    this.ball = null;
+    this.board = null;
+    console.log("GameScreen constructor");
   }
 
   connectedCallback() {
-    const gameIdElement = this.querySelector("#gameId");
-    this.gameId = this.getAttribute("gameId");
-    gameIdElement.textContent = this.gameId;
-
-    this.initGame();
-    this.startGame();
+    console.log("GameScreen connectedCallback");
+    this.render();
+    this.initializeGame();
   }
 
-  initGame() {
-    this.gameBoard = this.querySelector(".game-board");
-    this.ball = this.querySelector(".ball");
-    this.paddle1 = this.querySelector(".player1-paddle");
-    this.paddle2 = this.querySelector(".player2-paddle");
-    this.player1ScoreElement = this.querySelector("#player1-score");
-    this.player2ScoreElement = this.querySelector("#player2-score");
-
-    // Set initial scores
-    this.updateScores();
-
-    // Place ball in center
-    this.resetBall();
-
-    // Set paddle positions
-    this.paddle1.style.top = "50%";
-    this.paddle2.style.top = "50%";
-
-    // Add keyboard event listeners for paddle movement
-    document.addEventListener("keydown", (e) => this.handlePaddleMove(e));
+  render() {
+    this.innerHTML = `
+      <div class="game-board">
+        <div class="paddle player1-paddle" id="paddle1"></div>
+        <div class="paddle player2-paddle" id="paddle2"></div>
+        <div class="ball" id="ball"></div>
+      </div>
+    `;
   }
 
-  resetBall() {
-    this.ball.style.left = "50%";
-    this.ball.style.top = "50%";
-    this.ballDirectionX = Math.random() > 0.5 ? 1 : -1;
-    this.ballDirectionY = Math.random() > 0.5 ? 1 : -1;
+  initializeGame() {
+    this.board = this.querySelector(".game-board");
+    this.paddle1 = document.getElementById("paddle1");
+    this.paddle2 = document.getElementById("paddle2");
+    this.ball = document.getElementById("ball");
+
+    this.initializePaddlePositions();
+    this.initializeBallPosition();
+    this.connectToGameServer();
+    this.addEventListeners();
   }
 
-  startGame() {
-    const gameLoop = () => {
-      this.moveBall();
-      requestAnimationFrame(gameLoop);
+  getTopPosition(paddle) {
+    return parseFloat(paddle.style.top) || 0;
+  }
+
+  movePaddle(paddle, direction) {
+    const step = 10; // pixels to move the paddle
+    const currentTop = this.getTopPosition(paddle);
+    const boardHeight = this.board.clientHeight;
+    const paddleHeight = paddle.clientHeight;
+
+    let newTop = currentTop + direction * step;
+
+    // Ensure the paddle stays within the game board
+    newTop = Math.max(0, Math.min(newTop, boardHeight - paddleHeight));
+
+    this.setPaddlePosition(paddle, newTop);
+  }
+
+  initializePaddlePositions() {
+    const boardHeight = this.board.clientHeight;
+    const paddleHeight = this.paddle1.clientHeight;
+    const initialTop = (boardHeight - paddleHeight) / 2;
+    console.log(initialTop);
+
+    this.setPaddlePosition(this.paddle1, initialTop);
+    this.setPaddlePosition(this.paddle2, initialTop);
+  }
+
+  setPaddlePosition(paddle, y) {
+    paddle.style.top = `${y}px`;
+  }
+
+  initializeBallPosition() {
+    const boardWidth = this.board.clientWidth;
+    const boardHeight = this.board.clientHeight;
+    const ballSize = this.ball.clientWidth;
+    const ballX = (boardWidth - ballSize) / 2;
+    const ballY = (boardHeight - ballSize) / 2;
+
+    this.setBallPosition(ballX, ballY);
+  }
+
+  setBallPosition(x, y) {
+    this.ball.style.left = `${x}px`;
+    this.ball.style.top = `${y}px`;
+  }
+
+  addEventListeners() {
+    document.addEventListener("keydown", (e) => {
+      switch (e.key) {
+        case "w":
+          this.movePaddle(this.paddle1, -1); // Move up
+          break;
+        case "s":
+          this.movePaddle(this.paddle1, 1); // Move down
+          break;
+        case "ArrowUp":
+          this.movePaddle(this.paddle2, -1); // Move up
+          break;
+        case "ArrowDown":
+          this.movePaddle(this.paddle2, 1); // Move down
+          break;
+      }
+    });
+  }
+
+  connectToGameServer() {
+    const ws = new WebSocket(`wss://localhost:8081/ws/pong/${this.gameId}/`);
+
+    ws.onopen = () => {
+      console.log("Connected to game server");
     };
-    gameLoop();
-  }
 
-  moveBall() {
-    const ballRect = this.ball.getBoundingClientRect();
-    const boardRect = this.gameBoard.getBoundingClientRect();
-
-    // Move ball based on direction
-    let newX =
-      ballRect.left + this.ballDirectionX * this.ballSpeed - boardRect.left;
-    let newY =
-      ballRect.top + this.ballDirectionY * this.ballSpeed - boardRect.top;
-
-    // Check for collision with top/bottom walls
-    if (newY <= 0 || newY >= boardRect.height - ballRect.height) {
-      this.ballDirectionY *= -1;
-    }
-
-    // Check for collision with paddles
-    const paddle1Rect = this.paddle1.getBoundingClientRect();
-    const paddle2Rect = this.paddle2.getBoundingClientRect();
-
-    if (
-      (newX <= paddle1Rect.width &&
-        newY + ballRect.height >= paddle1Rect.top - boardRect.top &&
-        newY <= paddle1Rect.bottom - boardRect.top) ||
-      (newX + ballRect.width >= boardRect.width - paddle2Rect.width &&
-        newY + ballRect.height >= paddle2Rect.top - boardRect.top &&
-        newY <= paddle2Rect.bottom - boardRect.top)
-    ) {
-      this.ballDirectionX *= -1;
-    }
-
-    // Check if ball goes out of bounds (left or right)
-    if (newX <= 0) {
-      this.player2Score++;
-      this.updateScores();
-      this.resetBall();
-    } else if (newX + ballRect.width >= boardRect.width) {
-      this.player1Score++;
-      this.updateScores();
-      this.resetBall();
-    }
-
-    // Update ball position
-    this.ball.style.left = `${newX}px`;
-    this.ball.style.top = `${newY}px`;
-  }
-
-  handlePaddleMove(e) {
-    const step = 20;
-    const boardRect = this.gameBoard.getBoundingClientRect();
-
-    if (e.key === "w" || e.key === "s") {
-      const paddle1Rect = this.paddle1.getBoundingClientRect();
-      let newTop = paddle1Rect.top - boardRect.top;
-
-      if (e.key === "w" && newTop > 0) {
-        newTop -= step;
-      } else if (
-        e.key === "s" &&
-        newTop < boardRect.height - paddle1Rect.height
-      ) {
-        newTop += step;
+    ws.onmessage = (e) => {
+      console.log("Received message from game server");
+      if (e.data instanceof Blob) {
+        e.data.arrayBuffer().then((buffer) => {
+          this.decodeGameState(buffer);
+          console.log(this.gameState);
+          this.updateGame();
+        });
+      } else if (e.data instanceof ArrayBuffer) {
+        this.decodeGameState(e.data);
+        console.log(this.gameState);
+      } else {
+        console.error("Unexpected message from game server");
       }
+    };
 
-      this.paddle1.style.top = `${newTop}px`;
-    } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-      const paddle2Rect = this.paddle2.getBoundingClientRect();
-      let newTop = paddle2Rect.top - boardRect.top;
+    ws.onclose = () => {
+      console.log("Disconnected from game server");
+    };
 
-      if (e.key === "ArrowUp" && newTop > 0) {
-        newTop -= step;
-      } else if (
-        e.key === "ArrowDown" &&
-        newTop < boardRect.height - paddle2Rect.height
-      ) {
-        newTop += step;
-      }
-
-      this.paddle2.style.top = `${newTop}px`;
-    }
+    this.gameSocket = ws;
   }
 
-  updateScores() {
-    this.player1ScoreElement.textContent = this.player1Score;
-    this.player2ScoreElement.textContent = this.player2Score;
+  decodeGameState(arrayBuffer) {
+    const view = new DataView(arrayBuffer);
+    this.gameState = {
+      ballX: view.getFloat32(0),
+      ballY: view.getFloat32(4),
+      player1Y: view.getFloat32(8),
+      player2Y: view.getFloat32(12),
+      score1: view.getUint32(16),
+      score2: view.getUint32(20),
+    };
+  }
+
+  updateGame() {
+    this.setBallPosition(this.gameState.ballX, this.gameState.ballY);
+    this.setPaddlePosition(this.paddle1, this.gameState.player1Y);
+    this.setPaddlePosition(this.paddle2, this.gameState.player2Y);
   }
 }
 

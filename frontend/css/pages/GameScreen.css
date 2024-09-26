@@ -38,20 +38,19 @@
 
 .game-board {
   position: relative;
-  width: 1400px;
-  height: 700px;
+  width: 800px;
+  height: 600px;
   background-color: #ecf0f1;
-  border: 4px solid #34495e;
-  border-radius: 50px;
+  border: 5px solid #34495e;
+  border-radius: 15px;
   overflow: hidden;
 }
 
 .paddle {
   position: absolute;
-  width: 12px;
-  height: 120px;
-  top: 50%;
-  transform: translateY(-50%);
+  width: 10px;
+  height: 100px;
+  /* Remove the transform property */
 }
 
 .player1-paddle {
@@ -66,8 +65,8 @@
 
 .ball {
   position: absolute;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   background-color: #f1c40f;
   border-radius: 50%;
   top: 50%;

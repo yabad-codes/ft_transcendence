@@ -67,7 +67,12 @@ export class GamePage extends BaseHTMLElement {
       if (data.status === "matched") {
         this.updateStatus(`Matched! Game ID: ${data.game_id}`);
         this.matchmakingSocket.close();
-        this.renderGameScreen(data.game_id);
+        // render the game screen
+        console.log("game screen displayed");
+        const gameScreen = document.createElement("game-screen");
+        gameScreen.gameId = data.game_id;
+        document.body.innerHTML = "";
+        document.body.appendChild(gameScreen);
       }
     };
 
@@ -103,76 +108,6 @@ export class GamePage extends BaseHTMLElement {
     );
     requestGameBtn.disabled = isMatchmaking;
     cancelMatchmakingBtn.disabled = !isMatchmaking;
-  }
-
-  renderGameScreen(gameId) {
-    const gameScreenTemplate = document
-      .getElementById("gamescreen")
-      .content.cloneNode(true);
-    const gameIdElement = gameScreenTemplate.querySelector("#gameId");
-    gameIdElement.textContent = gameId;
-
-    const gameContainer = document.querySelector(".game-container");
-    gameContainer.innerHTML = ""; // Clear the existing content
-    gameContainer.appendChild(gameScreenTemplate); // Load the new game screen
-    this.initGameWebSocket(gameId);
-  }
-
-  initGameWebSocket(gameId) {
-    const ws = new WebSocket(`wss://localhost:8081/ws/pong/${gameId}/`);
-
-    ws.onopen = () => {
-      console.log("Connected to game websocket");
-    };
-
-    ws.onmessage = (e) => {
-      this.handleWebSocketMessage(e);
-    };
-
-    ws.onclose = () => {
-      console.log("Disconnected from game websocket");
-    };
-
-    ws.onerror = (error) => {
-      console.error("Game websocket error", error);
-    };
-  }
-
-  async handleWebSocketMessage(event) {
-    if (typeof event.data === "string") {
-      console.log("Received string message : ", event.data);
-      try {
-        const jsonData = JSON.parse(event.data);
-        if (jsonData.type === "game_start") {
-          console.log("Game started", jsonData);
-        }
-      } catch (error) {
-        console.error("Error parsing message", error);
-      }
-    } else if (event.data instanceof Blob) {
-      console.log("Received binary message : ", event.data);
-      try {
-        const arrayBuffer = await event.data.arrayBuffer();
-        console.log("Received binary data : ", new Uint8Array(arrayBuffer));
-        this.decodeGameState(arrayBuffer);
-        console.log("Decoded game state : ", this.gameState);
-        console.log("rendering game state");
-      } catch (error) {
-        console.error("Error parsing binary message", error);
-      }
-    }
-  }
-
-  decodeGameState(arrayBuffer) {
-    const view = new DataView(arrayBuffer);
-    this.gameState = {
-      ballX: view.getFloat32(0),
-      ballY: view.getFloat32(4),
-      player1Y: view.getFloat32(8),
-      player2Y: view.getFloat32(12),
-      score1: view.getUint32(16),
-      score2: view.getUint32(20),
-    };
   }
 }
 

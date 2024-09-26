@@ -11,6 +11,7 @@ from jwt import decode as jwt_decode
 
 class PongConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        print("I'm here in PongConsumer")
         self.cookies = self.scope['cookies']
         self.game_id = self.scope['url_route']['kwargs']['game_id']
         self.room_name = f'pong_{self.game_id}'
@@ -83,7 +84,10 @@ class PongConsumer(AsyncWebsocketConsumer):
         player1 = await self.get_player(game.player1_id)
         player2 = await self.get_player(game.player2_id)
         self.game = PongGame(player1, player2)
-        self.game_loop_task = asyncio.create_task(self.game_loop())
+
+        if self.player == player1:
+            await self.send_game_state()
+            # self.game_loop_task = asyncio.create_task(self.game_loop())
 
     async def game_loop(self):
         try:
@@ -108,7 +112,7 @@ class PongConsumer(AsyncWebsocketConsumer):
     def get_game_ready_status(self):
         from pong_service.apps.pong.models import PongGame
         game = PongGame.objects.get(id=self.game_id)
-        return bool(game.player1_id and game.player2)
+        return bool(game.player1 and game.player2)
 
     @database_sync_to_async
     def get_or_create_game(self):
