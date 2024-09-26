@@ -64,6 +64,7 @@ def username_validator(username):
     
     if Player.objects.filter(username=username).exists():
         raise ValidationError('Username already exists.')
+
     regex_validator = RegexValidator(
         regex=USERNAME_REGEX,
         message=USERNAME_ERROR

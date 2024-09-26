@@ -36,8 +36,8 @@ const Router = {
             case "/login":
                 Router.loadSignAndLoginPage('login-page');
                 break;
-            case "/signup":
-                Router.loadSignAndLoginPage('signup-page');
+            case "/register":
+                Router.loadSignAndLoginPage('register-page');
                 break;
             default:
                 Router.loadNotFoundPage('not-found-page');
