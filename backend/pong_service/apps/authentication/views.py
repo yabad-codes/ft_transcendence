@@ -1,4 +1,4 @@
-from rest_framework.generics import ListCreateAPIView, ListAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView
 from .serializers import *
 from .models import Player
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -10,6 +10,12 @@ import pong_service.apps.authentication.helpers as helpers
 import logging
 from django.shortcuts import redirect
 from django.http import JsonResponse
+from pong_service.permissions import IsUnauthenticated
+from pong_service.apps.chat.models import BlockedUsers
+from django.db.models import Q
+from django.http import Http404
+from .helpers import set_cookie
+
 from rest_framework_simplejwt.views import (
     TokenObtainPairView, 
     TokenRefreshView
@@ -161,7 +167,7 @@ class LogoutView(APIView):
 
     permission_classes = (IsAuthenticated,)
 
-    def post(self, request):
+    def get(self, request):
         """
         Handle POST request to log out the user.
 
@@ -170,7 +176,6 @@ class LogoutView(APIView):
         """
         logout(request)
         return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
-
 
 class LoginView(APIView):
     """
@@ -185,23 +190,33 @@ class LoginView(APIView):
             user = serializer.validated_data['user']
             login(request, user)
             return Response({
-                'user_id': user.id,
-                'username': user.username,
                 'message': 'Login successful'
             }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-class RegisterView(ListCreateAPIView):
+class RegisterView(CreateAPIView):
     """
     View for registering a new player.
 
-    Inherits from ListCreateAPIView, which provides GET (list) and POST (create) methods.
+    Inherits from CreateAPIView, which provides POST (create) method.
     """
-    queryset = Player.objects.all()
+    permission_classes = (IsUnauthenticated,)
     serializer_class = PlayerRegistrationSerializer
-    permission_classes = (AllowAny,)
+    queryset = Player.objects.all()
+    
+    def post(self, request):
+        """
+        Handle POST request to register a new player.
 
+        :param request: The HTTP request object.
+        :return: A Response object with a success message.
+        """
+        
+        serializer = PlayerRegistrationSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'Registration successful'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class PlayerListView(ListAPIView):
     """
@@ -216,6 +231,16 @@ class PlayerListView(ListAPIView):
     serializer_class = PlayerListSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        """
+        Exclude blocked users from the queryset.
+        """
+        blocked_users = BlockedUsers.objects.filter(
+            Q(player=self.request.user) | Q(blockedUser=self.request.user)
+        )
+        blocked_user_ids = blocked_users.values_list('blockedUser', flat=True)
+        return Player.objects.exclude(id__in=blocked_user_ids)
+
 
 class PlayerPublicProfileView(generics.RetrieveAPIView):
     """
@@ -225,3 +250,120 @@ class PlayerPublicProfileView(generics.RetrieveAPIView):
     serializer_class = PlayerListSerializer
     lookup_field = 'username'
     permission_classes = [IsAuthenticated]
+    
+    def get_object(self):
+        """
+        Exclude blocked users from the queryset.
+        """
+        username = self.kwargs['username']
+        if BlockedUsers.objects.filter(
+            Q(player=self.request.user, blockedUser__username=username) |
+            Q(player__username=username, blockedUser=self.request.user)
+        ).exists():
+            raise Http404("Player not found")
+        return super().get_object()
+    
+class UpdatePlayerInfoView(generics.UpdateAPIView):
+    """
+    API view for updating player information.
+    Requires authentication.
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class =  UpdatePlayerInfoSerializer
+    
+    def get_object(self):
+        """
+        Get the player object of the currently authenticated user.
+        Returns:
+        - Player: The player object. 
+        """
+        return self.request.user
+
+    def post(self, request):
+        """
+        Handle PATCH request to update player information.
+
+        Parameters:
+        - request: The HTTP request object.
+
+        Returns:
+        - Response: The HTTP response object.
+        """
+        player = self.get_object()
+        serializer = self.serializer_class(player, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message":"update info successfully"}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UpdateAvatarView(generics.UpdateAPIView):
+    """
+    A view for updating the avatar of the player.
+    """
+    queryset = Player.objects.all()
+    permission_classes = [IsAuthenticated]
+    serializer_class =  UpdateAvatarSerializers
+    
+    def get_object(self):
+        """
+        Get the player object of the currently authenticated user.
+
+        Returns:
+        - Player: The player object. 
+        """
+        return self.request.user
+    
+    def post(self, request):
+        """
+        Handle the POST request to update the avatar of the player.
+
+        Args:
+            request (HttpRequest): The HTTP request object.
+
+        Returns:
+            Response: The HTTP response object.
+        """
+        player = self.get_object()
+        serializers = UpdateAvatarSerializers(player, data=request.data, partial=True)
+        if serializers.is_valid():
+            serializers.save()
+            return Response({"message":"update avatar successfully"}, status=status.HTTP_200_OK)
+        return Response({"message":"update avatar failure"}, status=status.HTTP_400_BAD_REQUEST)
+
+class ChangePasswordView(generics.UpdateAPIView):
+    """
+    A view for changing the password of the authenticated player.
+    """
+    queryset = Player.objects.all()
+    permission_classes = [IsAuthenticated]
+    serializer_class =  ChangePasswordSerializer
+    
+    def get_object(self):
+        """
+        Get the player object of the currently authenticated user.
+        Returns:
+        - Player: The player object. 
+        """
+        return self.request.user
+    
+    def post(self, request):
+            """
+            Handle the POST request to change the password of the authenticated player.
+
+            Args:
+                request (HttpRequest): The HTTP request object.
+
+            Returns:
+                Response: The HTTP response object containing the result of the password change operation.
+            """
+            self.object = self.get_object()
+            if self.object.password is None:
+                serializer = CreatePasswordSerializer(self.object, data=request.data, parial=True,context={'request': request})
+            else:    
+                serializer= ChangePasswordSerializer(self.object, data=request.data, partial=True, context={'request': request}) 
+            
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message": "Password changed successfully"},status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
