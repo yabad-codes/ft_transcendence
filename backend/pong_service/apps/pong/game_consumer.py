@@ -30,8 +30,6 @@ class PongConsumer(AsyncWebsocketConsumer):
             self.room_name,
             self.channel_name
         )
-        print(f'Player {self.player.username} connected to game {
-              self.game_id}')
         await self.accept()
 
         await self.check_if_game_ready()
@@ -69,6 +67,10 @@ class PongConsumer(AsyncWebsocketConsumer):
 
     async def check_if_game_ready(self):
         is_ready = await self.get_game_ready_status()
+        await self.send(text_data=json.dumps({
+            'status': 'player-role',
+            'role': self.player_role
+        }))
         if is_ready:
             await self.channel_layer.group_send(
                 self.room_name,
@@ -85,6 +87,7 @@ class PongConsumer(AsyncWebsocketConsumer):
         player2 = await self.get_player(game.player2_id)
         self.game = PongGame(player1, player2)
 
+        print(f'PLAYER YABAD WASHER WDSAD : {self.player.username}')
         if self.player == player1:
             await self.send_game_state()
             # self.game_loop_task = asyncio.create_task(self.game_loop())
@@ -112,6 +115,7 @@ class PongConsumer(AsyncWebsocketConsumer):
     def get_game_ready_status(self):
         from pong_service.apps.pong.models import PongGame
         game = PongGame.objects.get(id=self.game_id)
+        self.player_role = 'player1' if game.player1 == self.player else 'player2'
         return bool(game.player1 and game.player2)
 
     @database_sync_to_async
