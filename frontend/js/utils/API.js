@@ -39,6 +39,16 @@ const API = {
 		});
 		return {status: response.status, data: await response.text()};
 	},
+
+	getProfile: () => {
+        // Get the user profile
+        return app.api.get('/api/me/').then(response => {
+            if (response.status !== 200) {
+                return null;
+            }
+            return response.data;
+        });
+    },
 }
 
 export default API;

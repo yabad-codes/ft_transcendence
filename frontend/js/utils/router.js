@@ -1,6 +1,6 @@
 const Router = {
-    init: () => {
-        app.isLoggedIn = true; // this is a fake check, later will be configured (Check login status)
+    init: async () => {
+        app.isLoggedIn = await Router.checkIsLoggedIn();
 
         Router.go(location.pathname);
 
@@ -34,14 +34,25 @@ const Router = {
                 Router.loadMainHomeContent('settings-page');
                 break;
             case "/login":
-                Router.loadMainBodyContent('login-page');
+                Router.loadSignAndLoginPage('login-page');
                 break;
             case "/signup":
-                Router.loadMainBodyContent('signup-page');
+                Router.loadSignAndLoginPage('signup-page');
                 break;
             default:
-                Router.loadMainBodyContent('not-found-page');
+                Router.loadNotFoundPage('not-found-page');
         }
+    },
+
+    checkIsLoggedIn: async () => {
+        // Check if the user is logged in
+        app.profile = await app.api.getProfile();
+
+        if (app.profile) {
+            return true;
+        }
+
+        return false;
     },
 
     loadMainHomeContent: (pageName) => {
@@ -53,7 +64,7 @@ const Router = {
 
         // If the home page doesn't exist in the DOM then render the home page first
         if (!document.querySelector('home-page')) {
-            Router.loadMainBodyContent('home-page');
+            Router.loadHomePage();
         }
         
         const mainElement = document.querySelector('main')
@@ -67,16 +78,32 @@ const Router = {
         mainElement.appendChild(mainContent)
     },
 
-    // render home, login, signup or 404 pages only to the main body
-    loadMainBodyContent: (pageName) => {
-        // Delete home, login, sign up or 404 pages if they exist then load new one
-        const oldPages = ['home-page', 'login-page', 'signup-page', 'not-found-page'];
+    loadHomePage: () => {
+        // Delete home, login, sign up or 404 pages if they exist then load the home page
+        Router.removeOldPages();
+        Router.insertPage('home-page');
+    },
 
-        oldPages.forEach(page => {
-            const pageElement = document.querySelector(page);
-            if (pageElement) pageElement.remove();
-        });
+    loadSignAndLoginPage: (pageName) => {
+        // Delete home, login, sign up or 404 pages if they exist then load the sign up or login page
+        Router.removeOldPages();
 
+        if (app.isLoggedIn) {
+            app.router.go("/");
+            return;
+        }
+
+        Router.insertPage(pageName);
+    },
+
+    loadNotFoundPage: () => {
+        // Delete home, login, sign up or 404 pages if they exist then load the 404 page
+        Router.removeOldPages();
+        Router.insertPage('not-found-page');
+    },
+
+    // Insert the page to the body
+    insertPage: (pageName) => {
         const newElement = document.createElement(pageName);
         const bootstrapScript = document.querySelector('body > script:last-of-type'); // Insert the pages before bootstrap js bundle script
 
@@ -85,7 +112,17 @@ const Router = {
         } else {
             document.body.appendChild(newElement);
         }
-    }
+    },
+
+    removeOldPages: () => {
+        // Remove old pages if they exist
+        const oldPages = ['home-page', 'login-page', 'signup-page', 'not-found-page'];
+
+        oldPages.forEach(page => {
+            const pageElement = document.querySelector(page);
+            if (pageElement) pageElement.remove();
+        });
+    },
 }
 
 export default Router;
