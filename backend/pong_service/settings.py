@@ -86,9 +86,9 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'pong_service.apps.authentication.middleware.TokenRefreshMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -194,6 +194,8 @@ MEDIA_URL = "https://storage.googleapis.com/{}/".format(GS_BUCKET_NAME)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'authentication.Player'
+
+APPEND_SLASH = True
 
 #for fixe the  CSRF error we can add it after
 CSRF_TRUSTED_ORIGINS = [
