@@ -18,7 +18,7 @@ from rest_framework_simplejwt.views import (
 )
 from django.conf import settings
 
-class CustomTokenObtainPairView(TokenObtainPairView):
+class  CustomTokenObtainPairView(TokenObtainPairView):
     """
     Custom view for obtaining a new access and refresh token pair.
     
@@ -104,7 +104,7 @@ class LogoutView(APIView):
 
 class LoginView(APIView):
     """
-    View for handling user login.
+    View for handling user login with JWT authentication.
     """
     permission_classes = (AllowAny,)
     serializer_class = LoginSerializer
@@ -112,11 +112,10 @@ class LoginView(APIView):
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            user = serializer.validated_data['user']
-            login(request, user)
-            return Response({
-                'message': 'Login successful'
-            }, status=status.HTTP_200_OK)
+            # Obtain the JWT tokens using the custom view
+            response = CustomTokenObtainPairView.as_view()(request)
+            if response.status_code == 200:
+                return response
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class RegisterView(CreateAPIView):
@@ -218,8 +217,8 @@ class UpdatePlayerInfoView(generics.UpdateAPIView):
         serializer = self.serializer_class(player, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response({"message":"update info successfully"}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message":"update info successfully", "success": True}, status=status.HTTP_200_OK)
+        return Response({"errors": serializer.errors, "success": False}, status=status.HTTP_400_BAD_REQUEST)
 
 class UpdateAvatarView(generics.UpdateAPIView):
     """
@@ -252,8 +251,8 @@ class UpdateAvatarView(generics.UpdateAPIView):
         serializers = UpdateAvatarSerializers(player, data=request.data, partial=True)
         if serializers.is_valid():
             serializers.save()
-            return Response({"message":"update avatar successfully"}, status=status.HTTP_200_OK)
-        return Response({"message":"update avatar failure"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message":"update avatar successfully", "success": True}, status=status.HTTP_200_OK)
+        return Response({"errors": serializers.errors, "success": False}, status=status.HTTP_400_BAD_REQUEST)
 
 class ChangePasswordView(generics.UpdateAPIView):
     """
@@ -289,6 +288,6 @@ class ChangePasswordView(generics.UpdateAPIView):
             
             if serializer.is_valid():
                 serializer.save()
-                return Response({"message": "Password changed successfully"},status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"message":"update password successfully", "success": True}, status=status.HTTP_200_OK)
+            return Response({"errors": serializers.errors, "success": False}, status=status.HTTP_400_BAD_REQUEST)
 
