@@ -39,8 +39,13 @@ class PongConsumer(AsyncWebsocketConsumer):
     async def disconnect(self, close_code):
         if not self.player:
             return
-        print(f'Player {self.player.username} disconnected from game {
-              self.game_id}')
+        
+        if self.game_id in self.games:
+            del self.games[self.game_id]
+        if self.game_id in self.game_loops:
+            self.game_loops[self.game_id].cancel()
+            del self.game_loops[self.game_id]
+        
         await self.channel_layer.group_discard(
             self.room_name,
             self.channel_name
