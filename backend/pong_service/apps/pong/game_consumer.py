@@ -10,8 +10,10 @@ from jwt import decode as jwt_decode
 
 
 class PongConsumer(AsyncWebsocketConsumer):
+    games = {}
+    game_loops = {}
+
     async def connect(self):
-        print("I'm here in PongConsumer")
         self.cookies = self.scope['cookies']
         self.game_id = self.scope['url_route']['kwargs']['game_id']
         self.room_name = f'pong_{self.game_id}'
@@ -47,9 +49,8 @@ class PongConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         if not self.player:
             return
-        if text_data == 'u' or text_data == 'd':
+        if text_data in ['w', 's']:
             await self.update_paddle_position(text_data)
-        pass
 
     async def get_user_from_access_token(self, access_token):
         from django.conf import settings
@@ -88,11 +89,14 @@ class PongConsumer(AsyncWebsocketConsumer):
         game = await self.get_or_create_game()
         player1 = await self.get_player(game.player1_id)
         player2 = await self.get_player(game.player2_id)
-        self.game = PongGame(player1, player2)
 
-        if self.player == player1:
-            await self.send_game_state()
-            self.game_loop_task = asyncio.create_task(self.game_loop())
+        if self.game_id not in self.games:
+            self.games[self.game_id] = PongGame(player1, player2)
+        self.game = self.games[self.game_id]
+
+        if self.game_id not in self.game_loops:
+            self.game_loops[self.game_id] = asyncio.create_task(
+                self.game_loop())
 
     async def game_loop(self):
         try:
@@ -101,6 +105,7 @@ class PongConsumer(AsyncWebsocketConsumer):
                 game_over = self.game.update(current_time)
                 await self.send_game_state()
                 if game_over:
+                    await self.send_game_over()
                     await asyncio.sleep(3)
                     self.game.reset_ball()
                 await asyncio.sleep(1/60)
@@ -158,7 +163,5 @@ class PongConsumer(AsyncWebsocketConsumer):
         await self.send(bytes_data=event['game_state'])
 
     async def update_paddle_position(self, key):
-        if key == 'u':
-            self.game.move_paddle(self.player.id, 'up')
-        else:
-            self.game.move_paddle(self.player.id, 'down')
+        direction = 'up' if key == 'w' else 'down'
+        self.game.move_paddle(self.player.id, direction)
