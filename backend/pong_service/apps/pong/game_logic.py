@@ -1,116 +1,123 @@
-import math
+import time
 import random
 
-# Constants
-GAME_WIDTH = 800
-GAME_HEIGHT = 600
-PADDLE_WIDTH = 10
-PADDLE_HEIGHT = 100
-BALL_SIZE = 18
-INITIAL_VELOCITY = 0.025
-VELOCITY_INCREASE = 0.000001
-PADDLE_SPEED = 0.02
-
-
-class Ball:
-    def __init__(self):
-        self.reset()
-
-    def reset(self):
-        self.x = GAME_WIDTH / 2
-        self.y = GAME_HEIGHT / 2
-        self.direction = {'x': 0, 'y': 0}
-        while abs(self.direction['x']) <= 0.3 or abs(self.direction['y']) <= 0.7:
-            heading = random.uniform(0, 2 * math.pi)
-            self.direction = {'x': math.cos(heading), 'y': math.sin(heading)}
-        self.velocity = INITIAL_VELOCITY
-
-    def update(self, delta, paddle1_rect, paddle2_rect):
-        self.x += self.direction['x'] * self.velocity * delta
-        self.y += self.direction['y'] * self.velocity * delta
-        self.velocity += VELOCITY_INCREASE * delta
-
-        if self.y <= 0 or self.y >= GAME_HEIGHT:
-            self.direction['y'] *= -1
-
-        if self.is_collision(paddle1_rect) or self.is_collision(paddle2_rect):
-            self.direction['x'] *= -1
-
-    def is_collision(self, paddle_rect):
-        return (
-            self.x - BALL_SIZE / 2 <= paddle_rect['right'] and
-            self.x + BALL_SIZE / 2 >= paddle_rect['left'] and
-            self.y - BALL_SIZE / 2 <= paddle_rect['bottom'] and
-            self.y + BALL_SIZE / 2 >= paddle_rect['top']
-        )
-
-
-class Paddle:
-    def __init__(self, is_left):
-        self.y = (GAME_HEIGHT / 2) - (PADDLE_HEIGHT / 2)
-        self.is_left = is_left
-
-    def update(self, delta, ball_y):
-        self.y += PADDLE_SPEED * delta * (ball_y - self.y)
-
-    def rect(self):
-        if self.is_left:
-            left = 0
-        else:
-            left = GAME_WIDTH - PADDLE_WIDTH
-        return {
-            'top': self.y - PADDLE_HEIGHT / 2,
-            'bottom': self.y + PADDLE_HEIGHT / 2,
-            'left': left,
-            'right': left + PADDLE_WIDTH
-        }
-
-
 class PongGame:
-    def __init__(self, player1, player2):
-        self.ball = Ball()
-        self.paddle1 = Paddle(True)
-        self.paddle2 = Paddle(False)
+    def __init__(self, player1, player2, canvas_width=800, canvas_height=600):
+        self.canvas_width = canvas_width
+        self.canvas_height = canvas_height
+        self.grid = 15
+        self.paddle_height = self.grid * 5
+        self.max_paddle_y = self.canvas_height - self.grid - self.paddle_height
+
+        self.paddle_speed = 6
+        self.ball_speed = 5
+
         self.player1 = player1
         self.player2 = player2
-        self.score1 = 0
-        self.score2 = 0
-        self.last_update_time = None
+
+        self.left_paddle = {
+            "x": self.grid * 2,
+            "y": self.canvas_height / 2 - self.paddle_height / 2,
+            "width": self.grid,
+            "height": self.paddle_height,
+            "dy": 0,
+        }
+
+        self.right_paddle = {
+            "x": self.canvas_width - self.grid * 3,
+            "y": self.canvas_height / 2 - self.paddle_height / 2,
+            "width": self.grid,
+            "height": self.paddle_height,
+            "dy": 0,
+        }
+
+        self.ball = {
+            "x": self.canvas_width / 2,
+            "y": self.canvas_height / 2,
+            "width": self.grid,
+            "height": self.grid,
+            "resetting": False,
+            "dx": self.ball_speed,
+            "dy": -self.ball_speed,
+        }
+
+        self.scores = {player1.id: 0, player2.id: 0}
+        self.last_update_time = time.time()
+
+    def collides(self, obj1, obj2):
+        return (
+            obj1["x"] < obj2["x"] + obj2["width"] and
+            obj1["x"] + obj1["width"] > obj2["x"] and
+            obj1["y"] < obj2["y"] + obj2["height"] and
+            obj1["y"] + obj1["height"] > obj2["y"]
+        )
 
     def update(self, current_time):
         if self.last_update_time is None:
             self.last_update_time = current_time
             return False
-
-        delta = current_time - self.last_update_time
+        dt = current_time - self.last_update_time
+        print("DT : ", dt)
         self.last_update_time = current_time
 
-        self.ball.update(delta, self.paddle1.rect(), self.paddle2.rect())
-        self.paddle2.update(delta, self.ball.y)
+        # Update paddle positions
+        self.left_paddle["y"] += self.left_paddle["dy"] * dt * 60
+        self.right_paddle["y"] += self.right_paddle["dy"] * dt * 60
 
-        if self.is_lost():
-            self.handle_lost()
-            return True
-        return False
+        # Constrain paddles to canvas
+        self.left_paddle["y"] = max(self.grid, min(self.max_paddle_y, self.left_paddle["y"]))
+        self.right_paddle["y"] = max(self.grid, min(self.max_paddle_y, self.right_paddle["y"]))
 
-    def is_lost(self):
-        return self.ball.x <= 0 or self.ball.x >= GAME_WIDTH
+        # Update ball position
+        if not self.ball["resetting"]:
+            self.ball["x"] += self.ball["dx"] * dt * 60
+            self.ball["y"] += self.ball["dy"] * dt * 60
 
-    def handle_lost(self):
-        if self.ball.x <= 0:
-            self.score2 += 1
+        # Ball collision with top and bottom
+        if self.ball["y"] < self.grid or self.ball["y"] + self.grid > self.canvas_height - self.grid:
+            self.ball["dy"] *= -1
+
+        # Ball out of bounds
+        if self.ball["x"] < 0 or self.ball["x"] > self.canvas_width:
+            if self.ball["x"] < 0:
+                self.scores[self.player2.id] += 1
+            else:
+                self.scores[self.player1.id] += 1
+            self.reset_ball()
+
+        # Ball collision with paddles
+        if self.collides(self.ball, self.left_paddle):
+            self.ball["dx"] *= -1
+            self.ball["x"] = self.left_paddle["x"] + self.left_paddle["width"]
+        elif self.collides(self.ball, self.right_paddle):
+            self.ball["dx"] *= -1
+            self.ball["x"] = self.right_paddle["x"] - self.ball["width"]
+
+        return max(self.scores.values()) >= 11
+
+    def reset_ball(self):
+        self.ball["resetting"] = True
+        self.ball["x"] = self.canvas_width / 2
+        self.ball["y"] = self.canvas_height / 2
+        self.ball["resetting"] = False
+        self.ball["dx"] = self.ball_speed * random.choice([-1, 1])
+        self.ball["dy"] = self.ball_speed * random.choice([-1, 1])
+
+    def move_paddle(self, player_id, direction):
+        paddle = self.left_paddle if player_id == self.player1.id else self.right_paddle
+        if direction == "up":
+            paddle["dy"] = -self.paddle_speed
+        elif direction == "down":
+            paddle["dy"] = self.paddle_speed
         else:
-            self.score1 += 1
-        self.ball.reset()
-        self.paddle1.y = GAME_HEIGHT / 2
-        self.paddle2.y = GAME_HEIGHT / 2
+            paddle["dy"] = 0
 
     def get_state(self):
         return {
-            'ball_x': self.ball.x,
-            'ball_y': self.ball.y,
-            'paddle1_y': self.paddle1.y,
-            'paddle2_y': self.paddle2.y,
-            'score1': self.score1,
-            'score2': self.score2
+            "ball_x": self.ball["x"],
+            "ball_y": self.ball["y"],
+            "paddle1_y": self.left_paddle["y"],
+            "paddle2_y": self.right_paddle["y"],
+            "score1": self.scores[self.player1.id],
+            "score2": self.scores[self.player2.id],
         }

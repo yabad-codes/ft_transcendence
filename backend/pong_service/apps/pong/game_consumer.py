@@ -3,7 +3,7 @@ import struct
 import asyncio
 from channels.generic.websocket import AsyncWebsocketConsumer
 from pong_service.apps.pong.binproto import BinaryProtocol
-from pong_service.apps.pong.game_logic import PongGame, GAME_WIDTH, GAME_HEIGHT
+from pong_service.apps.pong.game_logic import PongGame
 from asgiref.sync import sync_to_async
 from channels.db import database_sync_to_async
 from jwt import decode as jwt_decode
@@ -87,10 +87,9 @@ class PongConsumer(AsyncWebsocketConsumer):
         player2 = await self.get_player(game.player2_id)
         self.game = PongGame(player1, player2)
 
-        print(f'PLAYER YABAD WASHER WDSAD : {self.player.username}')
         if self.player == player1:
             await self.send_game_state()
-            # self.game_loop_task = asyncio.create_task(self.game_loop())
+            self.game_loop_task = asyncio.create_task(self.game_loop())
 
     async def game_loop(self):
         try:
@@ -100,8 +99,8 @@ class PongConsumer(AsyncWebsocketConsumer):
                 await self.send_game_state()
                 if game_over:
                     await asyncio.sleep(3)
-                    self.game.ball.reset()
-                await asyncio.sleep(1/30)
+                    self.game.reset_ball()
+                await asyncio.sleep(1/60)
         except asyncio.CancelledError:
             pass
 
