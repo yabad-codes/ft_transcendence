@@ -40,9 +40,9 @@ const API = {
 		return {status: response.status, data: await response.text()};
 	},
 
-	getProfile: () => {
+	getProfile: async () => {
         // Get the user profile
-        return app.api.get('/api/me/').then(response => {
+        return await app.api.get('/api/me/').then(response => {
             if (response.status !== 200) {
                 return null;
             }

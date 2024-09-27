@@ -68,6 +68,7 @@ class PlayerRegistrationSerializer(serializers.ModelSerializer):
             serializers.ValidationError: If the password and password_confirm fields do not match.
         """
         if data['password'] != data['password_confirm']:
+            print(PASSWORD_ERROR)
             raise serializers.ValidationError(PASSWORD_ERROR)
         return data
 

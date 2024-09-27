@@ -1,46 +1,46 @@
+import { displayRequestStatus } from "./errorManagement.js";
+
 const Router = {
     init: async () => {
         app.isLoggedIn = await Router.checkIsLoggedIn();
 
-        Router.go(location.pathname);
+        // console.log("Location: ", location.pathname);
+        Router.go(location.pathname + location.search);
 
-        // This perhaps will get modified for the Auth conditions
         window.addEventListener('popstate', event => {
             Router.go(event.state ? event.state.router : "/", false);
         });
     },
 
     go: (router, addToHistory = true) => {
-        if (addToHistory) {
-            window.history.pushState({ router }, null, router);
+        if (addToHistory && location.pathname !== router) {
+            if (window.history.length > 1) {
+                window.history.pushState({ router }, null, router);
+            } else {
+                window.history.replaceState({ router }, null, router);
+            }
         }
 
         // render the pages
         // this could be refactored and scaled later
-        switch (router) {
-            case "/":
-                Router.loadMainHomeContent('game-page');
-                break;
-            case "/profile":
-                Router.loadMainHomeContent('profile-page');
-                break;
-            case "/chat":
-                Router.loadMainHomeContent('chat-page');
-                break;
-            case "/leaderboard":
-                Router.loadMainHomeContent('leaderboard-page');
-                break;
-            case "/settings":
-                Router.loadMainHomeContent('settings-page');
-                break;
-            case "/login":
-                Router.loadSignAndLoginPage('login-page');
-                break;
-            case "/register":
-                Router.loadSignAndLoginPage('register-page');
-                break;
-            default:
-                Router.loadNotFoundPage('not-found-page');
+        if (router === "/") {
+            Router.loadMainHomeContent('game-page');
+        } else if (router === "/profile") {
+            Router.loadMainHomeContent('profile-page');
+        } else if (router === "/chat") {
+            Router.loadMainHomeContent('chat-page');
+        } else if (router === "/leaderboard") {
+            Router.loadMainHomeContent('leaderboard-page');
+        } else if (router === "/settings") {
+            Router.loadMainHomeContent('settings-page');
+        } else if (router === "/login") {
+            Router.loadSignAndLoginPage('login-page');
+        } else if (router === "/register") {
+            Router.loadSignAndLoginPage('register-page');
+        } else if (router.includes("/oauth-callback")) {
+            Router.handleOAuthCallback();
+        } else {
+            Router.loadNotFoundPage('not-found-page');
         }
     },
 
@@ -58,6 +58,7 @@ const Router = {
     loadMainHomeContent: (pageName) => {
         // If the user is not logged in go to login page
         if (!app.isLoggedIn) {
+            console.log("User is not logged in");
             app.router.go("/login");
             return;
         }
@@ -116,12 +117,32 @@ const Router = {
 
     removeOldPages: () => {
         // Remove old pages if they exist
-        const oldPages = ['home-page', 'login-page', 'signup-page', 'not-found-page'];
+        const oldPages = ['home-page', 'login-page', 'signup-page', 'register-page', 'not-found-page'];
 
         oldPages.forEach(page => {
             const pageElement = document.querySelector(page);
             if (pageElement) pageElement.remove();
         });
+    },
+
+    async handleOAuthCallback() {
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        const status = urlParams.get('status');
+        const message = urlParams.get('message');
+
+        if (status === 'success') {
+            app.isLoggedIn = true;
+            app.profile = await app.api.getProfile();
+            window.history.replaceState(null, null, '/');
+            app.router.go('/');
+            displayRequestStatus('success', message);
+            return;
+        }
+
+        displayRequestStatus('error', message || "OAuth login failed");
+        window.history.replaceState(null, null, '/login');
+        app.router.go('/login');
     },
 }
 
