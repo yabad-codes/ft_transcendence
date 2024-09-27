@@ -111,6 +111,13 @@ class PongGame:
         else:
             paddle["dy"] = 0
 
+    def get_winner(self):
+        if self.scores[self.player1.id] >= 11:
+            return self.player1
+        elif self.scores[self.player2.id] >= 11:
+            return self.player2
+        return None
+
     def get_state(self):
         return {
             "ball_x": self.ball["x"],

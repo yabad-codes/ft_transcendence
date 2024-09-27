@@ -39,13 +39,13 @@ class PongConsumer(AsyncWebsocketConsumer):
     async def disconnect(self, close_code):
         if not self.player:
             return
-        
+
         if self.game_id in self.games:
             del self.games[self.game_id]
         if self.game_id in self.game_loops:
             self.game_loops[self.game_id].cancel()
             del self.game_loops[self.game_id]
-        
+
         await self.channel_layer.group_discard(
             self.room_name,
             self.channel_name
@@ -115,7 +115,9 @@ class PongConsumer(AsyncWebsocketConsumer):
                     self.game.reset_ball()
                 await asyncio.sleep(1/60)
         except asyncio.CancelledError:
-            pass
+            print("Game loop cancelled")
+        finally:
+            await self.end_game()
 
     async def game_start(self, event):
         await self.send(text_data=json.dumps({
@@ -170,3 +172,46 @@ class PongConsumer(AsyncWebsocketConsumer):
     async def update_paddle_position(self, key):
         direction = 'up' if key == 'w' else 'down'
         self.game.move_paddle(self.player.id, direction)
+
+    async def send_game_over(self):
+        winner = self.game.get_winner()
+        await self.channel_layer.group_send(
+            self.room_name,
+            {
+                'type': 'game_over',
+                'winner': 'player1' if winner == self.game.player1 else 'player2'
+            }
+        )
+
+    async def game_over(self, event):
+        await self.send(text_data=json.dumps({
+            'status': 'game_over',
+            'winner': event['winner']
+        }))
+
+    async def end_game(self):
+        try:
+            # Update the game status in the database
+            await self.update_game_status()
+        except Exception as e:
+            pass
+
+        # Clean up the game instance and loop
+        if self.game_id in self.games:
+            del self.games[self.game_id]
+        if self.game_id in self.game_loops:
+            del self.game_loops[self.game_id]
+        await self.close()
+
+    @database_sync_to_async
+    def update_game_status(self):
+        from pong_service.apps.pong.models import PongGame
+        from pong_service.apps.authentication.models import Player
+
+        game = PongGame.objects.get(id=self.game_id)
+        winner = self.game.get_winner()
+        game.status = PongGame.Status.FINISHED
+        game.player1_score = self.game.scores[self.game.player1.id]
+        game.player2_score = self.game.scores[self.game.player2.id]
+        game.winner = winner
+        game.save()
