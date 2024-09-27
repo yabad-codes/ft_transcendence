@@ -64,16 +64,14 @@ INSTALLED_APPS = [
     'pong_service.apps.chat',
     'pong_service.apps.player',
     'pong_service.apps.pong',
-	  'channels',
+    'channels',
+    'corsheaders',
     'rest_framework_simplejwt.token_blacklist',
 ]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-		'pong_service.apps.authentication.auth.CustomJWTAuthentication',
-	],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'pong_service.apps.authentication.auth.CustomJWTAuthentication',
     ]
 }
 
@@ -94,6 +92,7 @@ AUTH_COOKIE_SAMESITE = 'Strict'
 TOKEN_REFRESH_THRESHOLD = 2
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -105,7 +104,7 @@ MIDDLEWARE = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-	'django.contrib.auth.backends.ModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 ROOT_URLCONF = 'pong_service.urls'
@@ -207,6 +206,35 @@ AUTH_USER_MODEL = 'authentication.Player'
 
 #for fixe the  CSRF error we can add it after
 CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:8081',  # For local development
+    'https://localhost:8081',  # For local development
     'https://127.0.0.1:8081',  # Your production domain
+]
+
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOWED_ORIGINS = [
+    'https://localhost:8081',
+    'https://127.0.0.1:8081',
+]
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
 ]

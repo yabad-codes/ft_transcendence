@@ -15,6 +15,7 @@ from pong_service.apps.chat.models import BlockedUsers
 from django.db.models import Q
 from django.http import Http404
 from .helpers import set_cookie
+from urllib.parse import urlencode
 
 from rest_framework_simplejwt.views import (
     TokenObtainPairView, 
@@ -28,30 +29,33 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 class OAuthLoginView(APIView):
-    permission_classes = (AllowAny,)
+    permission_classes = (IsUnauthenticated,)
 
     def get(self, request):
-        logger.debug('Redirecting to OAuth login page')
-        logger.info('AUTH_URL: %s', settings.AUTH_URL)
-        return redirect(settings.AUTH_URL)
+        logger.debug('Initiating OAuth login')
+        auth_url = f"{settings.AUTH_URL}"
+        return Response({'auth_url': auth_url}, status=status.HTTP_200_OK)
     
 class OAuthCallbackView(APIView):
-    permission_classes = (AllowAny,)
+    permission_classes = (IsUnauthenticated,)
 
     def get(self, request):
         logger.debug('Received OAuth callback')
-        
+
         code = request.GET.get('code')
         if not code:
-            return self._response_with_message('No code in request', status.HTTP_400_BAD_REQUEST)
+            # return self._response_with_message('No code in request', status.HTTP_400_BAD_REQUEST)
+            return self._error_redirect('Authorization failed')
         
         access_token = self._get_access_token(code)
         if not access_token:
-            return self._response_with_message('Failed to get access token', status.HTTP_400_BAD_REQUEST)
+            # return self._response_with_message('Failed to get access token', status.HTTP_400_BAD_REQUEST)
+            return self._error_redirect('Failed to get access token')
         
         user_data = helpers.get_42_user_data(access_token)
         if not user_data:
-            return self._response_with_message('Failed to get user data', status.HTTP_400_BAD_REQUEST)
+            # return self._response_with_message('Failed to get user data', status.HTTP_400_BAD_REQUEST)
+            return self._error_redirect('Failed to get user data')
         
         user_data = helpers.construct_user_data(user_data)
         try:
@@ -59,16 +63,19 @@ class OAuthCallbackView(APIView):
                 return self._login_user(request, user_data)
             return self._create_user(request, user_data)
         except IntegrityError as e:
-            return self._response_with_message('Failed to create user', status.HTTP_400_BAD_REQUEST)
+            # return self._response_with_message('Failed to create user', status.HTTP_400_BAD_REQUEST)
+            return self._error_redirect('Failed to create user')
         except KeyError as e:
-            return self._response_with_message('Failed to get user data', status.HTTP_400_BAD_REQUEST)
+            # return self._response_with_message('Failed to get user data', status.HTTP_400_BAD_REQUEST)
+            return self._error_redirect('Failed to get user data')
         except Exception as e:
-            return self._response_with_message('An error occurred', status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+            # return self._response_with_message('An error occurred', status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return self._error_redirect('An error occurred')
+
     def _response_with_message(self, message, status_code):
         logger.debug(message)
         return Response({'message': message}, status=status_code)
-    
+
     def _get_access_token(self, code):
         try:
             token_response = helpers.get_42_token(code)
@@ -77,21 +84,39 @@ class OAuthCallbackView(APIView):
         except Exception as e:
             logger.error(f'Failed to get access token: {e}')
             return None
-        
+
     def _login_user(self, request, user_data):
         user = Player.objects.get(api_user_id=user_data['api_user_id'])
         refresh_token = RefreshToken.for_user(user)
         access_token = str(refresh_token.access_token)
-        response = JsonResponse({'status': 'success', 'message': 'Login successful'})
+        # response = JsonResponse({'status': 'success', 'message': 'Login successful'})
+        response = self._success_redirect('Login successful')
+        print("Response: ", response)
         helpers.set_cookie(response, 'access', access_token, settings.AUTH_COOKIE_ACCESS_MAX_AGE)
         helpers.set_cookie(response, 'refresh', refresh_token, settings.AUTH_COOKIE_REFRESH_MAX_AGE)
         logger.debug('User %s logged in successfully', user.username)
         return response
-    
+
     def _create_user(self, request, user_data):
         player = helpers.create_player(user_data)
         logger.debug('User %s created successfully', player.username)
-        return self._response_with_message('User created successfully', status.HTTP_201_CREATED)
+        return self._login_user(request, user_data)
+
+    def _success_redirect(self, message):
+        params = urlencode({
+            'status': 'success',
+            'message': message,
+        })
+        print(f'{settings.FRONTEND_URL}/oauth-callback?{params}')
+        return redirect(f'{settings.FRONTEND_URL}/oauth-callback?{params}')
+
+    def _error_redirect(self, message):
+        params = urlencode({
+            'status': 'error',
+            'message': message
+        })
+        print(f'{settings.FRONTEND_URL}/oauth-callback?{params}')
+        return redirect(f'{settings.FRONTEND_URL}/oauth-callback?{params}')
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     """
@@ -103,6 +128,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 	Returns:
 		Response: A response object with the new access and refresh tokens.
     """
+    print("Response: Anouar")
     def post(self, request, *args, **kwargs):
         """
         Handle POST request to obtain a new access and refresh token pair.
@@ -181,7 +207,7 @@ class LoginView(APIView):
     """
     View for handling user login.
     """
-    permission_classes = (AllowAny,)
+    permission_classes = (IsUnauthenticated,)
     serializer_class = LoginSerializer
 
     def post(self, request):
@@ -204,19 +230,19 @@ class RegisterView(CreateAPIView):
     serializer_class = PlayerRegistrationSerializer
     queryset = Player.objects.all()
     
-    def post(self, request):
-        """
-        Handle POST request to register a new player.
+    # def post(self, request):
+    #     """
+    #     Handle POST request to register a new player.
 
-        :param request: The HTTP request object.
-        :return: A Response object with a success message.
-        """
+    #     :param request: The HTTP request object.
+    #     :return: A Response object with a success message.
+    #     """
         
-        serializer = PlayerRegistrationSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'message': 'Registration successful'}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    #     serializer = PlayerRegistrationSerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response({'message': 'Registration successful'}, status=status.HTTP_201_CREATED)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class PlayerListView(ListAPIView):
     """
@@ -262,7 +288,23 @@ class PlayerPublicProfileView(generics.RetrieveAPIView):
         ).exists():
             raise Http404("Player not found")
         return super().get_object()
-    
+
+class PlayerProfileView(generics.RetrieveAPIView):
+    """
+    API view to retrieve the profile of the currently authenticated player.
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = PlayerListSerializer
+
+    def get_object(self):
+        """
+        Get the player object of the currently authenticated user.
+        Returns:
+        - Player: The player object. 
+        """
+
+        return self.request.user
+
 class UpdatePlayerInfoView(generics.UpdateAPIView):
     """
     API view for updating player information.

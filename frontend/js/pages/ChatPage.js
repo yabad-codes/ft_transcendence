@@ -1,5 +1,6 @@
 import BaseHTMLElement from "./BaseHTMLElement.js";
 import { createState } from "../utils/stateManager.js";
+import { displayRequestStatus } from "../utils/errorManagement.js";
 
 export class ChatPage extends BaseHTMLElement {
   constructor() {
@@ -22,8 +23,12 @@ export class ChatPage extends BaseHTMLElement {
   connectedCallback() {
     super.connectedCallback();
     // Add additional logic for the chat page ...
-    app.api.get("/api/conversations/").then((conversations) => {
-      this.state.conversations = conversations;
+    app.api.get("/api/conversations/").then((response) => {
+      if (response.status >= 400) {
+        displayRequestStatus("error", response.data);
+        return;
+      }
+      this.state.conversations = response.data;
     });
     this.popupConversationActions();
     this.searchFriends();
@@ -33,7 +38,7 @@ export class ChatPage extends BaseHTMLElement {
 
   setupWebsocket() {
     this.chatSocket = new WebSocket(
-      "ws://" + window.location.host + "/ws/chat/"
+      "wss://" + window.location.host + "/ws/chat/"
     );
 
     this.chatSocket.onopen = (e) => {
@@ -42,7 +47,6 @@ export class ChatPage extends BaseHTMLElement {
 
     this.chatSocket.onmessage = (e) => {
       const data = JSON.parse(e.data);
-      console.log(`Data: ${data}`);
       const conversation = this.state.conversations.find(
         (conversation) =>
           conversation.conversationID === data.message.conversation_id
@@ -52,7 +56,11 @@ export class ChatPage extends BaseHTMLElement {
         app.api
           .get("/api/conversations/" + data.message.conversation_id)
           .then((response) => {
-            this.state.conversations = [response, ...this.state.conversations];
+            if (response.status >= 400) {
+              displayRequestStatus("error", response.data);
+              return;
+            }
+            this.state.conversations = [response.data, ...this.state.conversations];
           });
         return;
       }
@@ -193,9 +201,13 @@ export class ChatPage extends BaseHTMLElement {
       "click",
       (event) => {
         popupContainer.classList.remove("hidden");
-        app.api.get("/api/friendships/").then((friends) => {
-          this.state.friends = friends;
-          this.state.searchFriends = friends;
+        app.api.get("/api/friendships/").then((response) => {
+          if (response.status >= 400) {
+            displayRequestStatus("error", response.data);
+            return;
+          }
+          this.state.friends = response.data;
+          this.state.searchFriends = response.data;
         });
       }
     );
@@ -220,7 +232,7 @@ export class ChatPage extends BaseHTMLElement {
       <div class="avatar me-2">
         <img
           class="avatar_image shadow-sm"
-          src="${player.avatar}"
+          src="${player.avatar_url}"
           alt="Avatar image"
         />
         <span class="avatar_status"></span>
@@ -356,7 +368,7 @@ export class ChatPage extends BaseHTMLElement {
         <div class="avatar me-2">
         <img
             class="avatar_image"
-            src="${conversationParticipant.avatar}"
+            src="${conversationParticipant.avatar_url}"
             alt="Avatar image"
         />
         <span class="avatar_status"></span>
