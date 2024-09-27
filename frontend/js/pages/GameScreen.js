@@ -37,36 +37,7 @@ export class GameScreen extends BaseHTMLElement {
       score1: 0,
       score2: 0,
     };
-    // this.setupEventListeners();
-  }
-
-  drawInitialGame() {
-    // Clear the canvas
-    this.ctx.fillStyle = "black";
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-    // Draw the paddles
-    this.ctx.fillStyle = "white";
-    this.ctx.fillRect(10, this.gameState.player1Y, 10, 100); // Left paddle
-    this.ctx.fillRect(780, this.gameState.player2Y, 10, 100); // Right paddle
-
-    // Draw the ball
-    this.ctx.beginPath();
-    this.ctx.arc(
-      this.gameState.ballX,
-      this.gameState.ballY,
-      10,
-      0,
-      Math.PI * 2
-    );
-    this.ctx.fillStyle = "white";
-    this.ctx.fill();
-    this.ctx.closePath();
-
-    // Draw the scores
-    this.ctx.font = "32px Arial";
-    this.ctx.fillText(this.gameState.score1, this.canvas.width / 4, 50);
-    this.ctx.fillText(this.gameState.score2, (3 * this.canvas.width) / 4, 50);
+    this.setupEventListeners();
   }
 
   connectToGameServer() {
@@ -88,12 +59,23 @@ export class GameScreen extends BaseHTMLElement {
       } else {
         try {
           const jsonData = JSON.parse(e.data);
+          console.log(jsonData);
           if (jsonData.status === "player-role") {
             this.setPlayerRole(jsonData.role);
             console.log(`You are player ${jsonData.role}`);
+          } else if (jsonData.status === "game_over") {
+            console.log("Game over!");
+            const winner = jsonData.winner;
+            // close the connection
+            ws.close();
+            console.log(`Game over! Player ${winner} wins!`);
+          } else if (jsonData.status === "game_start") {
+            // Added handling for game_start message
+            console.log("Game is starting!");
+            // Add any game start logic here
           }
         } catch (e) {
-          console.error("Unexpected message from game server");
+          console.error("Unexpected message from game server:", e);
         }
       }
     };
@@ -133,22 +115,44 @@ export class GameScreen extends BaseHTMLElement {
 
   sendPaddleMove(key) {
     if (this.gameSocket && this.gameSocket.readyState === WebSocket.OPEN) {
-      this.gameSocket.send(`${key}${this.playerRole}`);
-      console.log(`Sent ${key}${this.playerRole}`);
+      this.gameSocket.send(`${key}`);
+      console.log(`Sent ${key}`);
     }
   }
 
   drawGame() {
     if (!this.gameState) return;
 
+    this.drawInitialGame();
+  }
+
+  drawInitialGame() {
+    // Set canvas size
+    this.canvas.width = 800;
+    this.canvas.height = 600;
+
     // Clear the canvas
-    this.ctx.fillStyle = "black";
+    this.ctx.fillStyle = "white";
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
+    // Draw the border
+    this.ctx.strokeStyle = "black";
+    this.ctx.lineWidth = 2;
+    this.ctx.strokeRect(0, 0, this.canvas.width, this.canvas.height);
+
+    // Draw the center line
+    this.ctx.setLineDash([5, 15]);
+    this.ctx.beginPath();
+    this.ctx.moveTo(this.canvas.width / 2, 0);
+    this.ctx.lineTo(this.canvas.width / 2, this.canvas.height);
+    this.ctx.stroke();
+    this.ctx.setLineDash([]);
+
     // Draw the paddles
-    this.ctx.fillStyle = "white";
-    this.ctx.fillRect(10, this.gameState.player1Y, 10, 100); // Left paddle
-    this.ctx.fillRect(780, this.gameState.player2Y, 10, 100); // Right paddle
+    this.ctx.fillStyle = "#117a8b"; // Blue for left paddle
+    this.ctx.fillRect(20, this.gameState.player1Y, 10, 80); // Left paddle
+    this.ctx.fillStyle = "#dc3545"; // Red for right paddle
+    this.ctx.fillRect(this.canvas.width - 30, this.gameState.player2Y, 10, 80); // Right paddle
 
     // Draw the ball
     this.ctx.beginPath();
@@ -159,13 +163,15 @@ export class GameScreen extends BaseHTMLElement {
       0,
       Math.PI * 2
     );
-    this.ctx.fillStyle = "white";
+    this.ctx.fillStyle = "#FFA726"; // Orange for the ball
     this.ctx.fill();
     this.ctx.closePath();
 
     // Draw the scores
-    this.ctx.font = "32px Arial";
+    this.ctx.font = "48px Arial";
+    this.ctx.fillStyle = "#117a8b"; // Blue for left score
     this.ctx.fillText(this.gameState.score1, this.canvas.width / 4, 50);
+    this.ctx.fillStyle = "#dc3545"; // Red for right score
     this.ctx.fillText(this.gameState.score2, (3 * this.canvas.width) / 4, 50);
   }
 }
