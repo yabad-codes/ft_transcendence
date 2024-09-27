@@ -111,7 +111,9 @@ class PongGame:
         else:
             paddle["dy"] = 0
 
-    def get_winner(self):
+    def get_winner(self, disconnected_player=None):
+        if disconnected_player:
+            return self.player1 if self.player1.id != disconnected_player else self.player2
         if self.scores[self.player1.id] >= 11:
             return self.player1
         elif self.scores[self.player2.id] >= 11:

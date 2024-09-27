@@ -1,6 +1,7 @@
 import json
 import struct
 import asyncio
+import time
 from channels.generic.websocket import AsyncWebsocketConsumer
 from pong_service.apps.pong.binproto import BinaryProtocol
 from pong_service.apps.pong.game_logic import PongGame
@@ -118,7 +119,8 @@ class PongConsumer(AsyncWebsocketConsumer):
         except asyncio.CancelledError:
             print("Game loop cancelled")
         finally:
-            await self.end_game()
+            await self.update_game_status(disconnected=True)
+            await self.send_game_over()
 
     async def game_start(self, event):
         await self.send(text_data=json.dumps({
@@ -206,12 +208,13 @@ class PongConsumer(AsyncWebsocketConsumer):
         await self.close()
 
     @database_sync_to_async
-    def update_game_status(self):
+    def update_game_status(self, disconnected=False):
         from pong_service.apps.pong.models import PongGame
         from pong_service.apps.authentication.models import Player
 
         game = PongGame.objects.get(id=self.game_id)
-        winner = self.game.get_winner()
+        winner = self.game.get_winner(
+            disconnected_player=self.player.id) if disconnected else None
         game.status = PongGame.Status.FINISHED
         game.player1_score = self.game.scores[self.game.player1.id]
         game.player2_score = self.game.scores[self.game.player2.id]
