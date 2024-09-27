@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import time
 import random
+import math
 from typing import Dict, Optional
 
 
@@ -60,9 +61,15 @@ class PongGame:
             y=self.canvas_height / 2,
             width=self.grid,
             height=self.grid,
-            dx=self.ball_speed,
-            dy=-self.ball_speed
+            dx=0,
+            dy=0
         )
+
+    def start_ball_movement(self) -> None:
+        angle = random.uniform(-math.pi/4, math.pi/4)
+        self.ball.dx = self.ball_speed * \
+            math.cos(angle) * random.choice([-1, 1])
+        self.ball.dy = self.ball_speed * math.sin(angle)
 
     def collides(self, obj1: Dict[str, float], obj2: Dict[str, float]) -> bool:
         return (
@@ -85,6 +92,9 @@ class PongGame:
             paddle.y = max(self.grid, min(self.max_paddle_y, paddle.y))
 
     def _update_ball(self, dt: float) -> bool:
+        if self.ball.dx == 0 and self.ball.dy == 0:
+            return False
+
         if not self.ball.resetting:
             self.ball.x += self.ball.dx * dt * 60
             self.ball.y += self.ball.dy * dt * 60

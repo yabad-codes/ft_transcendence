@@ -107,6 +107,8 @@ class PongConsumer(AsyncWebsocketConsumer):
 
     async def game_loop(self):
         try:
+            await self.send_game_state()
+            self.game.start_ball_movement()
             while True:
                 current_time = asyncio.get_event_loop().time()
                 game_over = self.game.update(current_time)
