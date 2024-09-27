@@ -7,8 +7,10 @@ export class GameScreen extends BaseHTMLElement {
     this.gameSocket = null;
     this.gameState = null;
     this.playerRole = null;
+    this.playerUsername = null;
     this.canvas = null;
     this.ctx = null;
+    this.gameOver = false;
   }
 
   connectedCallback() {
@@ -22,10 +24,19 @@ export class GameScreen extends BaseHTMLElement {
     this.innerHTML = `
       <div id="gameScreen">
         <canvas id="game" width="800" height="600"></canvas>
+        <div id="gameOverOverlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); color: white; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+          <h2 id="gameOverMessage" style="font-size: 32px; margin-bottom: 20px;"></h2>
+          <button id="newGameButton" style="font-size: 18px; padding: 10px 20px; margin: 10px;">New Game</button>
+        </div>
       </div>
     `;
     this.canvas = this.querySelector("#game");
     this.ctx = this.canvas.getContext("2d");
+    this.gameOverOverlay = this.querySelector("#gameOverOverlay");
+    this.gameOverMessage = this.querySelector("#gameOverMessage");
+    this.newGameButton = this.querySelector("#newGameButton");
+
+    this.newGameButton.addEventListener("click", () => this.startNewGame());
   }
 
   initializeGame() {
@@ -62,17 +73,14 @@ export class GameScreen extends BaseHTMLElement {
           console.log(jsonData);
           if (jsonData.status === "player-role") {
             this.setPlayerRole(jsonData.role);
+            this.setPlayerUsername(jsonData.username);
             console.log(`You are player ${jsonData.role}`);
           } else if (jsonData.status === "game_over") {
-            console.log("Game over!");
-            const winner = jsonData.winner;
-            // close the connection
-            ws.close();
-            console.log(`Game over! Player ${winner} wins!`);
+            this.handleGameOver(jsonData.winner);
           } else if (jsonData.status === "game_start") {
-            // Added handling for game_start message
             console.log("Game is starting!");
-            // Add any game start logic here
+            this.gameOver = false;
+            this.gameOverOverlay.style.display = "none";
           }
         } catch (e) {
           console.error("Unexpected message from game server:", e);
@@ -82,9 +90,38 @@ export class GameScreen extends BaseHTMLElement {
 
     ws.onclose = () => {
       console.log("Disconnected from game server");
+      if (!this.gameOver) {
+        this.handleUnexpectedDisconnection();
+      }
     };
 
     this.gameSocket = ws;
+  }
+
+  handleGameOver(winner) {
+    this.gameOver = true;
+    let message;
+    if (winner) {
+      message = `Game over! ${winner} wins!`;
+    } else {
+      message = "Game over! It's a tie!";
+    }
+    this.gameOverMessage.textContent = message;
+    this.gameOverOverlay.style.display = "flex";
+    console.log(message);
+    // close the connection
+    this.gameSocket.close();
+  }
+
+  handleUnexpectedDisconnection() {
+    this.gameOverMessage.textContent =
+      "Connection lost. The game ended unexpectedly.";
+    this.gameOverOverlay.style.display = "flex";
+  }
+
+  startNewGame() {
+    // Implement logic to start a new game, e.g., redirect to game setup page
+    window.location.href = "/";
   }
 
   decodeGameState(arrayBuffer) {
@@ -103,11 +140,16 @@ export class GameScreen extends BaseHTMLElement {
     this.playerRole = role;
   }
 
+  setPlayerUsername(username) {
+    this.playerUsername = username;
+  }
+
   setupEventListeners() {
     window.addEventListener("keydown", (e) => this.handleKeyPress(e));
   }
 
   handleKeyPress(e) {
+    if (this.gameOver) return;
     if (e.key === "w" || e.key === "s") {
       this.sendPaddleMove(e.key);
     }
@@ -121,8 +163,7 @@ export class GameScreen extends BaseHTMLElement {
   }
 
   drawGame() {
-    if (!this.gameState) return;
-
+    if (!this.gameState || this.gameOver) return;
     this.drawInitialGame();
   }
 
