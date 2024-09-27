@@ -44,9 +44,12 @@ class PongConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
 
-    async def receive(self, bytes_data):
-        paddle_y = struct.unpack('!f', bytes_data)[0]
-        await self.update_paddle_position(paddle_y)
+    async def receive(self, text_data):
+        if not self.player:
+            return
+        if text_data == 'u' or text_data == 'd':
+            await self.update_paddle_position(text_data)
+        pass
 
     async def get_user_from_access_token(self, access_token):
         from django.conf import settings
@@ -154,8 +157,8 @@ class PongConsumer(AsyncWebsocketConsumer):
     async def binary_game_state(self, event):
         await self.send(bytes_data=event['game_state'])
 
-    async def update_paddle_position(self, paddle_y):
-        if self.player == self.game.player1:
-            self.game.paddle1.y = paddle_y
+    async def update_paddle_position(self, key):
+        if key == 'u':
+            self.game.move_paddle(self.player.id, 'up')
         else:
-            self.game.paddle2.y = paddle_y
+            self.game.move_paddle(self.player.id, 'down')

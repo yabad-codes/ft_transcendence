@@ -1,6 +1,7 @@
 import time
 import random
 
+
 class PongGame:
     def __init__(self, player1, player2, canvas_width=800, canvas_height=600):
         self.canvas_width = canvas_width
@@ -53,11 +54,7 @@ class PongGame:
         )
 
     def update(self, current_time):
-        if self.last_update_time is None:
-            self.last_update_time = current_time
-            return False
         dt = current_time - self.last_update_time
-        print("DT : ", dt)
         self.last_update_time = current_time
 
         # Update paddle positions
@@ -65,8 +62,10 @@ class PongGame:
         self.right_paddle["y"] += self.right_paddle["dy"] * dt * 60
 
         # Constrain paddles to canvas
-        self.left_paddle["y"] = max(self.grid, min(self.max_paddle_y, self.left_paddle["y"]))
-        self.right_paddle["y"] = max(self.grid, min(self.max_paddle_y, self.right_paddle["y"]))
+        self.left_paddle["y"] = max(self.grid, min(
+            self.max_paddle_y, self.left_paddle["y"]))
+        self.right_paddle["y"] = max(self.grid, min(
+            self.max_paddle_y, self.right_paddle["y"]))
 
         # Update ball position
         if not self.ball["resetting"]:
@@ -87,10 +86,10 @@ class PongGame:
 
         # Ball collision with paddles
         if self.collides(self.ball, self.left_paddle):
-            self.ball["dx"] *= -1
+            self.ball["dx"] = abs(self.ball["dx"])
             self.ball["x"] = self.left_paddle["x"] + self.left_paddle["width"]
         elif self.collides(self.ball, self.right_paddle):
-            self.ball["dx"] *= -1
+            self.ball["dx"] = -abs(self.ball["dx"])
             self.ball["x"] = self.right_paddle["x"] - self.ball["width"]
 
         return max(self.scores.values()) >= 11
