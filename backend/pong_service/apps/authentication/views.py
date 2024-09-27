@@ -102,6 +102,7 @@ class LogoutView(APIView):
         logout(request)
         return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
 
+
 class LoginView(APIView):
     """
     View for handling user login with JWT authentication.
