@@ -143,6 +143,24 @@ class PlayerListView(ListAPIView):
     queryset = Player.objects.all()
     serializer_class = PlayerListSerializer
     permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """
+        Handle GET request to list all players.
+
+        :param request: The HTTP request object.
+        :return: A Response object with the serialized player data.
+        """
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        
+        # Create a dictionary structure for the response
+        response_data = {
+            'data': serializer.data,  # Player data from the serializer
+            'success': True  # Add success field inside the response
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
 
 
 class PlayerPublicProfileView(generics.RetrieveAPIView):
