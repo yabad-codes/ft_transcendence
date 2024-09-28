@@ -190,10 +190,9 @@ class LogoutView(APIView):
 
     Requires the user to be authenticated.
     """
-
     permission_classes = (IsAuthenticated,)
 
-    def get(self, request):
+    def post(self, request):
         """
         Handle POST request to log out the user.
 
@@ -201,8 +200,10 @@ class LogoutView(APIView):
         :return: A Response object with a success message.
         """
         logout(request)
-        return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
-
+        response = Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
+        response = helpers.set_cookie(response, 'access', '', 0)
+        response = helpers.set_cookie(response, 'refresh', '', 0)
+        return response
 
 class LoginView(APIView):
     """
