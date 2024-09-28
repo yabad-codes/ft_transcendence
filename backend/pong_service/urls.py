@@ -23,6 +23,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('pong_service.apps.authentication.urls')),
     path('api/', include('pong_service.apps.chat.urls')),
+    path('api/', include('pong_service.apps.pong.urls')),
 ]
 
 # Add media URL configuration for development

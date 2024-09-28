@@ -13,8 +13,10 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from datetime import timedelta
 from os import getenv
 from pathlib import Path
+from google.oauth2 import service_account
 import redis
 import os
+##adding logger for debugging
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,6 +28,15 @@ REDIS_PORT = os.environ.get('REDIS_PORT')
 REDIS_DB = os.environ.get('REDIS_DB')
 
 REDIS = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
+
+# 42 API
+UID = os.environ.get('UID')
+SECRET = os.environ.get('SECRET')
+AUTH_URL = os.environ.get('AUTH_URL')
+REDIRECT_URL = os.environ.get('REDIRECT_URL')
+
+# Frontend
+FRONTEND_URL = os.environ.get('FRONTEND_URL')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -53,16 +64,14 @@ INSTALLED_APPS = [
     'pong_service.apps.chat',
     'pong_service.apps.player',
     'pong_service.apps.pong',
-    
+    'channels',
+    'corsheaders',
     'rest_framework_simplejwt.token_blacklist',
 ]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-		'pong_service.apps.authentication.auth.CustomJWTAuthentication',
-	],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'pong_service.apps.authentication.auth.CustomJWTAuthentication',
     ]
 }
 
@@ -83,6 +92,7 @@ AUTH_COOKIE_SAMESITE = 'Strict'
 TOKEN_REFRESH_THRESHOLD = 2
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -94,7 +104,7 @@ MIDDLEWARE = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-	'django.contrib.auth.backends.ModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 ROOT_URLCONF = 'pong_service.urls'
@@ -116,7 +126,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'pong_service.wsgi.application'
+ASGI_APPLICATION = 'pong_service.asgi.application'
 
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [(REDIS_HOST, REDIS_PORT)],
+        },
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -131,7 +150,6 @@ DATABASES = {
         'PORT': os.environ.get('POSTGRES_PORT'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -167,12 +185,18 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'pong_service', 'avatars')
-# STATIC_URL = '/static/'
-
 STATIC_URL = '/static/'
 STATIC_ROOT = '/app/static/'
+
+##setting for link google cloud storage with django
+
+GS_CREDENTIALS = service_account.Credentials.from_service_account_file(os.path.join(BASE_DIR, 'credentials.json'))
+DEFAULT_FILE_STORAGE = 'pong_service.apps.authentication.gcloud.GoogleCloudMediaStorage'
+GS_PROJECT_ID = 'transcendencestorage'
+GS_BUCKET_NAME = 'avatars_ft_tran'
+MEDIA_ROOT = "https://storage.googleapis.com/{}/".format(GS_BUCKET_NAME)
+UPLOAD_ROOT = "https://storage.googleapis.com/{}/".format(GS_BUCKET_NAME)
+MEDIA_URL = "https://storage.googleapis.com/{}/".format(GS_BUCKET_NAME)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -180,6 +204,37 @@ STATIC_ROOT = '/app/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'authentication.Player'
 
+#for fixe the  CSRF error we can add it after
 CSRF_TRUSTED_ORIGINS = [
-	'http://localhost:8081'
+    'https://localhost:8081',  # For local development
+    'https://127.0.0.1:8081',  # Your production domain
+]
+
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOWED_ORIGINS = [
+    'https://localhost:8081',
+    'https://127.0.0.1:8081',
+]
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
 ]
