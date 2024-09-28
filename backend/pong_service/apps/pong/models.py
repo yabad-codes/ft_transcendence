@@ -1,7 +1,7 @@
 from django.db import models
-from pong_service.apps.authentication.models import Player
 
 class PongGame(models.Model):
+    from pong_service.apps.authentication.models import Player
     class Status(models.TextChoices):
         PENDING = 'Pending'
         STARTED = 'Started'
@@ -20,6 +20,7 @@ class PongGame(models.Model):
         return f"Game {self.id}: {self.player1} vs {self.player2 or 'waiting'} - {self.status}"
     
 class Tournament(models.Model):
+    from pong_service.apps.authentication.models import Player
     class Status(models.TextChoices):
         PENDING = 'Pending'
         IN_PROGRESS = 'In Progress'
