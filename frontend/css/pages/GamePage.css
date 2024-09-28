@@ -1,24 +1,58 @@
-game-page {
-  display: flex;
-  justify-content: center;
-  height: 100%;
+body {
+  font-family: Arial, sans-serif;
 }
 
-game-page .game-btns {
+.game-container {
+  text-align: center;
+  margin-top: 50px;
+}
+
+.game-btns {
   display: flex;
-  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.primary-btn {
+  background-color: #007bff;
+  color: white;
+}
+
+.secondary-btn {
+  background-color: #dc3545;
+  color: white;
+}
+
+.tournament-btn {
+  background-color: #28a745;
+  color: white;
+}
+
+.status {
+  margin-top: 20px;
+  font-size: 18px;
+  color: #333;
+}
+
+.game-screen {
+  text-align: center;
+  margin-top: 50px;
+}
+
+#gameCanvas {
+  margin-top: 30px;
+  border: 2px solid #000;
+  width: 300px;
+  height: 300px;
+  display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.game-btns .btn {
-  width: 350px;
-  height: 100px;
-  background-color: #404040;
-  font-family: "Montserrat", sans-serif;
-  font-weight: 800;
-  font-size: 24px;
-  letter-spacing: 3px;
-  color: white;
-  margin-bottom: 10px;
 }

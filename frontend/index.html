@@ -8,6 +8,10 @@
     <script src="app.js" type="module"></script>
   </head>
   <body>
+
+    <!-- error-management -->
+    <div id="error-management"></div>
+
     <!-- COMPONENTS -->
 
     <!-- NavBar -->
@@ -172,10 +176,47 @@
 
     <!-- Game Page -->
     <template id="gamepage">
-      <div class="game-btns">
-        <button class="btn">New Game</button>
-        <button class="btn">vs Computer</button>
-        <button class="btn">Play a Friend</button>
+      <div class="game-container">
+        <div class="game-btns">
+          <button class="btn primary-btn" id="requestGameBtn">
+            Find Match
+          </button>
+          <button class="btn secondary-btn" id="cancelMatchmakingBtn" disabled>
+            Cancel Matchmaking
+          </button>
+          <button class="btn tournament-btn">Join Tournament</button>
+        </div>
+        <div id="matchmakingStatus" class="status mt-3"></div>
+      </div>
+    </template>
+
+    <!-- Game Screen Template -->
+    <template id="gamescreen">
+      <div class="game-screen">
+        <div id="gameId" class="game-id"></div>
+        <div class="players-info">
+          <div class="player">
+            <img
+              src="/api/avatar"
+              alt="Player 1"
+              class="player-avatar rounded-circle"
+            />
+            <span id="player1-score" class="player-score">0</span>
+          </div>
+          <div class="player">
+            <img
+              src="/api/avatar"
+              alt="Player 2"
+              class="player-avatar rounded-circle"
+            />
+            <span id="player2-score" class="player-score">0</span>
+          </div>
+        </div>
+        <div class="game-board">
+          <div class="paddle player1-paddle"></div>
+          <div class="paddle player2-paddle"></div>
+          <div class="ball"></div>
+        </div>
       </div>
     </template>
 
@@ -199,7 +240,7 @@
             <div class="w-100">
               <div class="text-center mb-5">
                 <h1 class="text-shadow">LOGIN</h1>
-                <form class="p-4">
+                <form class="login-form p-4">
                   <div class="form-group">
                     <input
                       type="text"
@@ -207,6 +248,8 @@
                       placeholder="Username"
                       required
                     />
+                  </div>
+                  <div class="form-group">
                     <input
                       type="password"
                       class="login-input"
@@ -223,7 +266,7 @@
                   <div class="text-center mt-3 mb-5 register-link">
                     <span
                       >Don't have an account?
-                      <a href="/register">Register</a></span
+                      <a href="#" id="to-register">Register</a></span
                     >
                   </div>
                   <div class="hr-with-text">
@@ -232,7 +275,7 @@
                   </div>
                   <button
                     type="button"
-                    class="login-btn login-dark btn-dark btn-block mt-5"
+                    class="oauth42 login-btn login-dark btn-dark btn-block mt-5"
                   >
                     Login with
                     <img
@@ -271,7 +314,7 @@
             <div class="w-100">
               <div class="text-center mb-5">
                 <h1 class="text-shadow">REGISTER</h1>
-                <form class="p-4">
+                <form class="register-form p-4">
                   <div class="form-group">
                     <input
                       type="text"
@@ -314,7 +357,7 @@
                   </button>
                   <div class="text-center mt-3 mb-5 register-link">
                     <span
-                      >Already have an account? <a href="/login">Login</a></span
+                      >Already have an account? <a href="#" id="to-login">Login</a></span
                     >
                   </div>
                   <div class="hr-with-text">
@@ -323,7 +366,7 @@
                   </div>
                   <button
                     type="button"
-                    class="login-btn login-dark btn-dark btn-block mt-5"
+                    class="oauth42 login-btn login-dark btn-dark btn-block mt-5"
                   >
                     Register with
                     <img
@@ -593,22 +636,34 @@
                 aria-labelledby="dropdownButton"
               >
                 <li>
-                  <a class="dropdown-item text-danger " href="#" data-action="clear"
+                  <a
+                    class="dropdown-item text-danger"
+                    href="#"
+                    data-action="clear"
                     >Clear chat</a
                   >
                 </li>
                 <li>
-                  <a class="dropdown-item text-danger" href="#" data-action="delete"
+                  <a
+                    class="dropdown-item text-danger"
+                    href="#"
+                    data-action="delete"
                     >Delete Chat</a
                   >
                 </li>
                 <li>
-                  <a class="dropdown-item text-danger" href="#" data-action="block"
+                  <a
+                    class="dropdown-item text-danger"
+                    href="#"
+                    data-action="block"
                     >Block user</a
                   >
                 </li>
                 <li>
-                  <a class="dropdown-item text-danger" href="#" data-action="unblock"
+                  <a
+                    class="dropdown-item text-danger"
+                    href="#"
+                    data-action="unblock"
                     >Unblock user</a
                   >
                 </li>
@@ -655,8 +710,12 @@
             </div>
           </div>
           <!-- Send Message button -->
-          <div class="d-flex justify-content-center align-items-center pe-5 ps-5 pb-3">
-            <p class="" style="color: #7b7b7b;">The message is blocked for example loooooooooooooooooooool</p>
+          <div
+            class="d-flex justify-content-center align-items-center pe-5 ps-5 pb-3"
+          >
+            <p class="" style="color: #7b7b7b">
+              The message is blocked for example loooooooooooooooooooool
+            </p>
             <form class="send_message_container flex-grow-1" tabindex="0">
               <input
                 type="text"
@@ -917,6 +976,8 @@
 			</div>
 		</div>
 	</template>
+
+  <!-- Add other templates -->
 
     <script src="./bootstrap-5.3.3-dist/js/bootstrap.min.js"></script>
   </body>
