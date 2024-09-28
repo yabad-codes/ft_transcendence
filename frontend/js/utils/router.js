@@ -39,6 +39,9 @@ const Router = {
             case "/register":
                 Router.loadMainBodyContent('register-page');
                 break;
+			case "/2fa":
+				Router.loadMainHomeContent('twofa-page');
+				break;
             default:
                 Router.loadMainBodyContent('not-found-page');
         }
@@ -70,7 +73,7 @@ const Router = {
     // render home, login, signup or 404 pages only to the main body
     loadMainBodyContent: (pageName) => {
         // Delete home, login, sign up or 404 pages if they exist then load new one
-        const oldPages = ['home-page', 'login-page', 'register-page', 'not-found-page'];
+        const oldPages = ['home-page', 'login-page', 'register-page', 'not-found-page', 'twofa-page'];
 
         oldPages.forEach(page => {
             const pageElement = document.querySelector(page);

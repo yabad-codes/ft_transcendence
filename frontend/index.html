@@ -867,7 +867,56 @@
 			</section>
 		</div>
 	</template>
-    <!-- Add other templates -->
+
+	<!-- 2FA verification page -->
+	<template id="_2fapage">
+		<div class="bg"></div>
+		<div class="container">
+			<br>
+			<div class="row">
+				<div class="card">
+					<div class="card-body px-lg-5 py-lg-5 text-center">
+						<img src="./images/key.png" class="rounded-circle avatar-lg mb-4" alt="profile-image">
+						<h2 class="heading">Easy peasy</h2>
+						<p id="instructions" class="mb-4" style="color: #aaa;">Enter 6-digits code from your athenticatior app.</p>
+						
+						<div class="row mb-4" id="codeInputGroup">
+							<div class="col-lg-2 col-md-2 col-2 ps-0 ps-md-2">
+								<input maxlength="1" type="text" class="form-control text-lg text-center" placeholder="_" aria-label="2fa">
+							</div>
+							<div class="col-lg-2 col-md-2 col-2 ps-0 ps-md-2">
+								<input maxlength="1" type="text" class="form-control text-lg text-center" placeholder="_" aria-label="2fa">
+							</div>
+							<div class="col-lg-2 col-md-2 col-2 ps-0 ps-md-2">
+								<input maxlength="1" type="text" class="form-control text-lg text-center" placeholder="_" aria-label="2fa">
+							</div>
+							<div class="col-lg-2 col-md-2 col-2 pe-0 pe-md-2">
+								<input maxlength="1" type="text" class="form-control text-lg text-center" placeholder="_" aria-label="2fa">
+							</div>
+							<div class="col-lg-2 col-md-2 col-2 pe-0 pe-md-2">
+								<input maxlength="1" type="text" class="form-control text-lg text-center" placeholder="_" aria-label="2fa">
+							</div>
+							<div class="col-lg-2 col-md-2 col-2 pe-0 pe-md-2">
+								<input maxlength="1" type="text" class="form-control text-lg text-center" placeholder="_" aria-label="2fa">
+							</div>
+						</div>
+						<input type="text" id="backupCodeInput" placeholder="Enter your backup code" maxlength="10" pattern="[a-zA-Z0-9]{10}" required class="form-control text-lg d-none w-100 p-2 mb-4">
+						<div class="text-center">
+							<button type="button" id="submitBtn" class="w-100 btn btn-lg mt-4 display-1">Continue</button>
+						</div>
+						<div class="backup-link text-center mt-4">
+							<a class="text-decoration-none" href="#" id="toggleBackup">Don't have access to your authenticator app?</a>
+						</div>
+
+						<div id="messageAlert" class="alert alert-danger alert-dismissible fade show fade-in d-none mt-4 mb-0" role="alert">
+							<span id="messageText"></span>
+							<button type="button" class="btn-close" aria-label="Close"></button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</template>
 
     <script src="./bootstrap-5.3.3-dist/js/bootstrap.min.js"></script>
   </body>
