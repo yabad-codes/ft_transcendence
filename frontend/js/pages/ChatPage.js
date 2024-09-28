@@ -247,7 +247,7 @@ export class ChatPage extends BaseHTMLElement {
           src="${player.avatar_url}"
           alt="Avatar image"
         />
-        <span class="avatar_status"></span>
+        <span class="avatar_status ${player.isFriend ? "" : "none"} ${player.online ? "online" : ""}"></span>
       </div>
       ${player.first_name} ${player.last_name}
     </button>
