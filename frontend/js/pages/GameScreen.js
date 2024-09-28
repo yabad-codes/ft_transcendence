@@ -156,10 +156,7 @@ export class GameScreen extends BaseHTMLElement {
   }
 
   sendPaddleMove(key) {
-    if (this.gameSocket && this.gameSocket.readyState === WebSocket.OPEN) {
-      this.gameSocket.send(`${key}`);
-      console.log(`Sent ${key}`);
-    }
+    this.gameSocket.send(key);
   }
 
   drawGame() {
