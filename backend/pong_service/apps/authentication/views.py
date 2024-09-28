@@ -118,7 +118,6 @@ class OAuthCallbackView(APIView):
         print(f'{settings.FRONTEND_URL}/oauth-callback?{params}')
         return redirect(f'{settings.FRONTEND_URL}/oauth-callback?{params}')
 
-
 class CustomTokenRefreshView(TokenRefreshView):
     """
     Custom view for refreshing an access token.
@@ -158,10 +157,9 @@ class LogoutView(APIView):
 
     Requires the user to be authenticated.
     """
-
     permission_classes = (IsAuthenticated,)
 
-    def get(self, request):
+    def post(self, request):
         """
         Handle POST request to log out the user.
 
@@ -169,11 +167,14 @@ class LogoutView(APIView):
         :return: A Response object with a success message.
         """
         logout(request)
-        return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
+        response = Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
+        response = helpers.set_cookie(response, 'access', '', 0)
+        response = helpers.set_cookie(response, 'refresh', '', 0)
+        return response
 
 class LoginView(TokenObtainPairView):
     """
-    View for handling user login.
+    View for handling user login with JWT authentication.
     """
 
     def post(self, request, *args, **kwargs):
@@ -206,11 +207,10 @@ class LoginView(TokenObtainPairView):
                         settings.AUTH_COOKIE_REFRESH_MAX_AGE
                     )
                 return response
-            else:
-                return Response(
-                    serializer.errors,
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class RegisterView(CreateAPIView):
@@ -328,8 +328,8 @@ class UpdatePlayerInfoView(generics.UpdateAPIView):
         serializer = self.serializer_class(player, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response({"message":"update info successfully"}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message":"update info successfully", "success": True}, status=status.HTTP_200_OK)
+        return Response({"errors": serializer.errors, "success": False}, status=status.HTTP_400_BAD_REQUEST)
 
 class UpdateAvatarView(generics.UpdateAPIView):
     """
@@ -362,8 +362,8 @@ class UpdateAvatarView(generics.UpdateAPIView):
         serializers = UpdateAvatarSerializers(player, data=request.data, partial=True)
         if serializers.is_valid():
             serializers.save()
-            return Response({"message":"update avatar successfully"}, status=status.HTTP_200_OK)
-        return Response({"message":"update avatar failure"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message":"update avatar successfully", "success": True}, status=status.HTTP_200_OK)
+        return Response({"errors": serializers.errors, "success": False}, status=status.HTTP_400_BAD_REQUEST)
 
 class ChangePasswordView(generics.UpdateAPIView):
     """
@@ -399,6 +399,6 @@ class ChangePasswordView(generics.UpdateAPIView):
             
             if serializer.is_valid():
                 serializer.save()
-                return Response({"message": "Password changed successfully"},status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"message":"update password successfully", "success": True}, status=status.HTTP_200_OK)
+            return Response({"errors": serializers.errors, "success": False}, status=status.HTTP_400_BAD_REQUEST)
 
