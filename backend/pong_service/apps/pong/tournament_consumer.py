@@ -21,8 +21,7 @@ class PongTournamentConsumer(AsyncWebsocketConsumer):
     game_loops = {}
 
     async def connect(self):
-        self.game_id = self.scope['url_route']['kwargs']['game_id']
-        self.room_name = f'pong_tournament_{self.game_id}'
+        self.room_name = 'pong_tournament'
         self.player = await self.get_user_from_access_token(self.scope['cookies'].get('access'))
 
         if not self.player:
@@ -78,7 +77,7 @@ class PongTournamentConsumer(AsyncWebsocketConsumer):
         self.games[game_model.id] = game
         self.game_loops[game_model.id] = asyncio.create_task(
             self.game_loop(game_model.id))
-        await self.notify_match_started(player1_id, player2_id, game_model.id)
+        await self.notify_match_started(player1_id, player2_id, str(game_model.id))
 
     async def game_loop(self, game_id):
         game = self.games[game_id]
@@ -236,10 +235,23 @@ class PongTournamentConsumer(AsyncWebsocketConsumer):
             self.room_name,
             {
                 'type': 'tournament_status',
-                'participants': list(self.participants_data.keys()),
-                'tournament_data': self.tournament_data
+                'participants': [str(pid) for pid in self.participants_data.keys()],
+                'tournament_data': self.serialize_tournament_data()
             }
         )
+
+    def serialize_tournament_data(self):
+        serialized_data = {
+            "first_round": [],
+            "second_round": []
+        }
+        for round_name in ["first_round", "second_round"]:
+            for player in self.tournament_data[round_name]:
+                serialized_data[round_name].append({
+                    "id": str(player["id"]),
+                    "win": player["win"]
+                })
+        return serialized_data
 
     async def tournament_status(self, event):
         await self.send(text_data=json.dumps({
