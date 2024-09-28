@@ -118,39 +118,6 @@ class OAuthCallbackView(APIView):
         print(f'{settings.FRONTEND_URL}/oauth-callback?{params}')
         return redirect(f'{settings.FRONTEND_URL}/oauth-callback?{params}')
 
-class  CustomTokenObtainPairView(TokenObtainPairView):
-    """
-    Custom view for obtaining a new access and refresh token pair.
-    
-    Args:
-		TokenObtainPairView: The default view for obtaining a new access and refresh token pair.
-	
-	Returns:
-		Response: A response object with the new access and refresh tokens.
-    """
-    print("Response: Anouar")
-    def post(self, request, *args, **kwargs):
-        """
-        Handle POST request to obtain a new access and refresh token pair.
-		1. Call the parent class's post method to obtain the tokens.
-		2. If the response status code is 200, set the tokens in cookies.
-        """
-        response = super().post(request, *args, **kwargs)
-        if response.status_code == 200:
-            response = helpers.set_cookie(
-                response,
-                'access',
-                response.data['access'],
-                settings.AUTH_COOKIE_ACCESS_MAX_AGE
-            )
-            response = helpers.set_cookie(
-                response,
-            	'refresh',
-            	response.data['refresh'],
-            	settings.AUTH_COOKIE_REFRESH_MAX_AGE
-            )
-        return response
-
 class CustomTokenRefreshView(TokenRefreshView):
     """
     Custom view for refreshing an access token.
@@ -205,21 +172,46 @@ class LogoutView(APIView):
         response = helpers.set_cookie(response, 'refresh', '', 0)
         return response
 
-class LoginView(APIView):
+class LoginView(TokenObtainPairView):
     """
     View for handling user login with JWT authentication.
     """
-    permission_classes = (IsUnauthenticated,)
-    serializer_class = LoginSerializer
 
-    def post(self, request):
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            # Obtain the JWT tokens using the custom view
-            response = CustomTokenObtainPairView.as_view()(request)
-            if response.status_code == 200:
+    def post(self, request, *args, **kwargs):
+            """
+            Handle the HTTP POST request for user login.
+
+            Args:
+                request (HttpRequest): The HTTP request object.
+                *args: Variable length argument list.
+                **kwargs: Arbitrary keyword arguments.
+
+            Returns:
+                HttpResponse: The HTTP response object.
+            """
+            serializer = LoginSerializer(data=request.data)
+            if serializer.is_valid():
+                response = super().post(request, *args, **kwargs)
+
+                if response.status_code == 200:
+                    response = helpers.set_cookie(
+                        response,
+                        'access',
+                        response.data['access'],
+                        settings.AUTH_COOKIE_ACCESS_MAX_AGE
+                    )
+                    response = helpers.set_cookie(
+                        response,
+                        'refresh',
+                        response.data['refresh'],
+                        settings.AUTH_COOKIE_REFRESH_MAX_AGE
+                    )
                 return response
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
 
 class RegisterView(CreateAPIView):
     """
@@ -231,19 +223,19 @@ class RegisterView(CreateAPIView):
     serializer_class = PlayerRegistrationSerializer
     queryset = Player.objects.all()
     
-    # def post(self, request):
-    #     """
-    #     Handle POST request to register a new player.
+    def post(self, request):
+        """
+        Handle POST request to register a new player.
 
-    #     :param request: The HTTP request object.
-    #     :return: A Response object with a success message.
-    #     """
+        :param request: The HTTP request object.
+        :return: A Response object with a success message.
+        """
         
-    #     serializer = PlayerRegistrationSerializer(data=request.data)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response({'message': 'Registration successful'}, status=status.HTTP_201_CREATED)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = PlayerRegistrationSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'Registration successful'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class PlayerListView(ListAPIView):
     """
