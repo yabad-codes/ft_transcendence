@@ -15,6 +15,7 @@ class Player(AbstractUser):
         max_length=30, blank=True, unique=True, null=True)
     wins = models.PositiveIntegerField(default=0)
     losses = models.PositiveIntegerField(default=0)
+    online = models.BooleanField(default=False)
 
     # Using unique related names for groups and user_permissions to avoid conflicts with ORM.
     groups = models.ManyToManyField(

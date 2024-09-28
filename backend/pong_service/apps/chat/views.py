@@ -11,6 +11,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action
 from django.http import Http404
 from .consumers import send_message
+from .consumers import NotificationConsumer
 
 # Create your views here.
 
@@ -348,6 +349,9 @@ class FriendshipViewSet(viewsets.ModelViewSet):
 
         # Create a new friendship request
         serializer.save(player1=user, player2=player2)
+
+        # Send a notification to the other player
+        NotificationConsumer.sendFriendRequestNotification(user.id, player2.id)
 
     @action(detail=True, methods=['patch'], url_path='accept')
     def accept_friendship(self, request, pk=None):

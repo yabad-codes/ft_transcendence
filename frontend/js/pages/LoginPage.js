@@ -1,5 +1,6 @@
 import BaseHTMLElement from "./BaseHTMLElement.js";
 import { displayRequestStatus } from "../utils/errorManagement.js";
+import { connectToNotificationServer } from "../utils/NotificationSocket.js";
 
 export class LoginPage extends BaseHTMLElement {
   constructor() {
@@ -32,6 +33,7 @@ export class LoginPage extends BaseHTMLElement {
         if (response.status === 200) {
           app.isLoggedIn = true;
           app.profile = app.api.getProfile();
+          connectToNotificationServer();
           app.router.go("/");
           return;
         }
@@ -52,27 +54,6 @@ export class LoginPage extends BaseHTMLElement {
       app.router.go("/register");
     });
   }
-
-  // Oauth42Login() {
-  //   const oauth42Button = this.querySelector(".oauth42");
-
-  //   oauth42Button.addEventListener("click", (event) => {
-  //     event.preventDefault();
-  //     app.api.get("/api/oauth/login/").then((response) => {
-  //       if (response.status === 201) {
-  //         app.api.get("/api/oauth/login/").then((response) => {
-  //           if (response.data.status === "success") {
-  //             app.isLoggedIn = true;
-  //             app.profile = app.api.getProfile();
-  //             app.router.go("/");
-  //             return;
-  //           }
-  //           displayRequestStatus("error", response.data);
-  //         });
-  //       }
-  //     });
-  //   });
-  // }
 
   Oauth42Login() {
     const oauth42Button = this.querySelector(".oauth42");

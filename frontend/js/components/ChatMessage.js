@@ -28,6 +28,7 @@ export class ChatMessage extends BaseHTMLElement {
 
     this.handleDropdown();
     this.updateMessageInputUIBasedOnBlockStatus();
+    this.updateOnlineStatus(this._conversation.player.online);
   }
 
   set conversation(conversation) {
@@ -62,6 +63,7 @@ export class ChatMessage extends BaseHTMLElement {
     if (messageContainer.lastElementChild && this.state.messages.length > 0) {
       const lastMessage = this.state.messages[this.state.messages.length - 1];
       messageContainer.innerHTML += this.createMessageElement(lastMessage);
+
       return;
     }
     const messageElements = this.state.messages.map((message) => {
@@ -341,6 +343,16 @@ export class ChatMessage extends BaseHTMLElement {
 
     // remove the current parent element
     this.parentElement.removeChild(this);
+  }
+
+  updateOnlineStatus(status) {
+    const avatar = this.querySelector(".avatar");
+    const avatar_status = avatar.querySelector(".avatar_status");
+
+    if (!this._conversation.player.isFriend) {
+      avatar_status.style.display = "none";
+    }
+    avatar_status.classList.toggle("online", status);
   }
 }
 
