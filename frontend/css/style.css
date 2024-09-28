@@ -15,6 +15,7 @@
 @import url("./pages/ChatPage.css");
 @import url("./pages/LeaderboardPage.css");
 @import url("./pages/2faPage.css");
+@import url("./pages/SettingsPage.css");
 
 /* Import font family Montserrat */
 @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");

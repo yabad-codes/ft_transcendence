@@ -977,6 +977,81 @@
 		</div>
 	</template>
 
+	<!-- Settings page -->
+	<template id="settingspage">
+		<div class="container-fluid p-0">
+			<div class="header-image"></div>
+			<div class="container">
+				<div class="row">
+					<div class="col-md-3">
+						<div class="avatar-container">
+							<img src="./images/loading.gif" alt="Profile picture" class="profile-image" id="settingsProfileImage">
+							<div class="edit-icon" id="changeAvatar">
+								<svg viewBox="0 0 24 24">
+									<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+								</svg>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-9">
+						<h1 class="mt-3">Settings</h1>
+					</div>
+				</div>
+			</div>
+			<div class="container">
+				<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+					<!-- Account -->
+					<div class="col">
+						<div class="card setting-card">
+							<div class="card-header setting-card-header">
+								<h4>Account</h4>
+							</div>
+							<div class="card-body setting-card-body">
+								<p>Manage your personal information, change your username, and more.</p>
+								<button id="editAccountBtn" class="btn btn-custom active-modal" data-modal="editAccount">Edit Account</button>
+							</div>
+						</div>
+					</div>
+					<!-- Password -->
+					<div class="col">
+						<div class="card setting-card">
+							<div class="card-header setting-card-header" data-bs-toggle="collapse" data-bs-target="#collapsePassword">
+								<h4>Password</h4>
+							</div>
+							<div class="card-body setting-card-body">
+								<p>Change your password to reduces the risk of security breaches.</p>
+								<button class="btn btn-custom active-modal" data-modal="editPassword">Change Password</button>
+							</div>
+						</div>
+					</div>
+					<!-- Security -->
+					<div class="col">
+						<div class="card setting-card">
+							<div class="card-header setting-card-header" data-bs-toggle="collapse" data-bs-target="#collapseSecurity">
+								<h4>Security</h4>
+							</div>
+							<div class="card-body setting-card-body">
+								<p>Enhance your account security with two-factor authentication.</p>
+								<button class="btn btn-custom active-modal" data-modal="boostSecurity">Boost Security</button>
+							</div>
+						</div>
+					</div>
+					<!-- Blocked Users -->
+					<div class="col">
+						<div class="card setting-card">
+							<div class="card-header setting-card-header" data-bs-toggle="collapse" data-bs-target="#collapseBlockedUsers">
+								<h4>Blocked Users</h4>
+							</div>
+							<div class="card-body setting-card-body">
+								<p>Manage the users you have blocked from contacting you.</p>
+								<button class="btn btn-custom active-modal" data-modal="blockedUsers">View Blocked Users</button>
+							</div>
+						</div>
+					</div>
+			</div>
+		</div>
+	</template>
+
   <!-- Add other templates -->
 
     <script src="./bootstrap-5.3.3-dist/js/bootstrap.min.js"></script>

@@ -8,6 +8,7 @@ import { RegisterPage } from "./js/pages/RegisterPage.js";
 import { ChatMessage } from "./js/components/ChatMessage.js";
 import { LeaderboardPage } from "./js/pages/LeaderboardPage.js";
 import { TwoFactorAuthPage } from "./js/pages/2faPage.js";
+import { SettingsPage } from "./js/pages/SettingsPage.js";
 import API from "./js/utils/API.js";
 import Router from "./js/utils/router.js";
 
