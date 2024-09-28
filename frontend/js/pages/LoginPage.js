@@ -28,7 +28,7 @@ export class LoginPage extends BaseHTMLElement {
 
       const message = { username: username.value, password: password.value };
 
-      app.api.post("/api/token/", message).then((response) => {
+      app.api.post("/api/login/", message).then((response) => {
         if (response.status === 200) {
           app.isLoggedIn = true;
           app.profile = app.api.getProfile();
