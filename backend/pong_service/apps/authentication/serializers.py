@@ -11,6 +11,7 @@ GENERAL_ERROR = "An error occurred. Please try again."
 PASSWORD_ERROR = "Passwords do not match."
 USERNAME_FORMAT_ERROR = "Invalid username format."
 
+
 class PlayerRegistrationSerializer(serializers.ModelSerializer):
     """
     Serializer for player registration.
@@ -46,13 +47,18 @@ class PlayerRegistrationSerializer(serializers.ModelSerializer):
         required=True,
         max_length=30,
         validators=[validators.name_validator]
+    )
 
+    tournament_name = serializers.CharField(
+        required=True,
+        max_length=30,
+        validators=[validators.tournament_name_validator]
     )
 
     class Meta:
         model = Player
         fields = ('username', 'first_name', 'last_name',
-                  'password', 'password_confirm')
+                  'password', 'password_confirm', 'tournament_name')
 
     def validate(self, data):
         """
@@ -165,7 +171,7 @@ class UpdatePlayerInfoSerializer(serializers.ModelSerializer):
     """
     Serializer for updating player information.
     """
-    
+
     username = serializers.CharField(
         required=False,
         max_length=30,
@@ -188,7 +194,7 @@ class UpdatePlayerInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Player
         fields = ('username', 'first_name', 'last_name')
-    
+
     def validate(self, data):
         """
         Validates the input data.
@@ -218,18 +224,19 @@ class UpdatePlayerInfoSerializer(serializers.ModelSerializer):
         """
         return helpers.update_player_info(self, instance, validated_data)
 
+
 class UpdateAvatarSerializers(serializers.ModelSerializer):
     """
     Serializer for updating the avatar of a Player instance.
     """
 
     avatar = serializers.ImageField(required=False)
-    
+
     class Meta:
         model = Player
         fields = ['avatar', 'avatar_url']
         read_only_fields = ['avatar_url']
-    
+
     def validate_avatar(self, value):
         """
         Validates the avatar .
@@ -244,7 +251,7 @@ class UpdateAvatarSerializers(serializers.ModelSerializer):
             ValidationError: If the avatar  is invalid.
         """
         return validators.validate_avatar(value)
-    
+
     def update(self, instance, validated_data):
         """
         Updates the instance with the validated data.
@@ -259,10 +266,11 @@ class UpdateAvatarSerializers(serializers.ModelSerializer):
         avatar = validated_data.get('avatar')
         if avatar:
             url = helpers.upload_to_google_cloud(avatar, instance)
-          
+
             instance.avatar_url = url
             instance.save()
         return instance
+
 
 class ChangePasswordSerializer(serializers.Serializer):
     """
@@ -274,17 +282,18 @@ class ChangePasswordSerializer(serializers.Serializer):
         write_only=True,
         validators=[validate_password]
     )
-    
+
     new_password = serializers.CharField(
         write_only=True,
         required=True,
         validators=[validators.password_validator]
     )
-    
+
     confirm_new_password = serializers.CharField(
         write_only=True,
         required=True
     )
+
     def validate_old_password(self, value):
         """
         Validate the old password.
@@ -302,7 +311,7 @@ class ChangePasswordSerializer(serializers.Serializer):
         if not user.check_password(value):
             raise serializers.ValidationError("Incorrect old password.")
         return value
-    
+
     def validate(self, data):
         """
         Validate the input data.
@@ -317,11 +326,12 @@ class ChangePasswordSerializer(serializers.Serializer):
             serializers.ValidationError: If the new password and its confirmation do not match.
         """
         if data['new_password'] != data['confirm_new_password']:
-                raise serializers.ValidationError(PASSWORD_ERROR)
+            raise serializers.ValidationError(PASSWORD_ERROR)
         if data['new_password'] == data['old_password']:
-            raise serializers.ValidationError("New password cannot be the same as the old password.")
+            raise serializers.ValidationError(
+                "New password cannot be the same as the old password.")
         return data
-    
+
     def update(self, instance, validated_data):
         return helpers.update_password(self, instance, validated_data)
 
@@ -363,7 +373,7 @@ class CreatePasswordSerializer(serializers.ModelSerializer):
         if validated_data['password'] != validated_data['password_confirm']:
             raise serializers.ValidationError(PASSWORD_ERROR)
         return validated_data
-    
+
     def create(self, instance, validated_data):
         """
         Create a new instance of the serializer's associated model.
@@ -380,4 +390,3 @@ class CreatePasswordSerializer(serializers.ModelSerializer):
         instance.set_password(password)
         instance.save()
         return instance
-    
