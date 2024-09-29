@@ -1,3 +1,4 @@
+import { connectToNotificationServer } from "./NotificationSocket.js";
 import { displayRequestStatus } from "./errorManagement.js";
 
 const Router = {
@@ -58,6 +59,7 @@ const Router = {
         app.profile = await app.api.getProfile();
 
         if (app.profile) {
+            app.profile.online = true;
             return true;
         }
 
@@ -145,6 +147,7 @@ const Router = {
             app.profile = await app.api.getProfile();
             window.history.replaceState(null, null, '/');
             app.router.go('/');
+            connectToNotificationServer();
             displayRequestStatus('success', message);
             return;
         }

@@ -11,6 +11,7 @@ import logging
 from django.shortcuts import redirect
 from django.http import JsonResponse
 from pong_service.permissions import IsUnauthenticated
+
 from pong_service.apps.chat.models import BlockedUsers
 from django.db.models import Q
 from django.http import Http404
@@ -23,6 +24,16 @@ from rest_framework_simplejwt.views import (
 )
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.conf import settings
+from .forms import TwoFactorAuthForm, BackupCodeForm
+import qrcode
+import io
+import base64
+import jwt
+from .helpers import (
+    set_cookie,
+    error_response,
+    handle_successful_verification
+)
 from django.db.utils import IntegrityError
 
 logger = logging.getLogger(__name__)
@@ -176,7 +187,7 @@ class LoginView(TokenObtainPairView):
     """
     View for handling user login with JWT authentication.
     """
-
+    serializer_class = CustomTokenObtainPairSerializer
     def post(self, request, *args, **kwargs):
             """
             Handle the HTTP POST request for user login.
@@ -193,24 +204,30 @@ class LoginView(TokenObtainPairView):
             if serializer.is_valid():
                 response = super().post(request, *args, **kwargs)
 
-                if response.status_code == 200:
-                    response = helpers.set_cookie(
+                if response.status_code == status.HTTP_200_OK:
+                    player = Player.objects.get(username=request.data['username'])
+                    if player.two_factor_enabled:
+                        request.session['temp_access_token'] = response.data['access']
+                        request.session['temp_refresh_token'] = response.data['refresh']
+                        return Response({'require_2fa': True}, status=status.HTTP_202_ACCEPTED)
+                    
+                    response = set_cookie(
                         response,
                         'access',
                         response.data['access'],
                         settings.AUTH_COOKIE_ACCESS_MAX_AGE
                     )
-                    response = helpers.set_cookie(
+                    response = set_cookie(
                         response,
                         'refresh',
                         response.data['refresh'],
                         settings.AUTH_COOKIE_REFRESH_MAX_AGE
                     )
-                return response
-            return Response(
-                serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
-            )
+                    return response
+                return Response(
+                        serializer.errors,
+                        status=status.HTTP_400_BAD_REQUEST
+                )
 
 
 class RegisterView(CreateAPIView):
@@ -249,6 +266,24 @@ class PlayerListView(ListAPIView):
     queryset = Player.objects.all()
     serializer_class = PlayerListSerializer
     permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """
+        Handle GET request to list all players.
+
+        :param request: The HTTP request object.
+        :return: A Response object with the serialized player data.
+        """
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        
+        # Create a dictionary structure for the response
+        response_data = {
+            'data': serializer.data,  # Player data from the serializer
+            'success': True  # Add success field inside the response
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
 
     def get_queryset(self):
         """
@@ -281,6 +316,142 @@ class PlayerPublicProfileView(generics.RetrieveAPIView):
         ).exists():
             raise Http404("Player not found")
         return super().get_object()
+
+class SetupTwoFactorView(APIView):
+    """
+	API view for setting up two-factor authentication (2FA).
+ 
+	This view handles the setup of 2FA for a player. It generates a 2FA secret for the player,
+	generates a QR code for the player to scan with their 2FA app, and returns the secret and QR code.
+    """
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        player = request.user
+        if not player.two_factor_secret:
+            player.two_factor_secret = player.generate_two_factor_secret()
+            player.save()
+        totp = player.get_totp()
+        qr = qrcode.make(totp.provisioning_uri(player.username, issuer_name="Pong Talk"))
+        buffered = io.BytesIO()
+        qr.save(buffered, format="PNG")
+        qr_base64 = base64.b64encode(buffered.getvalue()).decode()
+        
+        return Response({
+            'secret': player.two_factor_secret,
+            'qr_code': f"data:image/png;base64,{qr_base64}"
+        })
+        
+    def post(self, request):
+        form = TwoFactorAuthForm(request.data)
+        if not form.is_valid():
+            return error_response(form.errors, status.HTTP_400_BAD_REQUEST)
+        player = request.user
+        if player.verify_two_factor_code(form.cleaned_data['code']):
+            player.two_factor_enabled = True
+            player.backup_codes = player.generate_backup_codes()
+            player.save()
+            return Response({'success': True, 'backup_codes': player.backup_codes})
+        else:
+            return error_response({'error': 'Invalid code'}, status.HTTP_400_BAD_REQUEST)
+
+class DisableTwoFactorView(APIView):
+    """
+	API view for disabling two-factor authentication (2FA).
+ 
+	This view handles the disabling of 2FA for a player. It sets the player's two_factor_enabled field to False,
+	clears the two_factor_secret and backup_codes fields, and saves the player object.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        player = request.user
+        player.two_factor_enabled = False
+        player.two_factor_secret = None
+        player.backup_codes = []
+        player.save()
+        return Response({'success': True})
+
+class BaseTwoFactorView(APIView):
+    """
+    Base API view for verifying two-factor authentication (2FA) codes.
+
+    This view handles the common functionality of verifying 2FA codes submitted by users during the authentication process.
+    It validates the submitted code, retrieves the player object, and upon successful verification,
+    sets the access and refresh tokens in the response cookies.
+    """
+    permission_classes = [AllowAny]
+
+    def handle_token_verification(self, request):
+        access_token = request.session.get('temp_access_token')
+        if not access_token:
+            return error_response('Authentication required', status.HTTP_401_UNAUTHORIZED)
+        
+        try:
+            decode_token = jwt.decode(access_token, settings.SECRET_KEY, algorithms=['HS256'])
+            username = decode_token.get('username')
+            
+            if not username:
+                return error_response('Username is required', status.HTTP_400_BAD_REQUEST)
+        except jwt.ExpiredSignatureError:
+            return error_response('Token expired', status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return error_response('Invalid token', status.HTTP_401_UNAUTHORIZED)
+        
+        return username
+
+    def handle_player_retrieval(self, username):
+        try:
+            player = Player.objects.get(username=username)
+        except Player.DoesNotExist:
+            return error_response('Player not found', status.HTTP_404_NOT_FOUND)
+        
+        return player
+
+
+class VerifyTwoFactorView(BaseTwoFactorView):
+    """
+    API view for verifying two-factor authentication (2FA) codes.
+    """
+    def post(self, request):
+        username = self.handle_token_verification(request)
+        if isinstance(username, Response):
+            return username
+
+        form = TwoFactorAuthForm(request.data)
+        if not form.is_valid():
+            return error_response(form.errors, status.HTTP_400_BAD_REQUEST)
+        
+        player = self.handle_player_retrieval(username)
+        if isinstance(player, Response):
+            return player
+
+        if not player.verify_two_factor_code(form.cleaned_data['code']):
+            return error_response('Invalid 2FA code', status.HTTP_400_BAD_REQUEST)
+        
+        return handle_successful_verification(request)
+
+
+class UseBackupCodeView(BaseTwoFactorView):
+    """
+    API view for using a backup code to verify 2FA.
+    """
+    def post(self, request):
+        username = self.handle_token_verification(request)
+        if isinstance(username, Response):
+            return username
+
+        form = BackupCodeForm(request.data)
+        if not form.is_valid():
+            return error_response(form.errors, status.HTTP_400_BAD_REQUEST)
+
+        player = self.handle_player_retrieval(username)
+        if isinstance(player, Response):
+            return player
+
+        if not player.use_backup_code(form.cleaned_data['code']):
+            return error_response('Invalid backup code', status.HTTP_400_BAD_REQUEST)
+
+        return handle_successful_verification(request)
 
 class PlayerProfileView(generics.RetrieveAPIView):
     """

@@ -7,6 +7,9 @@ from rest_framework import serializers
 from .models import Player
 from google.cloud import storage
 from django.conf import settings
+from rest_framework.response import Response
+
+
 
 def sanitize_and_validate_data(validated_data):
 	"""
@@ -154,6 +157,49 @@ def set_cookie(response, key, value, max_age):
         samesite=settings.AUTH_COOKIE_SAMESITE,
         path=settings.AUTH_COOKIE_PATH
     )
+    return response
+
+def set_auth_cookies(response, access_token, refresh_token):
+    """
+	Set the user's access and refresh tokens in the response cookies.
+    """
+    set_cookie(response, 'access', access_token, settings.AUTH_COOKIE_ACCESS_MAX_AGE)
+    set_cookie(response, 'refresh', refresh_token, settings.AUTH_COOKIE_REFRESH_MAX_AGE)
+
+def clear_temp_tokens(request):
+    """
+    Clear the temporary access and refresh tokens from the session and flush the session.
+    """
+    del request.session['temp_access_token']
+    del request.session['temp_refresh_token']
+    request.session.flush()
+
+def error_response(message, status_code):
+    """
+	Create an error response with the given message and status code.
+    """
+    return Response({'error': message}, status=status_code)
+
+def handle_successful_verification(request):
+    """
+    Handle a successful 2FA verification by setting the user's access and refresh tokens in the response cookies.
+
+    Args:
+        request (Request): The request object.
+
+    Returns:
+        Response: A response object with the user's access and refresh tokens set in the cookies.
+    """
+    access_token = request.session.get('temp_access_token')
+    refresh_token = request.session.get('temp_refresh_token')
+
+    if not access_token or not refresh_token:
+        return error_response('Missing access or refresh token', status.HTTP_400_BAD_REQUEST)
+
+    response = Response({'success': True})
+    set_auth_cookies(response, access_token, refresh_token)
+    clear_temp_tokens(request)
+
     return response
 
 def get_42_token(code):
