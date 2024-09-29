@@ -573,3 +573,40 @@ class ChangePasswordView(generics.UpdateAPIView):
                 return Response({"message":"update password successfully", "success": True}, status=status.HTTP_200_OK)
             return Response({"errors": serializers.errors, "success": False}, status=status.HTTP_400_BAD_REQUEST)
 
+class CheckTwoFactorView(APIView):
+	"""
+	API view for checking if 2FA is enabled for a player.
+ 
+	This view checks if 2FA is enabled for a player and returns a boolean value indicating the status.
+	"""
+	permission_classes = [IsAuthenticated]
+	def get(self, request):
+		player = request.user
+		return Response({'two_factor_enabled': player.two_factor_enabled})
+
+class UserDetailsView(APIView):
+	"""
+	API view for getting user details.
+	Requires authentication.
+	"""
+	permission_classes = [IsAuthenticated]
+
+	def get(self, request):
+		"""
+		Handle GET request to get user details.
+
+		Parameters:
+		- request: The HTTP request object.
+
+		Returns:
+		- Response: The HTTP response object.
+		"""
+		user = request.user
+		return Response({
+			"success": True,
+			"username": user.username,
+			"first_name": user.first_name,
+			"last_name": user.last_name,
+			"user_id": user.id,
+			"avatar": user.avatar_url if user.avatar_url else None
+		})

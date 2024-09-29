@@ -22,4 +22,6 @@ urlpatterns = [
     path('token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
     path('oauth/login/', OAuthLoginView.as_view(), name='oauth_login'),
     path('oauth/callback/', OAuthCallbackView.as_view(), name='oauth_callback'),
+    path('check-2fa/', CheckTwoFactorView.as_view(), name='check_2fa'),
+    path('user-details/', UserDetailsView.as_view(), name='user_details'),
 ]
