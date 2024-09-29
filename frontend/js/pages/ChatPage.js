@@ -1,5 +1,6 @@
 import BaseHTMLElement from "./BaseHTMLElement.js";
 import { createState } from "../utils/stateManager.js";
+import { displayRequestStatus } from "../utils/errorManagement.js";
 
 export class ChatPage extends BaseHTMLElement {
   constructor() {
@@ -22,8 +23,12 @@ export class ChatPage extends BaseHTMLElement {
   connectedCallback() {
     super.connectedCallback();
     // Add additional logic for the chat page ...
-    app.api.get("/api/conversations/").then((conversations) => {
-      this.state.conversations = conversations;
+    app.api.get("/api/conversations/").then((response) => {
+      if (response.status >= 400) {
+        displayRequestStatus("error", response.data);
+        return;
+      }
+      this.state.conversations = response.data;
     });
     this.popupConversationActions();
     this.searchFriends();
@@ -31,9 +36,14 @@ export class ChatPage extends BaseHTMLElement {
     this.setupWebsocket();
   }
 
+  disconnectedCallback() {
+    this.isDisconnected = true;
+    this.chatSocket.close();
+  }
+
   setupWebsocket() {
     this.chatSocket = new WebSocket(
-      "ws://" + window.location.host + "/ws/chat/"
+      "wss://" + window.location.host + "/ws/chat/"
     );
 
     this.chatSocket.onopen = (e) => {
@@ -42,7 +52,6 @@ export class ChatPage extends BaseHTMLElement {
 
     this.chatSocket.onmessage = (e) => {
       const data = JSON.parse(e.data);
-      console.log(`Data: ${data}`);
       const conversation = this.state.conversations.find(
         (conversation) =>
           conversation.conversationID === data.message.conversation_id
@@ -52,7 +61,11 @@ export class ChatPage extends BaseHTMLElement {
         app.api
           .get("/api/conversations/" + data.message.conversation_id)
           .then((response) => {
-            this.state.conversations = [response, ...this.state.conversations];
+            if (response.status >= 400) {
+              displayRequestStatus("error", response.data);
+              return;
+            }
+            this.state.conversations = [response.data, ...this.state.conversations];
           });
         return;
       }
@@ -64,6 +77,10 @@ export class ChatPage extends BaseHTMLElement {
           ...chatMessage.state.messages,
           data.message.data,
         ];
+
+        // Play sound notification
+        const audio = new Audio('/assets/livechat.mp3');
+        audio.play();
         // mark message as read if the conversation is opened
         app.api.patch("/api/conversations/" + conversation.conversationID + "/messages/" + data.message.data.messageID + "/mark_as_read/")
         return;
@@ -79,7 +96,7 @@ export class ChatPage extends BaseHTMLElement {
         this.setupWebsocket();
         return;
       }
-      console.error("Chat socket closed unexpectedly");
+      console.log("Chat socket closed");
     };
   }
 
@@ -146,7 +163,7 @@ export class ChatPage extends BaseHTMLElement {
   setConversationsActions() {
     const conversationButtons = this.querySelectorAll(".direct_message_btn");
 
-    conversationButtons.forEach((button, index) => {
+    conversationButtons.forEach((button) => {
       const conversationID = button.getAttribute("data-conversation-id");
       this.openedConversations[conversationID] = false;
       button.addEventListener("click", (event) => {
@@ -162,9 +179,12 @@ export class ChatPage extends BaseHTMLElement {
         this.prevOpenedConversation = conversationID;
         this.openedConversations[conversationID] = true;
 
+        const conversationIndex = this.state.conversations.findIndex(
+          (conversation) => conversation.conversationID == conversationID
+        );
         // add style to the selected conversation
         button.classList.add("active");
-        this.openConversationEvent(index);
+        this.openConversationEvent(conversationIndex);
         this.notificationConversationMonitor(conversationID, true);
       });
     });
@@ -193,9 +213,13 @@ export class ChatPage extends BaseHTMLElement {
       "click",
       (event) => {
         popupContainer.classList.remove("hidden");
-        app.api.get("/api/friendships/").then((friends) => {
-          this.state.friends = friends;
-          this.state.searchFriends = friends;
+        app.api.get("/api/friendships/").then((response) => {
+          if (response.status >= 400) {
+            displayRequestStatus("error", response.data);
+            return;
+          }
+          this.state.friends = response.data;
+          this.state.searchFriends = response.data;
         });
       }
     );
@@ -220,10 +244,10 @@ export class ChatPage extends BaseHTMLElement {
       <div class="avatar me-2">
         <img
           class="avatar_image shadow-sm"
-          src="${player.avatar}"
+          src="${player.avatar_url}"
           alt="Avatar image"
         />
-        <span class="avatar_status"></span>
+        <span class="avatar_status ${player.isFriend ? "" : "none"} ${player.online ? "online" : ""}"></span>
       </div>
       ${player.first_name} ${player.last_name}
     </button>
@@ -348,6 +372,7 @@ export class ChatPage extends BaseHTMLElement {
   createConversationElement(conversation) {
     const conversationParticipant = this.choosePlayerConversation(conversation);
     const unread_messages_count = conversation.unread_messages_count;
+    console.log("is Online: ", conversationParticipant.online);
     return `
     <button
         class="direct_message_btn border-0 w-100 p-3 rounded-pill d-inline-flex mb-2"
@@ -356,10 +381,10 @@ export class ChatPage extends BaseHTMLElement {
         <div class="avatar me-2">
         <img
             class="avatar_image"
-            src="${conversationParticipant.avatar}"
+            src="${conversationParticipant.avatar_url}"
             alt="Avatar image"
         />
-        <span class="avatar_status"></span>
+        <span class="avatar_status ${conversationParticipant.isFriend ? "" : "none"} ${conversationParticipant.online ? "online" : ""}"></span>
         </div>
         <div
         class="flex-grow-1 d-flex flex-column justify-content-between position-relative"
@@ -398,6 +423,40 @@ export class ChatPage extends BaseHTMLElement {
     } else {
       return friend.player1;
     }
+  }
+
+  updateOnlineStatusOfFriends(username, is_online) {
+    const conversationContainer = this.querySelector(
+      ".direct_message_container"
+    );
+    const conversationButtons = conversationContainer.querySelectorAll(
+      ".direct_message_btn"
+    );
+    conversationButtons.forEach((button) => {
+      const conversationID = button.getAttribute("data-conversation-id");
+      const conversation = this.state.conversations.find(
+        (conversation) => conversation.conversationID == conversationID
+      );
+      const player = this.choosePlayerConversation(conversation);
+
+      // update the online status of the player in the conversation object
+      if (conversation.player1 == player) {
+        conversation.player1.online = is_online;
+      } else {
+        conversation.player2.online = is_online;
+      }
+
+      // update the online status of the player in the conversation button and chat message if the conversation is opened
+      if (player.username == username) {
+        const avatarStatus = button.querySelector(".avatar_status");
+        avatarStatus.classList.toggle("online", is_online);
+        const chatMessage = this.querySelector("chat-message");
+        if (chatMessage && chatMessage._conversation.id == conversationID) {
+          chatMessage._conversation.player.online = is_online;
+          chatMessage.updateOnlineStatus(is_online);
+        }
+      }
+    });
   }
 
 }

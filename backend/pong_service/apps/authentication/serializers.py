@@ -1,11 +1,12 @@
 from django.core.validators import RegexValidator
 from rest_framework import serializers
 from .models import Player
+from pong_service.apps.chat.models import Friendship
 import pong_service.apps.authentication.validators as validators
 import pong_service.apps.authentication.helpers as helpers
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-
+from django.db.models import Q
 
 # Error messages
 GENERAL_ERROR = "An error occurred. Please try again."
@@ -69,6 +70,7 @@ class PlayerRegistrationSerializer(serializers.ModelSerializer):
             serializers.ValidationError: If the password and password_confirm fields do not match.
         """
         if data['password'] != data['password_confirm']:
+            print(PASSWORD_ERROR)
             raise serializers.ValidationError(PASSWORD_ERROR)
         return data
 
@@ -109,11 +111,28 @@ class PlayerListSerializer(serializers.ModelSerializer):
     Serializer for the Player model used in the player list view.
     """
 
+    isFriend = serializers.SerializerMethodField()
+
     class Meta:
         model = Player
         fields = ('username', 'first_name',
-                  'last_name', 'avatar_url', 'wins', 'losses')
+                  'last_name', 'avatar_url', 'wins', 'losses', 'isFriend', 'online')
 
+    def get_isFriend(self, obj):
+        """
+        Gets the isFriend field for the player.
+
+        Args:
+            obj (Player): The player object.
+
+        Returns:
+            bool: True if the player is a friend, False otherwise.
+        """
+        user = self.context['request'].user
+        return Friendship.objects.filter(
+            (Q(player1=user) & Q(player2=obj) & Q(friendshipAccepted=True)) |
+            (Q(player1=obj) & Q(player2=user) & Q(friendshipAccepted=True))
+        ).exists()
 
 class LoginSerializer(serializers.ModelSerializer):
     """

@@ -20,7 +20,7 @@ export class LeaderboardPage extends BaseHTMLElement {
 		const response = await api.getPlayers();
 		//! Backend API response should include a success member like this : { success: true, players: [] }
 		if (response.success) {
-			this.players = response;
+			this.players = response.data;
 			this.calculateRank();
 		}
 	}
@@ -77,7 +77,7 @@ export class LeaderboardPage extends BaseHTMLElement {
 	this.LeaderboardContainer.insertAdjacentHTML('beforeend', this.poduim());
 	this.players && this.players.forEach(player => {
 		this.player_rank = player.rank || 0;
-		this.avatar_src = player.avatar || this.avatar_src;
+		this.avatar_src = player.avatar_url || this.avatar_src;
 		this.player_name = player.username;
 		this.matches_played = player.matches_played || 0;
 		this.wins_number = player.wins || 0;

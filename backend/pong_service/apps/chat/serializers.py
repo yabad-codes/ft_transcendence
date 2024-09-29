@@ -14,7 +14,7 @@ class MessageReadStatusSerializer(serializers.ModelSerializer):
 class MessagesSerializer(serializers.ModelSerializer):
     read_status = MessageReadStatusSerializer(many=True, read_only=True)
     sender = serializers.SerializerMethodField()
-
+ 
     class Meta:
         model = Messages
         fields = ['messageID', 'atConversation', 'sender', 'content',

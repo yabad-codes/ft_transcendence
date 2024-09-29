@@ -41,12 +41,23 @@ chat-page {
 .avatar_status {
   width: 20%;
   height: 20%;
-  background: #99cc00;
   border: 2px solid white;
+  background-color: #7b7b7b;
   position: absolute;
   bottom: 4%;
   right: 4%;
   border-radius: 100%;
+}
+
+.avatar_status.online {
+  background-color: #99cc00;
+}
+
+/* .avatar_status.offline {
+  background-color: #7b7b7b;
+} */
+.avatar_status.none {
+  display: none;
 }
 
 .direct_message_text {

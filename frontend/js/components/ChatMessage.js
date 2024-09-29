@@ -1,5 +1,6 @@
 import BaseHTMLElement from "../pages/BaseHTMLElement.js";
 import { createState } from "../utils/stateManager.js";
+import { displayRequestStatus } from "../utils/errorManagement.js";
 
 export class ChatMessage extends BaseHTMLElement {
   constructor() {
@@ -20,13 +21,14 @@ export class ChatMessage extends BaseHTMLElement {
     this.submitMessage();
     const userProfile = this.querySelector(".user_profile_bar");
     userProfile.querySelector(".avatar_image").src =
-      this._conversation.player.avatar;
+      this._conversation.player.avatar_url;
     userProfile.querySelector(
       "span > span"
     ).textContent = `${this._conversation.player.first_name} ${this._conversation.player.last_name}`;
 
     this.handleDropdown();
     this.updateMessageInputUIBasedOnBlockStatus();
+    this.updateOnlineStatus(this._conversation.player.online);
   }
 
   set conversation(conversation) {
@@ -44,8 +46,12 @@ export class ChatMessage extends BaseHTMLElement {
   getMessages(conversation) {
     app.api
       .get("/api/conversations/" + conversation.id + "/messages")
-      .then((messages) => {
-        this.state.messages = messages;
+      .then((response) => {
+        if (response.status >= 400) {
+          displayRequestStatus("error", response.data)
+          return;
+        }
+        this.state.messages = response.data;
       })
   }
 
@@ -57,6 +63,7 @@ export class ChatMessage extends BaseHTMLElement {
     if (messageContainer.lastElementChild && this.state.messages.length > 0) {
       const lastMessage = this.state.messages[this.state.messages.length - 1];
       messageContainer.innerHTML += this.createMessageElement(lastMessage);
+
       return;
     }
     const messageElements = this.state.messages.map((message) => {
@@ -91,8 +98,12 @@ export class ChatMessage extends BaseHTMLElement {
           player2_username: this._conversation.player.username,
         })
         .then((response) => {
-          this._conversation.id = response.conversationID;
-          this.state.newConversation = response;
+          if (response.status >= 400) {
+            displayRequestStatus("error", response.data)
+            return;
+          }
+          this._conversation.id = response.data.conversationID;
+          this.state.newConversation = response.data;
           this.postNewMessage(message);
         });
       return;
@@ -107,7 +118,11 @@ export class ChatMessage extends BaseHTMLElement {
         message
       )
       .then((response) => {
-        this.state.messages = [...this.state.messages, response];
+        if (response.status >= 400) {
+          displayRequestStatus("error", response.data)
+          return;
+        }
+        this.state.messages = [...this.state.messages, response.data];
         this.moveConversationToTop();
       });
   }
@@ -328,6 +343,16 @@ export class ChatMessage extends BaseHTMLElement {
 
     // remove the current parent element
     this.parentElement.removeChild(this);
+  }
+
+  updateOnlineStatus(status) {
+    const avatar = this.querySelector(".avatar");
+    const avatar_status = avatar.querySelector(".avatar_status");
+
+    if (!this._conversation.player.isFriend) {
+      avatar_status.style.display = "none";
+    }
+    avatar_status.classList.toggle("online", status);
   }
 }
 
