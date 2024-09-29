@@ -5,6 +5,7 @@ from pong_service.apps.chat.models import Friendship
 import pong_service.apps.authentication.validators as validators
 import pong_service.apps.authentication.helpers as helpers
 from django.contrib.auth.password_validation import validate_password
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.db.models import Q
 
 # Error messages
@@ -179,6 +180,15 @@ class LoginSerializer(serializers.ModelSerializer):
         data['user'] = user
         return data
 
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """
+	Custom TokenObtainPairSerializer that includes the username in the token response.
+    """
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token['username'] = user.username
+        return token
 
 class UpdatePlayerInfoSerializer(serializers.ModelSerializer):
     """
