@@ -36,6 +36,11 @@ export class ChatPage extends BaseHTMLElement {
     this.setupWebsocket();
   }
 
+  disconnectedCallback() {
+    this.isDisconnected = true;
+    this.chatSocket.close();
+  }
+
   setupWebsocket() {
     this.chatSocket = new WebSocket(
       "wss://" + window.location.host + "/ws/chat/"
@@ -72,6 +77,10 @@ export class ChatPage extends BaseHTMLElement {
           ...chatMessage.state.messages,
           data.message.data,
         ];
+
+        // Play sound notification
+        const audio = new Audio('/assets/livechat.mp3');
+        audio.play();
         // mark message as read if the conversation is opened
         app.api.patch("/api/conversations/" + conversation.conversationID + "/messages/" + data.message.data.messageID + "/mark_as_read/")
         return;
@@ -87,7 +96,7 @@ export class ChatPage extends BaseHTMLElement {
         this.setupWebsocket();
         return;
       }
-      console.error("Chat socket closed unexpectedly");
+      console.log("Chat socket closed");
     };
   }
 
@@ -154,7 +163,7 @@ export class ChatPage extends BaseHTMLElement {
   setConversationsActions() {
     const conversationButtons = this.querySelectorAll(".direct_message_btn");
 
-    conversationButtons.forEach((button, index) => {
+    conversationButtons.forEach((button) => {
       const conversationID = button.getAttribute("data-conversation-id");
       this.openedConversations[conversationID] = false;
       button.addEventListener("click", (event) => {
@@ -170,9 +179,12 @@ export class ChatPage extends BaseHTMLElement {
         this.prevOpenedConversation = conversationID;
         this.openedConversations[conversationID] = true;
 
+        const conversationIndex = this.state.conversations.findIndex(
+          (conversation) => conversation.conversationID == conversationID
+        );
         // add style to the selected conversation
         button.classList.add("active");
-        this.openConversationEvent(index);
+        this.openConversationEvent(conversationIndex);
         this.notificationConversationMonitor(conversationID, true);
       });
     });
@@ -235,7 +247,7 @@ export class ChatPage extends BaseHTMLElement {
           src="${player.avatar_url}"
           alt="Avatar image"
         />
-        <span class="avatar_status"></span>
+        <span class="avatar_status ${player.isFriend ? "" : "none"} ${player.online ? "online" : ""}"></span>
       </div>
       ${player.first_name} ${player.last_name}
     </button>
@@ -360,6 +372,7 @@ export class ChatPage extends BaseHTMLElement {
   createConversationElement(conversation) {
     const conversationParticipant = this.choosePlayerConversation(conversation);
     const unread_messages_count = conversation.unread_messages_count;
+    console.log("is Online: ", conversationParticipant.online);
     return `
     <button
         class="direct_message_btn border-0 w-100 p-3 rounded-pill d-inline-flex mb-2"
@@ -371,7 +384,7 @@ export class ChatPage extends BaseHTMLElement {
             src="${conversationParticipant.avatar_url}"
             alt="Avatar image"
         />
-        <span class="avatar_status"></span>
+        <span class="avatar_status ${conversationParticipant.isFriend ? "" : "none"} ${conversationParticipant.online ? "online" : ""}"></span>
         </div>
         <div
         class="flex-grow-1 d-flex flex-column justify-content-between position-relative"
@@ -410,6 +423,40 @@ export class ChatPage extends BaseHTMLElement {
     } else {
       return friend.player1;
     }
+  }
+
+  updateOnlineStatusOfFriends(username, is_online) {
+    const conversationContainer = this.querySelector(
+      ".direct_message_container"
+    );
+    const conversationButtons = conversationContainer.querySelectorAll(
+      ".direct_message_btn"
+    );
+    conversationButtons.forEach((button) => {
+      const conversationID = button.getAttribute("data-conversation-id");
+      const conversation = this.state.conversations.find(
+        (conversation) => conversation.conversationID == conversationID
+      );
+      const player = this.choosePlayerConversation(conversation);
+
+      // update the online status of the player in the conversation object
+      if (conversation.player1 == player) {
+        conversation.player1.online = is_online;
+      } else {
+        conversation.player2.online = is_online;
+      }
+
+      // update the online status of the player in the conversation button and chat message if the conversation is opened
+      if (player.username == username) {
+        const avatarStatus = button.querySelector(".avatar_status");
+        avatarStatus.classList.toggle("online", is_online);
+        const chatMessage = this.querySelector("chat-message");
+        if (chatMessage && chatMessage._conversation.id == conversationID) {
+          chatMessage._conversation.player.online = is_online;
+          chatMessage.updateOnlineStatus(is_online);
+        }
+      }
+    });
   }
 
 }
