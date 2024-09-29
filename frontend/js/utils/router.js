@@ -24,24 +24,33 @@ const Router = {
 
         // render the pages
         // this could be refactored and scaled later
-        if (router === "/") {
-            Router.loadMainHomeContent('game-page');
-        } else if (router === "/profile") {
-            Router.loadMainHomeContent('profile-page');
-        } else if (router === "/chat") {
-            Router.loadMainHomeContent('chat-page');
-        } else if (router === "/leaderboard") {
-            Router.loadMainHomeContent('leaderboard-page');
-        } else if (router === "/settings") {
-            Router.loadMainHomeContent('settings-page');
-        } else if (router === "/login") {
-            Router.loadSignAndLoginPage('login-page');
-        } else if (router === "/register") {
-            Router.loadSignAndLoginPage('register-page');
-        } else if (router.includes("/oauth-callback")) {
-            Router.handleOAuthCallback();
-        } else {
-            Router.loadNotFoundPage('not-found-page');
+        switch (router) {
+            case "/":
+                Router.loadMainHomeContent('game-page');
+                break;
+            case "/profile":
+                Router.loadMainHomeContent('profile-page');
+                break;
+            case "/chat":
+                Router.loadMainHomeContent('chat-page');
+                break;
+            case "/leaderboard":
+                Router.loadMainHomeContent('leaderboard-page');
+                break;
+            case "/settings":
+                Router.loadMainHomeContent('settings-page');
+                break;
+            case "/login":
+                Router.loadMainBodyContent('login-page');
+                break;
+            case "/register":
+                Router.loadMainBodyContent('register-page');
+                break;
+            case "/2fa":
+              Router.loadMainHomeContent('twofa-page');
+              break;
+            default:
+                Router.loadMainBodyContent('not-found-page');
         }
     },
 
@@ -119,7 +128,7 @@ const Router = {
 
     removeOldPages: () => {
         // Remove old pages if they exist
-        const oldPages = ['home-page', 'login-page', 'signup-page', 'register-page', 'not-found-page'];
+        const oldPages = ['home-page', 'login-page', 'signup-page', 'register-page', 'not-found-page', 'twofa-page'];
 
         oldPages.forEach(page => {
             const pageElement = document.querySelector(page);
