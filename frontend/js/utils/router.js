@@ -2,160 +2,161 @@ import { connectToNotificationServer } from "./NotificationSocket.js";
 import { displayRequestStatus } from "./errorManagement.js";
 
 const Router = {
-    init: async () => {
-        app.isLoggedIn = await Router.checkIsLoggedIn();
+  init: async () => {
+    app.isLoggedIn = await Router.checkIsLoggedIn();
 
-        // console.log("Location: ", location.pathname);
-        Router.go(location.pathname + location.search);
+    // console.log("Location: ", location.pathname);
+    Router.go(location.pathname + location.search);
 
-        window.addEventListener('popstate', event => {
-            Router.go(event.state ? event.state.router : "/", false);
-        });
-    },
+    window.addEventListener("popstate", (event) => {
+      Router.go(event.state ? event.state.router : "/", false);
+    });
+  },
 
-    go: (router, addToHistory = true) => {
-        if (addToHistory && location.pathname !== router) {
-            if (window.history.length > 1) {
-                window.history.pushState({ router }, null, router);
-            } else {
-                window.history.replaceState({ router }, null, router);
-            }
-        }
+  go: (router, addToHistory = true) => {
+    if (addToHistory && location.pathname !== router) {
+      if (window.history.length > 1) {
+        window.history.pushState({ router }, null, router);
+      } else {
+        window.history.replaceState({ router }, null, router);
+      }
+    }
 
-        // render the pages
-        // this could be refactored and scaled later
-        switch (router) {
-            case "/":
-                Router.loadMainHomeContent('game-page');
-                break;
-            case "/profile":
-                Router.loadMainHomeContent('profile-page');
-                break;
-            case "/chat":
-                Router.loadMainHomeContent('chat-page');
-                break;
-            case "/leaderboard":
-                Router.loadMainHomeContent('leaderboard-page');
-                break;
-            case "/settings":
-                Router.loadMainHomeContent('settings-page');
-                break;
-            case "/login":
-                Router.loadMainBodyContent('login-page');
-                break;
-            case "/register":
-                Router.loadMainBodyContent('register-page');
-                break;
-            case "/2fa":
-              Router.loadMainHomeContent('twofa-page');
-              break;
-            default:
-                Router.loadMainBodyContent('not-found-page');
-        }
-    },
+    // render the pages
+    // this could be refactored and scaled later
+    if (router === "/") {
+      Router.loadMainHomeContent("game-page");
+    } else if (router === "/profile") {
+      Router.loadMainHomeContent("profile-page");
+    } else if (router === "/chat") {
+      Router.loadMainHomeContent("chat-page");
+    } else if (router === "/leaderboard") {
+      Router.loadMainHomeContent("leaderboard-page");
+    } else if (router === "/settings") {
+      Router.loadMainHomeContent("settings-page");
+    } else if (router === "/login") {
+      Router.loadSignAndLoginPage("login-page");
+    } else if (router === "/register") {
+      Router.loadSignAndLoginPage("register-page");
+    } else if (router.includes("/oauth-callback")) {
+      Router.handleOAuthCallback();
+    } else if (router === "/2fa") {
+      Router.loadMainHomeContent("twofa-page");
+    } else {
+      Router.loadNotFoundPage("not-found-page");
+    }
+  },
 
-    checkIsLoggedIn: async () => {
-        // Check if the user is logged in
-        app.profile = await app.api.getProfile();
+  checkIsLoggedIn: async () => {
+    // Check if the user is logged in
+    app.profile = await app.api.getProfile();
 
-        if (app.profile) {
-            app.profile.online = true;
-            return true;
-        }
+    if (app.profile) {
+      app.profile.online = true;
+      return true;
+    }
 
-        return false;
-    },
+    return false;
+  },
 
-    loadMainHomeContent: (pageName) => {
-        // If the user is not logged in go to login page
-        if (!app.isLoggedIn) {
-            console.log("User is not logged in");
-            app.router.go("/login");
-            return;
-        }
+  loadMainHomeContent: (pageName) => {
+    // If the user is not logged in go to login page
+    if (!app.isLoggedIn) {
+      console.log("User is not logged in");
+      app.router.go("/login");
+      return;
+    }
 
-        // If the home page doesn't exist in the DOM then render the home page first
-        if (!document.querySelector('home-page')) {
-            Router.loadHomePage();
-        }
-        
-        const mainElement = document.querySelector('main')
+    // If the home page doesn't exist in the DOM then render the home page first
+    if (!document.querySelector("home-page")) {
+      Router.loadHomePage();
+    }
 
-        // If the page content already exists, no need to render it again (for performance reasons)
-        if (mainElement.querySelector(pageName)) return;
+    const mainElement = document.querySelector("main");
 
-        // Load the new page on the main content
-        const mainContent = document.createElement(pageName)
-        mainElement.innerHTML = ''
-        mainElement.appendChild(mainContent)
-    },
+    // If the page content already exists, no need to render it again (for performance reasons)
+    if (mainElement.querySelector(pageName)) return;
 
-    loadHomePage: () => {
-        // Delete home, login, sign up or 404 pages if they exist then load the home page
-        Router.removeOldPages();
-        Router.insertPage('home-page');
-    },
+    // Load the new page on the main content
+    const mainContent = document.createElement(pageName);
+    mainElement.innerHTML = "";
+    mainElement.appendChild(mainContent);
+  },
 
-    loadSignAndLoginPage: (pageName) => {
-        // Delete home, login, sign up or 404 pages if they exist then load the sign up or login page
-        Router.removeOldPages();
+  loadHomePage: () => {
+    // Delete home, login, sign up or 404 pages if they exist then load the home page
+    Router.removeOldPages();
+    Router.insertPage("home-page");
+  },
 
-        if (app.isLoggedIn) {
-            app.router.go("/");
-            return;
-        }
+  loadSignAndLoginPage: (pageName) => {
+    // Delete home, login, sign up or 404 pages if they exist then load the sign up or login page
+    Router.removeOldPages();
 
-        Router.insertPage(pageName);
-    },
+    if (app.isLoggedIn) {
+      app.router.go("/");
+      return;
+    }
 
-    loadNotFoundPage: () => {
-        // Delete home, login, sign up or 404 pages if they exist then load the 404 page
-        Router.removeOldPages();
-        Router.insertPage('not-found-page');
-    },
+    Router.insertPage(pageName);
+  },
 
-    // Insert the page to the body
-    insertPage: (pageName) => {
-        const newElement = document.createElement(pageName);
-        const bootstrapScript = document.querySelector('body > script:last-of-type'); // Insert the pages before bootstrap js bundle script
+  loadNotFoundPage: () => {
+    // Delete home, login, sign up or 404 pages if they exist then load the 404 page
+    Router.removeOldPages();
+    Router.insertPage("not-found-page");
+  },
 
-        if (bootstrapScript) {
-            document.body.insertBefore(newElement, bootstrapScript);
-        } else {
-            document.body.appendChild(newElement);
-        }
-    },
+  // Insert the page to the body
+  insertPage: (pageName) => {
+    const newElement = document.createElement(pageName);
+    const bootstrapScript = document.querySelector(
+      "body > script:last-of-type"
+    ); // Insert the pages before bootstrap js bundle script
 
-    removeOldPages: () => {
-        // Remove old pages if they exist
-        const oldPages = ['home-page', 'login-page', 'signup-page', 'register-page', 'not-found-page', 'twofa-page'];
+    if (bootstrapScript) {
+      document.body.insertBefore(newElement, bootstrapScript);
+    } else {
+      document.body.appendChild(newElement);
+    }
+  },
 
-        oldPages.forEach(page => {
-            const pageElement = document.querySelector(page);
-            if (pageElement) pageElement.remove();
-        });
-    },
+  removeOldPages: () => {
+    // Remove old pages if they exist
+    const oldPages = [
+      "home-page",
+      "login-page",
+      "signup-page",
+      "register-page",
+      "not-found-page",
+    ];
 
-    async handleOAuthCallback() {
-        const urlParams = new URLSearchParams(window.location.search);
-        
-        const status = urlParams.get('status');
-        const message = urlParams.get('message');
+    oldPages.forEach((page) => {
+      const pageElement = document.querySelector(page);
+      if (pageElement) pageElement.remove();
+    });
+  },
 
-        if (status === 'success') {
-            app.isLoggedIn = true;
-            app.profile = await app.api.getProfile();
-            window.history.replaceState(null, null, '/');
-            app.router.go('/');
-            connectToNotificationServer();
-            displayRequestStatus('success', message);
-            return;
-        }
+  async handleOAuthCallback() {
+    const urlParams = new URLSearchParams(window.location.search);
 
-        displayRequestStatus('error', message || "OAuth login failed");
-        window.history.replaceState(null, null, '/login');
-        app.router.go('/login');
-    },
-}
+    const status = urlParams.get("status");
+    const message = urlParams.get("message");
+
+    if (status === "success") {
+      app.isLoggedIn = true;
+      app.profile = await app.api.getProfile();
+      window.history.replaceState(null, null, "/");
+      app.router.go("/");
+      connectToNotificationServer();
+      displayRequestStatus("success", message);
+      return;
+    }
+
+    displayRequestStatus("error", message || "OAuth login failed");
+    window.history.replaceState(null, null, "/login");
+    app.router.go("/login");
+  },
+};
 
 export default Router;
