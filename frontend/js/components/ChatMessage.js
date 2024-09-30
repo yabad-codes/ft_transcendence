@@ -23,9 +23,10 @@ export class ChatMessage extends BaseHTMLElement {
     userProfile.querySelector(".avatar_image").src =
       this._conversation.player.avatar_url;
     userProfile.querySelector(
-      "span > span"
+      "button > span"
     ).textContent = `${this._conversation.player.first_name} ${this._conversation.player.last_name}`;
 
+    this.handleProfileClick();
     this.handleDropdown();
     this.updateMessageInputUIBasedOnBlockStatus();
     this.updateOnlineStatus(this._conversation.player.online);
@@ -136,6 +137,8 @@ export class ChatMessage extends BaseHTMLElement {
     ];
     chatPage.openedConversations[this.state.newConversation.conversationID] = true;
     chatPage.prevOpenedConversation = this.state.newConversation.conversationID;
+    const conversationBtn = document.querySelector(`[data-conversation-id="${this.state.newConversation.conversationID}"]`);
+    conversationBtn.classList.add("active");
   }
 
   createMessageElement(message) {
@@ -279,24 +282,37 @@ export class ChatMessage extends BaseHTMLElement {
     this.updateMessageInputUIBasedOnBlockStatus();
   }
 
+  handleProfileClick() {
+    const userProfile = this.querySelector(".user_profile_bar");
+    const userProfileBtn = userProfile.querySelector("button");
+    userProfileBtn.addEventListener("click", () => {
+      app.router.go(`/profile/${this._conversation.player.username}`);
+    });
+  }
+
   updateMessageInputUIBasedOnBlockStatus() {
     const messageInputContainer = this.querySelector(".send_message_container");
     const messageInputContainerParent = messageInputContainer.parentElement;
     const blockMessage = messageInputContainerParent.querySelector("p");
+    const userProfile = this.querySelector(".user_profile_bar");
+    const userProfileBtn = userProfile.querySelector("button");
 
     if (this._conversation.IsBlockedByMe) {
       messageInputContainer.style.display = "none";
       blockMessage.style.display = "block";
       blockMessage.textContent = "You have blocked this user, you can't send messages.";
+      userProfileBtn.disabled = true;
     }
     else if (this._conversation.IsBlockedByOtherPlayer) {
       messageInputContainer.style.display = "none";
       blockMessage.style.display = "block";
       blockMessage.textContent = "This user has blocked you, you can't send messages.";
+      userProfileBtn.disabled = true;
     }
     else {
       messageInputContainer.style.display = "flex";
       blockMessage.style.display = "none";
+      userProfileBtn.disabled = false
     }
   }
 

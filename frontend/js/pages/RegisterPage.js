@@ -29,7 +29,6 @@ export class RegisterPage extends BaseHTMLElement {
     
     registerForm.addEventListener("submit", async (event) => {
       event.preventDefault();
-      console.log("I am here");
       const username = event.target.querySelector("input[placeholder='Username']");
       const firstname = event.target.querySelector("input[placeholder='First name']");
       const lastname = event.target.querySelector("input[placeholder='Last name']");
@@ -47,12 +46,10 @@ export class RegisterPage extends BaseHTMLElement {
         password.value = "";
         confirmPassword.value = "";
         
-        // Iterate over the error messages and display them
-        let errorMessages = '';
+        // Display the first error message
         for (let field in response.data) {
           for (let error of response.data[field]) {
-            errorMessages += `${field}: ${error}\n`;
-            displayRequestStatus("error", errorMessages);
+            displayRequestStatus("error", error);
             return;
           }
         }

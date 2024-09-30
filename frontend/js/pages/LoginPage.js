@@ -29,11 +29,12 @@ export class LoginPage extends BaseHTMLElement {
 
       const message = { username: username.value, password: password.value };
 
-      app.api.post("/api/login/", message).then((response) => {
+      app.api.post("/api/login/", message).then(async (response) => {
         if (response.status === 200) {
           app.isLoggedIn = true;
-          app.profile = app.api.getProfile();
+          app.profile = await app.api.getProfile();
           connectToNotificationServer();
+          displayRequestStatus("success", "Login successful");
           app.router.go("/");
           return;
         }
