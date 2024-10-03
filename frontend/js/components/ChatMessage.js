@@ -240,6 +240,9 @@ export class ChatMessage extends BaseHTMLElement {
 
   handleDropdownItemAction(action) {
     switch (action) {
+      case "game":
+        this.playGameWithUser();
+        break;
       case "clear":
         this.clearChatMessages();
         break;
@@ -253,6 +256,8 @@ export class ChatMessage extends BaseHTMLElement {
         this.deleteConversation();
     }
   }
+
+  playGameWithUser() {}
 
   blockUser() {
     app.api.patch("/api/profile/" + this._conversation.player.username + "/block", {});
