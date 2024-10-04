@@ -9,6 +9,8 @@ import { ChatMessage } from "./js/components/ChatMessage.js";
 import { LeaderboardPage } from "./js/pages/LeaderboardPage.js";
 import { TwoFactorAuthPage } from "./js/pages/2faPage.js";
 import { SettingsPage } from "./js/pages/SettingsPage.js";
+import { ProfilePage } from "./js/pages/ProfilePage.js";
+import { SearchPage } from "./js/pages/SearchPage.js";
 import { api } from "./js/utils/api.js";
 import Router from "./js/utils/router.js";
 import { connectToNotificationServer } from "./js/utils/NotificationSocket.js";
