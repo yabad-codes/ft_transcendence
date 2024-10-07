@@ -6,7 +6,7 @@ export function connectToNotificationServer() {
   
     wss.onopen = function () {
       console.log("Connected to notification server");
-      wss.send(JSON.stringify({ type: "online_status", status: true}))
+      // wss.send(JSON.stringify({ type: "online_status", status: true}))
     };
   
     wss.onmessage = function (event) {

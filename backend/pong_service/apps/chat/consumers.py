@@ -33,15 +33,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
 		)
 	
 	async def receive(self, text_data):
-		# text_data_json = json.loads(text_data)
-		# message = text_data_json['message']
-		# await self.channel_layer.group_send(
-		# 	self.room_group_name,
-		# 	{
-		# 		'type': 'chat_message',
-		# 		'message': message
-		# 	}
-		# )
 		pass
 	
 	async def chat_message(self, event):
@@ -75,6 +66,8 @@ def send_message(user_id, conversationID, message):
 
 class NotificationConsumer(AsyncWebsocketConsumer):
 	async def connect(self):
+		# settings.configure()
+
 		self.cookies = self.scope['cookies']
 		self.access_token = self.cookies.get(settings.AUTH_COOKIE)
 		self.user = await get_user_from_access_token(self.access_token)
@@ -90,12 +83,19 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 		)
 		await self.accept()
 
+		self.user.online = True
+		await sync_to_async(self.user.save)()
+		await self.sendOnlineStatusToFriends()
+
 	async def disconnect(self, close_code):
+		from pong_service.apps.authentication.models import Player
 		if self.user is None:
 			return None
 
+		player = await sync_to_async(Player.objects.get)(id=self.user.id)
+		player.online = False
 		self.user.online = False
-		await sync_to_async(self.user.save)()
+		await sync_to_async(player.save)()
 		await self.sendOnlineStatusToFriends()
 
 		await self.channel_layer.group_discard(
@@ -104,12 +104,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 		)
 
 	async def receive(self, text_data):
-		data = json.loads(text_data)
-
-		if data['type'] == 'online_status':
-			self.user.online = data['status']
-			await sync_to_async(self.user.save)()
-			await self.sendOnlineStatusToFriends()
+		pass
 
 	async def notification_message(self, event):
 		message = event['message']
