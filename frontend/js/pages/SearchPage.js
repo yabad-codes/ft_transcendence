@@ -69,7 +69,7 @@ export class SearchPage extends BaseHTMLElement {
     try {
       this.state.isLoading = true;
       const response = await app.api.get('/api/players');
-      console.log('Players:', response.data);
+   
       
       if (response.data && response.data.success && Array.isArray(response.data.data)) {
         this.state.allPlayers = response.data.data;

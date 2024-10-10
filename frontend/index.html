@@ -891,6 +891,28 @@
 
     <!-- Profile Page -->
     <template id="profilepage">
+      <style>
+        .avatar {
+          position: relative;
+          display: inline-block;
+        }
+        .avatar_status {
+          position: absolute;
+          bottom: 0;
+          right: 0;
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          border: 2px solid #ccc;
+          display: block;
+        }
+        .avatar_status.online {
+          background-color: #55e204f4;
+        }
+        .avatar_status.offline {
+          background-color: #ccc;
+        }
+      </style>
       <div class="container mt-5 profile-page">
 
         <!-- part of personal data -->
@@ -899,7 +921,7 @@
             <div class="d-flex flex-column align-items-center p-3 h-100" style="background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px;">
               <div class="avatar me-2">
                 <img class="avatar_image profile-user-image" src="./images/avatar.jpg" alt="Avatar image">
-                <span class="avatar_status"></span>
+                <span class="avatar_status online offline"></span>
               </div>
               <div class="profile-user-name">Jhon Doe</div>
               <div class="d-flex align-items-center">
@@ -972,7 +994,11 @@
             <p class="leaderboard-title">Friend List</p>
             <ul class="list-group friend-list" style="max-height: 60vh; overflow-y: auto;">
               <li class="list-group-item d-flex align-items-center">
-                <img class="avatar_image me-2" src="./images/avatar.jpg" alt="Avatar image" />
+                
+                <div class="avatar me-2">
+                  <img class="avatar_image profile-user-image" src="./images/avatar.jpg" alt="Avatar image">
+                  <span class="avatar_status online offline"></span>
+                </div>
                 <span class="col">James Bones</span>
                 <button type="button" class="btn btn-secondary col me-2">Remove</button>
                 <button type="button" class="btn btn-secondary col me-2">Block</button>

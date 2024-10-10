@@ -89,7 +89,6 @@ export class ProfilePage extends BaseHTMLElement {
                 return;
             }
             this.state.profile = response.data;
-            console.log(response.data);
             this.loadFriends();
             // this.loadMatches();
         });
@@ -119,11 +118,24 @@ export class ProfilePage extends BaseHTMLElement {
 
     updateUserInfoView() {
         const user = this.state.profile;
+        // console.log(user);
         this.querySelector(".profile-user-image").src = user.avatar_url || "./images/avatar.jpg";
         this.querySelector(".profile-user-name").textContent = user.username || "default username";
         this.querySelector(".profile-user-wins").textContent = user.wins || 0;
         this.querySelector(".profile-user-losses").textContent = user.losses || 0;
         this.querySelector(".profile-user-matches").textContent = (user.wins || 0) + (user.losses || 0);
+
+        const statusIndicator = this.querySelector(".avatar_status");
+        if (user.online) {
+            statusIndicator.classList.add("online");
+            statusIndicator.classList.remove("offline");
+        } else {
+            statusIndicator.classList.add("offline");
+            statusIndicator.classList.remove("online");
+        }
+        console.log("Status indicator:", statusIndicator);
+        console.log("User online status:", user.online);
+
 
 
         // Show/hide friend management buttons based on profile type
@@ -135,9 +147,6 @@ export class ProfilePage extends BaseHTMLElement {
         else {
             this.querySelector(".first-btn").classList.add("d-none");
             // check if friend or not
-
-            
-
         }
         // add the logic to add friend and remove or block it 
         // ...
@@ -158,11 +167,16 @@ export class ProfilePage extends BaseHTMLElement {
                     <img class="avatar_image" src="${friendship.avatar_url}" alt="Avatar image" /> 
                     <span class="avatar_status"></span>
                 </div>
-                <span class="col">${friendship.username}</span>
+                <span class="col friend-name" style="cursor: pointer;">${friendship.username}</span>
             `;
     
+            // Add click event to navigate to friend's profile
+            const friendName = friendItem.querySelector('.friend-name');
+            friendName.addEventListener('click', () => {
+                app.router.go(`/profile/${friendship.username}`);
+            });
+    
             if (this.state.isPersonalProfile) {
-
                 const removeBtn = document.createElement("button");
                 removeBtn.setAttribute("type", "button");
                 removeBtn.setAttribute("class", "btn btn-secondary col-auto me-2");
@@ -173,11 +187,20 @@ export class ProfilePage extends BaseHTMLElement {
     
                 const blockBtn = document.createElement("button");
                 blockBtn.setAttribute("type", "button");
-                blockBtn.setAttribute("class", "btn btn-secondary col-auto me-2");;
+                blockBtn.setAttribute("class", "btn btn-secondary col-auto me-2");
                 blockBtn.setAttribute("data-friendship-username", friendship.username);
                 blockBtn.textContent = "Block";
                 blockBtn.addEventListener("click", this.handleBlockFriend.bind(this));
-                friendItem.appendChild(blockBtn); 
+                friendItem.appendChild(blockBtn);
+    
+                const statusIndicator = friendItem.querySelector(".avatar_status");
+                if (friendship.online) {
+                    statusIndicator.classList.add("online");
+                    statusIndicator.classList.remove("offline");
+                } else {
+                    statusIndicator.classList.add("offline");
+                    statusIndicator.classList.remove("online");
+                }
             }
     
             friendList.appendChild(friendItem);
@@ -205,9 +228,7 @@ export class ProfilePage extends BaseHTMLElement {
         });
     }
     handleBlockFriend(event){
-        console.log("block friend");
         const username = event.target.getAttribute('data-friendship-username');
-        console.log(username);
        app.api.patch(`/api/profile/${username}/block`)
             .then(() => {
                 this.state.friends = this.state.friends.filter(friend => friend.username !== username);
