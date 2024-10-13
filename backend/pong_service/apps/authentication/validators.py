@@ -70,6 +70,31 @@ def username_validator(username):
         message=USERNAME_ERROR
     )
     regex_validator(username)
+    
+def tournament_name_validator(nickname):
+    """
+    Validates the given username.
+
+    Checks if the username already exists in the database and raises a ValueError if it does.
+    Additionally, applies a regex validation to ensure the username matches a specific pattern.
+
+    Args:
+            username (str): The username to be validated.
+
+    Raises:
+            ValueError: If the username already exists in the database.
+
+    Returns:
+            None
+    """
+    
+    if Player.objects.filter(tournament_name=nickname).exists():
+        raise ValidationError('Nickname already exists.')
+    regex_validator = RegexValidator(
+        regex=USERNAME_REGEX,
+        message=USERNAME_ERROR
+    )
+    regex_validator(nickname)
 
 def name_validator(name):
     """

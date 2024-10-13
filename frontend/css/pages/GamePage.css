@@ -1,58 +1,101 @@
-body {
-  font-family: Arial, sans-serif;
-}
-
 .game-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
   text-align: center;
-  margin-top: 50px;
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-.game-btns {
+.game-title {
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.game-options {
   display: flex;
   justify-content: center;
   gap: 10px;
+  margin-bottom: 20px;
 }
 
 .btn {
   padding: 10px 20px;
-  border: none;
-  cursor: pointer;
-  border-radius: 5px;
   font-size: 16px;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  transition: background-color 0.3s;
 }
 
-.primary-btn {
+.btn-primary {
   background-color: #007bff;
   color: white;
 }
 
-.secondary-btn {
+.btn-primary:hover {
+  background-color: #0056b3;
+}
+
+.btn-danger {
   background-color: #dc3545;
   color: white;
 }
 
-.tournament-btn {
-  background-color: #28a745;
-  color: white;
+.btn-danger:hover {
+  background-color: #c82333;
 }
 
-.status {
-  margin-top: 20px;
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.status-message {
   font-size: 18px;
+  margin-bottom: 20px;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.status-message.info {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+.status-message.error {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.status-message.waiting {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-message.success {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.game-instructions {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  text-align: left;
+}
+
+.game-instructions h2 {
   color: #333;
+  margin-bottom: 10px;
 }
 
-.game-screen {
-  text-align: center;
-  margin-top: 50px;
+.game-instructions ul {
+  padding-left: 20px;
 }
 
-#gameCanvas {
-  margin-top: 30px;
-  border: 2px solid #000;
-  width: 300px;
-  height: 300px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.game-instructions li {
+  margin-bottom: 5px;
 }
