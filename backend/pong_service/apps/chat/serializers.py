@@ -2,6 +2,7 @@ from .models import *
 from rest_framework import serializers
 from pong_service.apps.authentication.serializers import PlayerListSerializer
 from django.db.models import Q
+from django.utils.html import escape
 
 
 class MessageReadStatusSerializer(serializers.ModelSerializer):
@@ -14,7 +15,7 @@ class MessageReadStatusSerializer(serializers.ModelSerializer):
 class MessagesSerializer(serializers.ModelSerializer):
     read_status = MessageReadStatusSerializer(many=True, read_only=True)
     sender = serializers.SerializerMethodField()
-
+ 
     class Meta:
         model = Messages
         fields = ['messageID', 'atConversation', 'sender', 'content',
@@ -24,6 +25,10 @@ class MessagesSerializer(serializers.ModelSerializer):
 
     def get_sender(self, obj):
         return obj.sender.username
+    
+    def validate_content(self, value):
+        sanitized_content = escape(value)
+        return sanitized_content
 
 
 class ConversationSerializer(serializers.ModelSerializer):

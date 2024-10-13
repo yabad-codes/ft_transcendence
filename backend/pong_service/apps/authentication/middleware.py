@@ -87,8 +87,6 @@ class TokenRefreshMiddleware:
         """
         Handle an invalid access token by attempting to refresh the tokens.
         """
-        if not refresh_token:
-            return self._delete_tokens(self.get_response(request))
         try:
             new_tokens = self._refresh_tokens(refresh_token)
             request.COOKIES[settings.AUTH_COOKIE] = new_tokens['access']

@@ -11,6 +11,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action
 from django.http import Http404
 from .consumers import send_message
+from .consumers import NotificationConsumer
 
 # Create your views here.
 
@@ -349,6 +350,9 @@ class FriendshipViewSet(viewsets.ModelViewSet):
         # Create a new friendship request
         serializer.save(player1=user, player2=player2)
 
+        # Send a notification to the other player
+        NotificationConsumer.sendFriendRequestNotification(user.id, player2.id)
+
     @action(detail=True, methods=['patch'], url_path='accept')
     def accept_friendship(self, request, pk=None):
         """
@@ -387,7 +391,7 @@ class FriendshipViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_403_FORBIDDEN)
 
 
-class BlockedUsersViewSet(viewsets.ViewSet):
+class BlockedUsersViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing blocked users.
 
@@ -399,20 +403,15 @@ class BlockedUsersViewSet(viewsets.ViewSet):
     serializer_class = BlockSerializer
     permission_classes = [IsAuthenticated]
 
-    def list(self, request):
+    def get_queryset(self):
         """
-        Get a list of blocked users.
-
-        Args:
-            request (Request): The request object.
+        Get the queryset of blocked users.
 
         Returns:
-            Response: The response containing the list of blocked users.
+            QuerySet: The queryset of blocked users.
         """
-        user = request.user
-        blocked_users = BlockedUsers.objects.filter(player=user)
-        serializer = BlockSerializer(blocked_users, many=True)
-        return Response(serializer.data)
+        user = self.request.user
+        return BlockedUsers.objects.filter(player=user)
 
     @action(detail=False, methods=['patch'])
     def block_user(self, request, username=None):
@@ -431,11 +430,13 @@ class BlockedUsersViewSet(viewsets.ViewSet):
 
         # Prevent blocking oneself
         if blocked_user == user:
-            return Response({'error': 'You cannot block yourself.'}, status=status.HTTP_400_BAD_REQUEST)
+            raise serializers.ValidationError(
+                'You cannot block yourself.')
 
         # Check if the user is already blocked
         if BlockedUsers.objects.filter(player=user, blockedUser=blocked_user).exists():
-            return Response({'error': 'User is already blocked.'}, status=status.HTTP_400_BAD_REQUEST)
+            raise serializers.ValidationError(
+                'User is already blocked.')
 
         # Remove any existing friendships between the users
         Friendship.objects.filter(models.Q(player1=user, player2=blocked_user) |
@@ -485,4 +486,4 @@ class BlockedUsersViewSet(viewsets.ViewSet):
                 conversation.save()
 
             return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response({'error': 'User is not blocked.'}, status=status.HTTP_400_BAD_REQUEST)
+        raise serializers.ValidationError('User is not blocked.')

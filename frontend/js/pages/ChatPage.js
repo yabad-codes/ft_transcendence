@@ -1,14 +1,13 @@
 import BaseHTMLElement from "./BaseHTMLElement.js";
 import { createState } from "../utils/stateManager.js";
+import { displayRequestStatus } from "../utils/errorManagement.js";
 
 export class ChatPage extends BaseHTMLElement {
   constructor() {
     super("chatpage");
     const { state, registerUpdate } = createState({
       conversations: [],
-      searchConversations: [],
       friends: [],
-      searchFriends: [],
     });
 
     this.state = state;
@@ -22,8 +21,12 @@ export class ChatPage extends BaseHTMLElement {
   connectedCallback() {
     super.connectedCallback();
     // Add additional logic for the chat page ...
-    app.api.get("/api/conversations/").then((conversations) => {
-      this.state.conversations = conversations;
+    app.api.get("/api/conversations/").then((response) => {
+      if (response.status >= 400) {
+        displayRequestStatus("error", response.data);
+        return;
+      }
+      this.state.conversations = response.data;
     });
     this.popupConversationActions();
     this.searchFriends();
@@ -31,9 +34,14 @@ export class ChatPage extends BaseHTMLElement {
     this.setupWebsocket();
   }
 
+  disconnectedCallback() {
+    this.isDisconnected = true;
+    this.chatSocket.close();
+  }
+
   setupWebsocket() {
     this.chatSocket = new WebSocket(
-      "ws://" + window.location.host + "/ws/chat/"
+      "wss://" + window.location.host + "/ws/chat/"
     );
 
     this.chatSocket.onopen = (e) => {
@@ -42,7 +50,6 @@ export class ChatPage extends BaseHTMLElement {
 
     this.chatSocket.onmessage = (e) => {
       const data = JSON.parse(e.data);
-      console.log(`Data: ${data}`);
       const conversation = this.state.conversations.find(
         (conversation) =>
           conversation.conversationID === data.message.conversation_id
@@ -52,11 +59,19 @@ export class ChatPage extends BaseHTMLElement {
         app.api
           .get("/api/conversations/" + data.message.conversation_id)
           .then((response) => {
-            this.state.conversations = [response, ...this.state.conversations];
+            if (response.status >= 400) {
+              displayRequestStatus("error", response.data);
+              return;
+            }
+            this.state.conversations = [response.data, ...this.state.conversations];
           });
-        return;
       }
       this.moveConversationToTop(data.message.conversation_id, data.message.data);
+
+      if (this.openedConversations[data.message.conversation_id] === undefined) {
+        this.openedConversations[data.message.conversation_id] = false;
+      }
+
       // If the conversation is opened then add the message to the chat message
       if (this.openedConversations[data.message.conversation_id]) {
         const chatMessage = this.querySelector("chat-message");
@@ -64,12 +79,18 @@ export class ChatPage extends BaseHTMLElement {
           ...chatMessage.state.messages,
           data.message.data,
         ];
+
         // mark message as read if the conversation is opened
         app.api.patch("/api/conversations/" + conversation.conversationID + "/messages/" + data.message.data.messageID + "/mark_as_read/")
-        return;
+        // return;
       }
+
+      // Play sound notification
+      const audio = new Audio('/assets/livechat.mp3');
+      audio.play();
+
       // If the conversation is not opened then add a notification
-      this.notificationConversationMonitor(data.message.conversation_id);
+      this.notificationConversationMonitor(data.message.conversation_id, this.openedConversations[data.message.conversation_id]);
     };
 
     this.chatSocket.onclose = (e) => {
@@ -79,9 +100,11 @@ export class ChatPage extends BaseHTMLElement {
         this.setupWebsocket();
         return;
       }
-      console.error("Chat socket closed unexpectedly");
+      console.log("Chat socket closed");
     };
   }
+
+
 
   notificationConversationMonitor(conversation_id, isOpened = false) {
     const conversationContainer = this.querySelector(
@@ -136,17 +159,13 @@ export class ChatPage extends BaseHTMLElement {
 
   registerLocalFunctions() {
     this.registerUpdate("conversations", this.updateUIConversations.bind(this));
-    this.registerUpdate(
-      "searchConversations",
-      this.updateUIConversations.bind(this)
-    );
-    this.registerUpdate("searchFriends", this.updateUIfriends.bind(this));
+    this.registerUpdate("friends", this.updateUIfriends.bind(this));
   }
 
   setConversationsActions() {
     const conversationButtons = this.querySelectorAll(".direct_message_btn");
 
-    conversationButtons.forEach((button, index) => {
+    conversationButtons.forEach((button) => {
       const conversationID = button.getAttribute("data-conversation-id");
       this.openedConversations[conversationID] = false;
       button.addEventListener("click", (event) => {
@@ -162,9 +181,12 @@ export class ChatPage extends BaseHTMLElement {
         this.prevOpenedConversation = conversationID;
         this.openedConversations[conversationID] = true;
 
+        const conversationIndex = this.state.conversations.findIndex(
+          (conversation) => conversation.conversationID == conversationID
+        );
         // add style to the selected conversation
         button.classList.add("active");
-        this.openConversationEvent(index);
+        this.openConversationEvent(conversationIndex);
         this.notificationConversationMonitor(conversationID, true);
       });
     });
@@ -193,9 +215,12 @@ export class ChatPage extends BaseHTMLElement {
       "click",
       (event) => {
         popupContainer.classList.remove("hidden");
-        app.api.get("/api/friendships/").then((friends) => {
-          this.state.friends = friends;
-          this.state.searchFriends = friends;
+        app.api.get("/api/friendships/").then((response) => {
+          if (response.status >= 400) {
+            displayRequestStatus("error", response.data);
+            return;
+          }
+          this.state.friends = response.data;
         });
       }
     );
@@ -209,21 +234,24 @@ export class ChatPage extends BaseHTMLElement {
     });
   }
 
-  updateUIfriends() {
+  updateUIfriends(searchFriends = null) {
     const popupFriends = this.querySelector(".popup-friends");
-    const popupBtns = this.state.searchFriends.map((friend) => {
+
+    const friendsToDisplay = searchFriends ? searchFriends : this.state.friends;
+    const popupBtns = friendsToDisplay.map((friend) => {
       const player = this.choosePlayerFriend(friend);
       return `
       <button
       class="popup-btn w-100 border border-secondary-subtle border-top-0 border-end-0 border-start-0 text-start ps-4 pt-2 pb-2"
+      data-friend-username='${player.username}'
     >
       <div class="avatar me-2">
         <img
           class="avatar_image shadow-sm"
-          src="${player.avatar}"
+          src="${player.avatar_url}"
           alt="Avatar image"
         />
-        <span class="avatar_status"></span>
+        <span class="avatar_status ${player.isFriend ? "" : "none"} ${player.online ? "online" : ""}"></span>
       </div>
       ${player.first_name} ${player.last_name}
     </button>
@@ -235,10 +263,15 @@ export class ChatPage extends BaseHTMLElement {
 
   addNewConversationFromPopup() {
     const popupBtns = this.querySelectorAll(".popup-btn");
-    popupBtns.forEach((button, index) => {
+    popupBtns.forEach((button) => {
       button.addEventListener("click", (event) => {
         const popupContainer = this.querySelector(".popup-container");
-        const player = this.choosePlayerFriend(this.state.searchFriends[index]);
+        const username = button.getAttribute("data-friend-username");
+        const friendship = this.state.friends.find(
+          (friend) => friend.player1.username === username || friend.player2.username === username
+        );
+
+        const player = this.choosePlayerFriend(friendship);
 
         this.createTemporayConversationOrOpenExistingOne(player);
         popupContainer.classList.add("hidden");
@@ -270,7 +303,7 @@ export class ChatPage extends BaseHTMLElement {
       const chatMessage = document.createElement("chat-message");
       const chatContainer = this.querySelector(".chat_message_container");
       if (chatContainer.lastElementChild.nodeName === "CHAT-MESSAGE") {
-        if (chatContainer.lastElementChild._conversation.id === 0) {
+        if (chatContainer.lastElementChild._conversation.player.username === player.username) {
           return;
         }
         chatContainer.removeChild(chatContainer.lastElementChild);
@@ -286,28 +319,22 @@ export class ChatPage extends BaseHTMLElement {
     }
   }
 
-  // app.route.go(chat) ==> select the chat-page element
   searchConversations() {
     const searchInput = this.querySelector(
       "input[name='search-conversations']"
     );
     searchInput.addEventListener("input", (event) => {
-      const searchValue = event.target.value;
-      if (searchValue === "") {
-        this.state.searchConversations = [];
-        return;
-      }
-      this.state.searchConversations = this.state.conversations.filter(
+      const searchValues = event.target.value.split(' ').filter(Boolean);
+
+      const searchConversations = this.state.conversations.filter(
         (conversation) => {
           const player = this.choosePlayerConversation(conversation);
-          return (
-            player.first_name
-              .toLowerCase()
-              .includes(searchValue.toLowerCase()) ||
-            player.last_name.toLowerCase().includes(searchValue.toLowerCase())
-          );
+          const playerName = (player.first_name + ' ' + player.last_name).toLowerCase();
+          return searchValues.every(value => playerName.includes(value.toLowerCase()));
         }
       );
+      // update conversations with the search result
+      this.updateUIConversations(searchConversations);
     });
   }
 
@@ -316,26 +343,24 @@ export class ChatPage extends BaseHTMLElement {
       "input[name='popup-search-players']"
     );
     searchInput.addEventListener("input", (event) => {
-      const searchValue = event.target.value;
-      this.state.searchFriends = this.state.friends.filter((friend) => {
+      const searchValues = event.target.value.split(' ').filter(Boolean);
+      const searchFriends = this.state.friends.filter((friend) => {
         const player = this.choosePlayerFriend(friend);
-        return (
-          player.first_name.toLowerCase().includes(searchValue.toLowerCase()) ||
-          player.last_name.toLowerCase().includes(searchValue.toLowerCase())
-        );
+        const playerName = (player.first_name + ' ' + player.last_name).toLowerCase();
+        return searchValues.every(value => playerName.includes(value.toLowerCase()));
       });
+
+      // update friends with the search result
+      this.updateUIfriends(searchFriends);
     });
   }
 
-  updateUIConversations() {
+  updateUIConversations(searchConversations = null) {
     const conversationContainer = this.querySelector(
       ".direct_message_container"
     );
 
-    const conversationsToDisplay =
-      this.state.searchConversations.length > 0
-        ? this.state.searchConversations
-        : this.state.conversations;
+    const conversationsToDisplay = searchConversations ? searchConversations : this.state.conversations;
 
     const conversationElements = conversationsToDisplay.map((conversation) => {
       const conversationElement = this.createConversationElement(conversation);
@@ -356,10 +381,10 @@ export class ChatPage extends BaseHTMLElement {
         <div class="avatar me-2">
         <img
             class="avatar_image"
-            src="${conversationParticipant.avatar}"
+            src="${conversationParticipant.avatar_url}"
             alt="Avatar image"
         />
-        <span class="avatar_status"></span>
+        <span class="avatar_status ${conversationParticipant.isFriend ? "" : "none"} ${conversationParticipant.online ? "online" : ""}"></span>
         </div>
         <div
         class="flex-grow-1 d-flex flex-column justify-content-between position-relative"
@@ -397,6 +422,65 @@ export class ChatPage extends BaseHTMLElement {
       return friend.player2;
     } else {
       return friend.player1;
+    }
+  }
+
+  updateOnlineStatusOfFriends(username, is_online) {
+    const conversationContainer = this.querySelector(
+      ".direct_message_container"
+    );
+    const conversationButtons = conversationContainer.querySelectorAll(
+      ".direct_message_btn"
+    );
+
+    const conversation = this.state.conversations.find(
+      (conversation) =>
+        conversation.player1.username == username ||
+        conversation.player2.username == username
+    );
+
+    if (conversation) {
+      // update the online status of the player in the conversation button
+      const conversationBtn = this.querySelector(`button[data-conversation-id='${conversation.conversationID}']`);
+      const avatarStatus = conversationBtn.querySelector(".avatar_status");
+      avatarStatus.classList.toggle("online", is_online);
+
+      // update the online status of the player in the conversation object
+      const player = this.choosePlayerConversation(conversation);
+      if (conversation.player1.username == player.username) {
+        conversation.player1.online = is_online;
+      } else {
+        conversation.player2.online = is_online;
+      }
+    }
+
+    // update the online status of the player in chat message if the conversation is opened
+    const chatMessage = this.querySelector("chat-message");
+    if (chatMessage && chatMessage._conversation.player.username == username) {
+      chatMessage._conversation.player.online = is_online;
+      chatMessage.updateOnlineStatus(is_online);
+    }
+
+    // update the online status of the player in the popup friends
+    const popupFriends = this.querySelector(".popup-friends");
+    const popupBtn = popupFriends.querySelector(
+      `.popup-btn[data-friend-username='${username}']`
+    );
+    if (popupBtn) {
+      const avatarStatus = popupBtn.querySelector(".avatar_status");
+      avatarStatus.classList.toggle("online", is_online);
+      // update the online status of the player in the friends list state
+      const searchFriends = this.state.friends.find(
+        (friend) => friend.player1.username == username || friend.player2.username == username
+      );
+      if (searchFriends) {
+        const player = this.choosePlayerFriend(searchFriends);
+        if (searchFriends.player1.username == player.username) {
+          searchFriends.player1.online = is_online;
+        } else {
+          searchFriends.player2.online = is_online;
+        }
+      }
     }
   }
 

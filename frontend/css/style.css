@@ -1,6 +1,9 @@
 /* Import Bootstrap */
 @import url("../bootstrap-5.3.3-dist/css/bootstrap.min.css");
 
+/* Import notification management css */
+@import url("./components/errorManagement.css");
+
 /* Import custom CSS stylings */
 @import url("./components/Navbar.css");
 @import url("./components/ChatMessage.css");
@@ -11,6 +14,8 @@
 @import url("./pages/LoginPage.css");
 @import url("./pages/ChatPage.css");
 @import url("./pages/LeaderboardPage.css");
+@import url("./pages/2faPage.css");
+@import url("./pages/SettingsPage.css");
 
 /* Import font family Montserrat */
 @import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
@@ -19,4 +24,31 @@
 body {
   margin: 0;
   font-family: "Montserrat", sans-serif;
+}
+
+@keyframes shake {
+	0% { transform: translateX(0); }
+	25% { transform: translateX(-5px); }
+	50% { transform: translateX(5px); }
+	75% { transform: translateX(-5px); }
+	100% { transform: translateX(0); }
+}
+  
+.shake {
+	animation: shake 0.5s ease-in-out;
+	animation-iteration-count: 1;
+}
+
+.alert {
+	display: flex;
+    justify-content: space-between;
+	align-items: center;
+}
+
+:root {
+    --primary-color: #ff5757;
+    --secondary-color: #0097b2;
+    --background-color: #f9f9f9;
+    --text-color: #333;
+    --error-color: #e74c3c;
 }

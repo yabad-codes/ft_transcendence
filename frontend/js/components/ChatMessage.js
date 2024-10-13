@@ -1,5 +1,6 @@
 import BaseHTMLElement from "../pages/BaseHTMLElement.js";
 import { createState } from "../utils/stateManager.js";
+import { displayRequestStatus } from "../utils/errorManagement.js";
 
 export class ChatMessage extends BaseHTMLElement {
   constructor() {
@@ -20,13 +21,15 @@ export class ChatMessage extends BaseHTMLElement {
     this.submitMessage();
     const userProfile = this.querySelector(".user_profile_bar");
     userProfile.querySelector(".avatar_image").src =
-      this._conversation.player.avatar;
+      this._conversation.player.avatar_url;
     userProfile.querySelector(
-      "span > span"
+      "button > span"
     ).textContent = `${this._conversation.player.first_name} ${this._conversation.player.last_name}`;
 
+    this.handleProfileClick();
     this.handleDropdown();
     this.updateMessageInputUIBasedOnBlockStatus();
+    this.updateOnlineStatus(this._conversation.player.online);
   }
 
   set conversation(conversation) {
@@ -44,8 +47,12 @@ export class ChatMessage extends BaseHTMLElement {
   getMessages(conversation) {
     app.api
       .get("/api/conversations/" + conversation.id + "/messages")
-      .then((messages) => {
-        this.state.messages = messages;
+      .then((response) => {
+        if (response.status >= 400) {
+          displayRequestStatus("error", response.data)
+          return;
+        }
+        this.state.messages = response.data;
       })
   }
 
@@ -57,6 +64,7 @@ export class ChatMessage extends BaseHTMLElement {
     if (messageContainer.lastElementChild && this.state.messages.length > 0) {
       const lastMessage = this.state.messages[this.state.messages.length - 1];
       messageContainer.innerHTML += this.createMessageElement(lastMessage);
+
       return;
     }
     const messageElements = this.state.messages.map((message) => {
@@ -91,8 +99,12 @@ export class ChatMessage extends BaseHTMLElement {
           player2_username: this._conversation.player.username,
         })
         .then((response) => {
-          this._conversation.id = response.conversationID;
-          this.state.newConversation = response;
+          if (response.status >= 400) {
+            displayRequestStatus("error", response.data)
+            return;
+          }
+          this._conversation.id = response.data.conversationID;
+          this.state.newConversation = response.data;
           this.postNewMessage(message);
         });
       return;
@@ -107,7 +119,11 @@ export class ChatMessage extends BaseHTMLElement {
         message
       )
       .then((response) => {
-        this.state.messages = [...this.state.messages, response];
+        if (response.status >= 400) {
+          displayRequestStatus("error", response.data)
+          return;
+        }
+        this.state.messages = [...this.state.messages, response.data];
         this.moveConversationToTop();
       });
   }
@@ -121,6 +137,8 @@ export class ChatMessage extends BaseHTMLElement {
     ];
     chatPage.openedConversations[this.state.newConversation.conversationID] = true;
     chatPage.prevOpenedConversation = this.state.newConversation.conversationID;
+    const conversationBtn = document.querySelector(`[data-conversation-id="${this.state.newConversation.conversationID}"]`);
+    conversationBtn.classList.add("active");
   }
 
   createMessageElement(message) {
@@ -222,6 +240,9 @@ export class ChatMessage extends BaseHTMLElement {
 
   handleDropdownItemAction(action) {
     switch (action) {
+      case "game":
+        this.playGameWithUser();
+        break;
       case "clear":
         this.clearChatMessages();
         break;
@@ -235,6 +256,8 @@ export class ChatMessage extends BaseHTMLElement {
         this.deleteConversation();
     }
   }
+
+  playGameWithUser() {}
 
   blockUser() {
     app.api.patch("/api/profile/" + this._conversation.player.username + "/block", {});
@@ -264,24 +287,37 @@ export class ChatMessage extends BaseHTMLElement {
     this.updateMessageInputUIBasedOnBlockStatus();
   }
 
+  handleProfileClick() {
+    const userProfile = this.querySelector(".user_profile_bar");
+    const userProfileBtn = userProfile.querySelector("button");
+    userProfileBtn.addEventListener("click", () => {
+      app.router.go(`/profile/${this._conversation.player.username}`);
+    });
+  }
+
   updateMessageInputUIBasedOnBlockStatus() {
     const messageInputContainer = this.querySelector(".send_message_container");
     const messageInputContainerParent = messageInputContainer.parentElement;
     const blockMessage = messageInputContainerParent.querySelector("p");
+    const userProfile = this.querySelector(".user_profile_bar");
+    const userProfileBtn = userProfile.querySelector("button");
 
     if (this._conversation.IsBlockedByMe) {
       messageInputContainer.style.display = "none";
       blockMessage.style.display = "block";
       blockMessage.textContent = "You have blocked this user, you can't send messages.";
+      userProfileBtn.disabled = true;
     }
     else if (this._conversation.IsBlockedByOtherPlayer) {
       messageInputContainer.style.display = "none";
       blockMessage.style.display = "block";
       blockMessage.textContent = "This user has blocked you, you can't send messages.";
+      userProfileBtn.disabled = true;
     }
     else {
       messageInputContainer.style.display = "flex";
       blockMessage.style.display = "none";
+      userProfileBtn.disabled = false
     }
   }
 
@@ -328,6 +364,16 @@ export class ChatMessage extends BaseHTMLElement {
 
     // remove the current parent element
     this.parentElement.removeChild(this);
+  }
+
+  updateOnlineStatus(status) {
+    const avatar = this.querySelector(".avatar");
+    const avatar_status = avatar.querySelector(".avatar_status");
+
+    if (!this._conversation.player.isFriend) {
+      avatar_status.style.display = "none";
+    }
+    avatar_status.classList.toggle("online", status);
   }
 }
 

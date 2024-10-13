@@ -29,6 +29,15 @@ REDIS_DB = os.environ.get('REDIS_DB')
 
 REDIS = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
 
+# 42 API
+UID = os.environ.get('UID')
+SECRET = os.environ.get('SECRET')
+AUTH_URL = os.environ.get('AUTH_URL')
+REDIRECT_URL = os.environ.get('REDIRECT_URL')
+
+# Frontend
+FRONTEND_URL = os.environ.get('FRONTEND_URL')
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -38,7 +47,10 @@ SECRET_KEY = 'django-insecure-^fy@3vqd&fs7882dpiznd_!@%j*yvv75%e$xndx0)%v*bm@efv
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '10.11.4.8',
+]
 
 
 # Application definition
@@ -86,9 +98,9 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'pong_service.apps.authentication.middleware.TokenRefreshMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -195,13 +207,15 @@ MEDIA_URL = "https://storage.googleapis.com/{}/".format(GS_BUCKET_NAME)
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'authentication.Player'
 
+APPEND_SLASH = True
+
 #for fixe the  CSRF error we can add it after
 CSRF_TRUSTED_ORIGINS = [
     'https://localhost:8081',  # For local development
     'https://127.0.0.1:8081',  # Your production domain
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
