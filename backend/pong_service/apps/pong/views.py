@@ -64,6 +64,13 @@ class RequestGameWithPlayerView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         opponent = get_object_or_404(Player, id=opponent_id)
+        
+        # Check if opponent is online
+        if not opponent.online:
+            return Response({
+                'status': 'error',
+                'message': 'Opponent is not online'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         # Check if there's already an active game or request
         active_game = PongGame.objects.filter(
