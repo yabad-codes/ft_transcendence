@@ -391,7 +391,7 @@ class FriendshipViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_403_FORBIDDEN)
 
 
-class BlockedUsersViewSet(viewsets.ViewSet):
+class BlockedUsersViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing blocked users.
 
@@ -403,20 +403,15 @@ class BlockedUsersViewSet(viewsets.ViewSet):
     serializer_class = BlockSerializer
     permission_classes = [IsAuthenticated]
 
-    def list(self, request):
+    def get_queryset(self):
         """
-        Get a list of blocked users.
-
-        Args:
-            request (Request): The request object.
+        Get the queryset of blocked users.
 
         Returns:
-            Response: The response containing the list of blocked users.
+            QuerySet: The queryset of blocked users.
         """
-        user = request.user
-        blocked_users = BlockedUsers.objects.filter(player=user)
-        serializer = BlockSerializer(blocked_users, many=True)
-        return Response(serializer.data)
+        user = self.request.user
+        return BlockedUsers.objects.filter(player=user)
 
     @action(detail=False, methods=['patch'])
     def block_user(self, request, username=None):
@@ -435,12 +430,12 @@ class BlockedUsersViewSet(viewsets.ViewSet):
 
         # Prevent blocking oneself
         if blocked_user == user:
-            return serializers.ValidationError(
+            raise serializers.ValidationError(
                 'You cannot block yourself.')
 
         # Check if the user is already blocked
         if BlockedUsers.objects.filter(player=user, blockedUser=blocked_user).exists():
-            return serializers.ValidationError(
+            raise serializers.ValidationError(
                 'User is already blocked.')
 
         # Remove any existing friendships between the users
@@ -491,4 +486,4 @@ class BlockedUsersViewSet(viewsets.ViewSet):
                 conversation.save()
 
             return Response(status=status.HTTP_204_NO_CONTENT)
-        return serializers.ValidationError('User is not blocked.')
+        raise serializers.ValidationError('User is not blocked.')
