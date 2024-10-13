@@ -49,6 +49,7 @@ class RequestGameView(APIView):
             'websocket_url': '/ws/matchmaking/'
         }, status=status.HTTP_200_OK)
 
+
 class RequestGameWithPlayerView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -102,6 +103,7 @@ class RequestGameWithPlayerView(APIView):
             'request_id': str(game_request.id)
         }, status=status.HTTP_201_CREATED)
 
+
 class AcceptGameRequestView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -115,7 +117,8 @@ class AcceptGameRequestView(APIView):
                 'message': 'Please provide a request_id'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        game_request = get_object_or_404(GameRequest, id=request_id, opponent=player, status=GameRequest.Status.PENDING)
+        game_request = get_object_or_404(
+            GameRequest, id=request_id, opponent=player, status=GameRequest.Status.PENDING)
 
         # Create a new game
         game = PongGame.objects.create(
@@ -133,3 +136,47 @@ class AcceptGameRequestView(APIView):
             'message': 'Game request accepted',
             'game_id': str(game.id)
         }, status=status.HTTP_200_OK)
+
+
+class PlayerGamesView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, username):
+        player = get_object_or_404(Player, username=username)
+
+        games = PongGame.objects.filter(
+            Q(player1=player) | Q(player2=player)
+        )
+
+        if not games:
+            return Response({
+                'status': 'success',
+                'message': 'No games found for player'
+            }, status=status.HTTP_200_OK)
+
+        games_data = []
+        for game in games:
+            if game.player1.username == player.username:
+                player_name = game.player1.username
+                opponent = game.player2.username
+                player_score = game.player1_score
+                opponent_score = game.player2_score
+            else:
+                player_name = game.player2.username
+                opponent = game.player1.username
+                player_score = game.player2_score
+                opponent_score = game.player1_score
+
+            game_data = {
+                "game_id": str(game.id),
+                "player": player_name,
+                "opponent": opponent,
+                "winner": game.winner.username,
+                "player_score": player_score,
+                "opponent_score": opponent_score,
+                "date": game.created_at.strftime("%Y-%m-%d")
+            }
+            games_data.append(game_data)
+
+        response_data = {"matches": games_data}
+        return Response(response_data, status=status.HTTP_200_OK)
