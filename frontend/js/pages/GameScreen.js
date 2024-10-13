@@ -52,7 +52,7 @@ export class GameScreen extends BaseHTMLElement {
   }
 
   connectToGameServer() {
-    const ws = new WebSocket(`wss://localhost:8081/ws/pong/${this.gameId}/`);
+    const ws = new WebSocket(`wss://${window.location.host}/ws/pong/${this.gameId}/`);
 
     ws.onopen = () => {
       console.log("Connected to game server");

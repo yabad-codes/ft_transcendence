@@ -14,7 +14,6 @@ export class RegisterPage extends BaseHTMLElement {
     this.Oauth42Login();
   }
 
-
   switchToLoginPage() {
     const loginButton = document.getElementById("to-login");
 
@@ -26,26 +25,49 @@ export class RegisterPage extends BaseHTMLElement {
 
   register() {
     const registerForm = this.querySelector(".register-form");
-    
+
     registerForm.addEventListener("submit", async (event) => {
       event.preventDefault();
-      const username = event.target.querySelector("input[placeholder='Username']");
-      const firstname = event.target.querySelector("input[placeholder='First name']");
-      const lastname = event.target.querySelector("input[placeholder='Last name']");
-      const password = event.target.querySelector("input[placeholder='Password']");
-      const confirmPassword = event.target.querySelector("input[placeholder='Confirm Password']");
+      const username = event.target.querySelector(
+        "input[placeholder='Username']"
+      );
+      const firstname = event.target.querySelector(
+        "input[placeholder='First name']"
+      );
+      const lastname = event.target.querySelector(
+        "input[placeholder='Last name']"
+      );
+      const password = event.target.querySelector(
+        "input[placeholder='Password']"
+      );
+      const confirmPassword = event.target.querySelector(
+        "input[placeholder='Confirm Password']"
+      );
+      const tournamentName = event.target.querySelector(
+        "input[placeholder='Tournament name']"
+      );
 
-      const message = { username: username.value, first_name: firstname.value, last_name: lastname.value, password: password.value, password_confirm: confirmPassword.value };
+      const message = {
+        username: username.value,
+        first_name: firstname.value,
+        last_name: lastname.value,
+        password: password.value,
+        password_confirm: confirmPassword.value,
+        tournament_name: tournamentName.value,
+      };
 
       app.api.post("/api/register/", message).then((response) => {
         if (response.status === 201) {
-          displayRequestStatus("success", "Account created successfully. Please login.");
+          displayRequestStatus(
+            "success",
+            "Account created successfully. Please login."
+          );
           app.router.go("/login");
           return;
         }
         password.value = "";
         confirmPassword.value = "";
-        
+
         // Display the first error message
         for (let field in response.data) {
           for (let error of response.data[field]) {
@@ -53,13 +75,13 @@ export class RegisterPage extends BaseHTMLElement {
             return;
           }
         }
-      })
+      });
     });
   }
 
   Oauth42Login() {
     const oauth42Button = this.querySelector(".oauth42");
-  
+
     oauth42Button.addEventListener("click", (event) => {
       event.preventDefault();
       app.api.get("/api/oauth/login/").then((response) => {

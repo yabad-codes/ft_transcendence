@@ -39,24 +39,24 @@ export class GamePage extends BaseHTMLElement {
     const cancelMatchmakingBtn = this.querySelector("#cancelMatchmakingBtn");
 
     requestGameBtn.addEventListener("click", () => this.requestGame());
-    cancelMatchmakingBtn.addEventListener("click", () => this.cancelMatchmaking());
+    cancelMatchmakingBtn.addEventListener("click", () =>
+      this.cancelMatchmaking()
+    );
   }
 
   async requestGame() {
     try {
-      const response = await fetch(
-        "https://localhost:8081/api/play/request-game/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          mode: "cors",
-        }
-      );
+      const response = await fetch("/api/play/request-game/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        mode: "cors",
+      });
 
       const data = await response.json();
+      console.log(data);
 
       if (response.ok) {
         this.updateStatus("Connecting to matchmaking...");
@@ -72,7 +72,7 @@ export class GamePage extends BaseHTMLElement {
   connectToMatchmaking(websocketUrl) {
     websocketUrl = websocketUrl.replace(/\/$/, "");
     this.matchmakingSocket = new WebSocket(
-      `wss://localhost:8081${websocketUrl}/`
+      `wss://${window.location.host}${websocketUrl}/`
     );
 
     this.matchmakingSocket.onopen = () => {
