@@ -42,6 +42,8 @@ const Router = {
       Router.handleOAuthCallback();
     } else if (router === "/2fa") {
       Router.loadMainHomeContent("twofa-page");
+    } else if (router === "/tournament") {
+      Router.loadMainHomeContent("tournament-page");
     } else {
       Router.loadNotFoundPage("not-found-page");
     }

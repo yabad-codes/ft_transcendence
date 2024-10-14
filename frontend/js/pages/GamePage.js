@@ -20,6 +20,7 @@ export class GamePage extends BaseHTMLElement {
         <div class="game-options">
           <button id="requestGameBtn" class="btn btn-primary">Find Match</button>
           <button id="cancelMatchmakingBtn" class="btn btn-danger" disabled>Cancel</button>
+          <button id="createTournament" class="btn btn-primary">Create Tournament</button>
         </div>
         <div id="matchmakingStatus" class="status-message"></div>
         <div class="game-instructions">
@@ -37,10 +38,14 @@ export class GamePage extends BaseHTMLElement {
   setupEventListeners() {
     const requestGameBtn = this.querySelector("#requestGameBtn");
     const cancelMatchmakingBtn = this.querySelector("#cancelMatchmakingBtn");
+    const createTournamentBtn = this.querySelector("#createTournament");
 
     requestGameBtn.addEventListener("click", () => this.requestGame());
     cancelMatchmakingBtn.addEventListener("click", () =>
       this.cancelMatchmaking()
+    );
+    createTournamentBtn.addEventListener("click", () =>
+      app.router.go("/tournament", false)
     );
   }
 
