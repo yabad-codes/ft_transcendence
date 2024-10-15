@@ -295,6 +295,40 @@ class PlayerListView(ListAPIView):
         blocked_user_ids = blocked_users.values_list('blockedUser', flat=True)
         return Player.objects.exclude(id__in=blocked_user_ids)
 
+class PlayerOnlineListView(ListAPIView):
+    """
+    API view that returns a list of online players.
+
+    Inherits from ListAPIView and uses PlayerListSerializer
+    to serialize the queryset.
+
+    Requires authentication for access.
+    """
+    queryset = Player.objects.all()
+    serializer_class = PlayerListSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """
+        Handle GET request to list all online players.
+
+        :param request: The HTTP request object.
+        :return: A Response object with the serialized player data.
+        """
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def get_queryset(self):
+        """
+        Exclude blocked users from the queryset.
+        """
+        blocked_users = BlockedUsers.objects.filter(
+            Q(player=self.request.user) | Q(blockedUser=self.request.user)
+        )
+        blocked_user_ids = blocked_users.values_list('blockedUser', flat=True)
+        return Player.objects.exclude(id__in=blocked_user_ids).filter(online=True)
 
 class PlayerPublicProfileView(generics.RetrieveAPIView):
     """
