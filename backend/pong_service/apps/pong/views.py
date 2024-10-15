@@ -7,6 +7,7 @@ from .models import PongGame, GameRequest
 from pong_service.apps.authentication.models import Player
 from django.shortcuts import get_object_or_404
 from django.conf import settings
+from pong_service.apps.chat.consumers import NotificationConsumer
 
 import logging
 
@@ -55,15 +56,15 @@ class RequestGameWithPlayerView(APIView):
 
     def post(self, request):
         player = request.user
-        opponent_id = request.data.get('opponent_id')
+        opponent_username = request.data.get('opponent_username')
 
-        if not opponent_id:
+        if not opponent_username:
             return Response({
                 'status': 'error',
-                'message': 'Please provide an opponent_id'
+                'message': 'Please provide an opponent_username'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        opponent = get_object_or_404(Player, id=opponent_id)
+        opponent = get_object_or_404(Player, username=opponent_username)
         
         # Check if opponent is online
         if not opponent.online:
@@ -104,6 +105,9 @@ class RequestGameWithPlayerView(APIView):
             status=GameRequest.Status.PENDING
         )
 
+        # Send a notification to the opponent
+        NotificationConsumer.sendGameRequestNotification(player, opponent.id, str(game_request.id))
+
         return Response({
             'status': 'success',
             'message': 'Game request sent',
@@ -138,12 +142,42 @@ class AcceptGameRequestView(APIView):
         game_request.status = GameRequest.Status.ACCEPTED
         game_request.save()
 
+        # Send a notification to the requester
+        NotificationConsumer.sendGameRequestResponseNotification(game_request.requester.id, str(game.id))
+
         return Response({
             'status': 'success',
             'message': 'Game request accepted',
             'game_id': str(game.id)
         }, status=status.HTTP_200_OK)
 
+class RejectGameRequestView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        player = request.user
+        request_id = request.data.get('request_id')
+
+        if not request_id:
+            return Response({
+                'status': 'error',
+                'message': 'Please provide a request_id'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        game_request = get_object_or_404(
+            GameRequest, id=request_id, opponent=player, status=GameRequest.Status.PENDING)
+
+        # Update the game request status
+        game_request.status = GameRequest.Status.REJECTED
+        game_request.save()
+
+        # Send a notification to the requester
+        NotificationConsumer.sendGameRequestResponseNotification(game_request.requester.id, None)
+
+        return Response({
+            'status': 'success',
+            'message': 'Game request rejected'
+        }, status=status.HTTP_200_OK)
 
 class PlayerGamesView(APIView):
     permission_classes = (IsAuthenticated,)

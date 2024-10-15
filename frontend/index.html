@@ -12,6 +12,25 @@
     <!-- error-management -->
     <div id="error-management"></div>
 
+    <!-- Player game request -->
+    <div id="gameRequestPopup">
+        <div class="popup-content">
+            <div class="avatar-container">
+                <img id="avatarImg" class="avatar" src="/api/placeholder/80/80" alt="User Avatar">
+            </div>
+            <h5 class="mb-3 text-center">Game Request</h5>
+            <p id="requestMessage" class="text-center"></p>
+            <div class="progress mb-3">
+                <div id="timeProgress" class="progress-bar" role="progressbar" style="width: 100%"></div>
+            </div>
+            <p id="timeLeft" class="text-center mb-3"></p>
+            <div class="d-flex justify-content-center">
+                <button id="declineBtn" class="btn btn-outline-secondary me-2">Decline</button>
+                <button id="acceptBtn" class="btn btn-primary">Accept</button>
+            </div>
+        </div>
+    </div>
+
     <!-- COMPONENTS -->
 
     <!-- NavBar -->
