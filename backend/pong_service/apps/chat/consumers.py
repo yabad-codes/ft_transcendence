@@ -217,3 +217,26 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             # Handle exceptions, possibly logging or retrying
             print(f"Failed to send message via WebSocket: {e}")
+            
+    @staticmethod
+    def sendTournamentNotification(player):
+        channel_layer = get_channel_layer()
+
+        if not channel_layer:
+            # Log error or raise an exception as needed
+            print("Channel layer is not available.")
+            return
+
+        try:
+            async_to_sync(channel_layer.group_send)(
+                f'notification_{player.id}',
+                {
+                    'type': 'notification_message',
+                    'message': {
+                        'type': 'tournament',
+                    }
+                }
+            )
+        except Exception as e:
+            # Handle exceptions, possibly logging or retrying
+            print(f"Failed to send message via WebSocket: {e}")

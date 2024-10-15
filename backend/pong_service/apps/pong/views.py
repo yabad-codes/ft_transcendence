@@ -8,6 +8,7 @@ from pong_service.apps.authentication.models import Player
 from django.shortcuts import get_object_or_404
 from django.conf import settings
 from pong_service.apps.chat.consumers import NotificationConsumer
+from pong_service.apps.pong.models import Tournament
 
 import logging
 
@@ -221,3 +222,40 @@ class PlayerGamesView(APIView):
 
         response_data = {"matches": games_data}
         return Response(response_data, status=status.HTTP_200_OK)
+
+class TournamentCreateView(APIView):
+    permission_classes = (IsAuthenticated,)
+    
+    def post(self, request):
+        player = request.user
+        player2_username = request.data.get('player2')
+        player3_username = request.data.get('player3')
+        player4_username = request.data.get('player4')
+
+        if not player.username or not player2_username or not player3_username or not player4_username:
+            return Response({
+                'status': 'error',
+                'message': 'Please provide all 4 players'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        player2 = get_object_or_404(Player, username=player2_username)
+        player3 = get_object_or_404(Player, username=player3_username)
+        player4 = get_object_or_404(Player, username=player4_username)
+
+        # Create a new tournament
+        Tournament.objects.create(
+            player1=player,
+            player2=player2,
+            player3=player3,
+            player4=player4,
+        )
+        
+        # Notify all players
+        NotificationConsumer.sendTournamentNotification(player2)
+        NotificationConsumer.sendTournamentNotification(player3)
+        NotificationConsumer.sendTournamentNotification(player4)
+        
+        return Response({
+            'status': 'success',
+            'message': 'Tournament created'
+        }, status=status.HTTP_201_CREATED)
