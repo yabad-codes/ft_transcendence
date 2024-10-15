@@ -1,4 +1,5 @@
 import { GameRequestPopup } from "../utils/PlayerGameRequest.js";
+import { displayRequestStatus } from "./errorManagement.js";
 
 // Handle websocket connection to notification server
 export function connectToNotificationServer() {
@@ -31,6 +32,10 @@ export function connectToNotificationServer() {
 
       // Redirect to game screen
       if (data.type === "game_request_response") {
+        if (data.game_id === null) {
+          displayRequestStatus("error", "Game request declined successfully");
+          return;
+        }
         const gameScreen = document.createElement("game-screen");
         gameScreen.gameId = data.game_id;
         document.body.innerHTML = "";

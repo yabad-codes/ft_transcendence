@@ -151,6 +151,33 @@ class AcceptGameRequestView(APIView):
             'game_id': str(game.id)
         }, status=status.HTTP_200_OK)
 
+class RejectGameRequestView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        player = request.user
+        request_id = request.data.get('request_id')
+
+        if not request_id:
+            return Response({
+                'status': 'error',
+                'message': 'Please provide a request_id'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        game_request = get_object_or_404(
+            GameRequest, id=request_id, opponent=player, status=GameRequest.Status.PENDING)
+
+        # Update the game request status
+        game_request.status = GameRequest.Status.REJECTED
+        game_request.save()
+
+        # Send a notification to the requester
+        NotificationConsumer.sendGameRequestResponseNotification(game_request.requester.id, None)
+
+        return Response({
+            'status': 'success',
+            'message': 'Game request rejected'
+        }, status=status.HTTP_200_OK)
 
 class PlayerGamesView(APIView):
     permission_classes = (IsAuthenticated,)

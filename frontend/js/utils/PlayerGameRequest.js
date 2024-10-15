@@ -67,6 +67,7 @@ export const GameRequestPopup = (function() {
     }
 
     function onDecline() {
+        app.api.post('/api/play/reject-game-request/', {request_id: currentRequestData.requestId});
         hidePopup();
     }
 
