@@ -1,27 +1,40 @@
 // TournamentPage.js
 import BaseHTMLElement from "./BaseHTMLElement.js";
+import { displayRequestStatus } from "../utils/errorManagement.js";
 
 export class TournamentPage extends BaseHTMLElement {
     constructor() {
         super("tournamentpage");
-        this.friends = [
-            { id: 1, name: "Alice Johnson", avatar: "https://robohash.org/aelmaar.jpg" },
-            { id: 2, name: "Bob Smith", avatar: "https://robohash.org/aelmaar.jpg" },
-            { id: 3, name: "Charlie Brown", avatar: "https://robohash.org/aelmaar.jpg" },
-            { id: 4, name: "David Lee", avatar: "https://robohash.org/aelmaar.jpg" },
-            { id: 5, name: "Eve Taylor", avatar: "https://robohash.org/aelmaar.jpg" },
-            { id: 6, name: "Frank Miller", avatar: "https://robohash.org/aelmaar.jpg" },
-        ];
+        // this.friends = [
+        //     { id: 1, name: "Alice Johnson", avatar: "https://robohash.org/aelmaar.jpg" },
+        //     { id: 2, name: "Bob Smith", avatar: "https://robohash.org/aelmaar.jpg" },
+        //     { id: 3, name: "Charlie Brown", avatar: "https://robohash.org/aelmaar.jpg" },
+        //     { id: 4, name: "David Lee", avatar: "https://robohash.org/aelmaar.jpg" },
+        //     { id: 5, name: "Eve Taylor", avatar: "https://robohash.org/aelmaar.jpg" },
+        //     { id: 6, name: "Frank Miller", avatar: "https://robohash.org/aelmaar.jpg" },
+        // ];
     }
 
     connectedCallback() {
         super.connectedCallback();
-        this.render();
+        // this.render();
+        this.getPlayers();
         this.attachEventListeners();
     }
 
+    getPlayers () {
+        app.api.get("/api/players/online").then((response) => {
+            if (response.status >= 400) {
+                displayRequestStatus("error", response.data.message);
+                return;
+            }
+            this.players = response.data;
+            this.render();
+        });
+    }
+
     render() {
-        this.renderFriendsList(this.friends);
+        this.renderFriendsList(this.players);
     }
 
     attachEventListeners() {
@@ -30,13 +43,13 @@ export class TournamentPage extends BaseHTMLElement {
         this.querySelector('#startTournament').addEventListener('click', this.startTournament.bind(this));
     }
 
-    renderFriendsList(friendsToRender) {
+    renderFriendsList(playersToRender) {
         const friendsList = this.querySelector('#friendsList');
-        friendsList.innerHTML = friendsToRender.map(friend => `
+        friendsList.innerHTML = playersToRender.map(player => `
             <div class="friend-item">
-                <input type="checkbox" id="friend${friend.id}" class="friend-checkbox">
-                <img src="${friend.avatar}" alt="${friend.name}" class="avatar">
-                <label for="friend${friend.id}">${friend.name}</label>
+                <input type="checkbox" username="${player.username}" class="friend-checkbox">
+                <img src="${player.avatar_url}" alt="${player.username}" class="avatar_69">
+                <label for="${player.username}">${player.first_name} ${player.last_name}</label>
             </div>
         `).join('');
         this.updateStartTournamentButton();
@@ -44,13 +57,14 @@ export class TournamentPage extends BaseHTMLElement {
 
     handleSearch(e) {
         const searchTerm = e.target.value.toLowerCase();
-        const filteredFriends = this.friends.filter(friend => friend.name.toLowerCase().includes(searchTerm));
+        // don't forget to handle whitespaces
+        const filteredFriends = this.players.filter(player => player.first_name.toLowerCase().includes(searchTerm) || player.last_name.toLowerCase().includes(searchTerm));
         this.renderFriendsList(filteredFriends);
     }
 
     updateStartTournamentButton() {
         const selectedFriends = this.querySelectorAll('.friend-checkbox:checked');
-        this.querySelector('#startTournament').disabled = selectedFriends.length !== 4;
+        this.querySelector('#startTournament').disabled = selectedFriends.length !== 3;
     }
 
     startTournament() {
@@ -59,17 +73,35 @@ export class TournamentPage extends BaseHTMLElement {
         this.querySelector('#startTournament').style.display = 'none';
         this.querySelector('#progressBarContainer').style.display = 'block';
 
-        let progress = 0;
-        const progressBar = this.querySelector('#progressBar');
-        const interval = setInterval(() => {
-            progress += 100 / 15;
-            progressBar.style.width = `${progress}%`;
-            if (progress >= 100) {
-                clearInterval(interval);
-                alert("Tournament is starting!");
-                // Here you would launch the game
+        // make an api call to start the tournament by sending the selected friends as player2, player3 and player4
+        const checkedBoxes = Array.from(this.querySelectorAll('.friend-checkbox:checked'));
+        // if (checkedBoxes.length !== 3) {
+        //     displayRequestStatus("error", "You must select exactly 3 players to start a tournament.");
+        //     return;
+        // }
+        const message = {
+            player2_username: checkedBoxes[0].getAttribute('username').slice(6),
+            player3_username: checkedBoxes[1].getAttribute('username').slice(6),
+            player4_username: checkedBoxes[2].getAttribute('username').slice(6),
+        };
+        app.api.post("/api/create-tournament/", message).then((response) => {
+            if (response.status >= 400) {
+                displayRequestStatus("error", response.data.message);
+                return;
             }
-        }, 1000);
+            displayRequestStatus("success", "Tournament created successfully!");
+            let progress = 0;
+            const progressBar = this.querySelector('#progressBar');
+            const interval = setInterval(() => {
+                progress += 100 / 15;
+                progressBar.style.width = `${progress}%`;
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    alert("Tournament is starting!");
+                    // Here you would launch the game
+                }
+            }, 1000);
+        });
     }
 }
 

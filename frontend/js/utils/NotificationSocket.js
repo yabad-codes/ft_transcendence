@@ -41,6 +41,10 @@ export function connectToNotificationServer() {
         document.body.innerHTML = "";
         document.body.appendChild(gameScreen);
       }
+
+      if (data.type === "tournament_request") {
+        displayRequestStatus("success", f`${data.message} from ${data.requester}!`);
+      }
     };
 
     wss.onclose = function () {

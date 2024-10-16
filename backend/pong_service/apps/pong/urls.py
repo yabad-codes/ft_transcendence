@@ -7,4 +7,5 @@ urlpatterns = [
     path('play/accept-game-request/', views.AcceptGameRequestView.as_view(), name='accept_game_request'),
     path('play/reject-game-request/', views.RejectGameRequestView.as_view(), name='reject_game_request'),
     path('history/matches/<str:username>/', views.PlayerGamesView.as_view(), name='player_matches'),
+    path('create-tournament/', views.TournamentCreateView.as_view(), name='create_tournament'),
 ]

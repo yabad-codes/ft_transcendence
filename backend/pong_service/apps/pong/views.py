@@ -232,7 +232,7 @@ class TournamentCreateView(APIView):
         player3_username = request.data.get('player3')
         player4_username = request.data.get('player4')
 
-        if not player.username or not player2_username or not player3_username or not player4_username:
+        if not player2_username or not player3_username or not player4_username:
             return Response({
                 'status': 'error',
                 'message': 'Please provide all 4 players'
@@ -251,9 +251,9 @@ class TournamentCreateView(APIView):
         )
         
         # Notify all players
-        NotificationConsumer.sendTournamentNotification(player2)
-        NotificationConsumer.sendTournamentNotification(player3)
-        NotificationConsumer.sendTournamentNotification(player4)
+        NotificationConsumer.sendTournamentNotification(player.username ,player2)
+        NotificationConsumer.sendTournamentNotification(player.username ,player3)
+        NotificationConsumer.sendTournamentNotification(player.username ,player4)
         
         return Response({
             'status': 'success',

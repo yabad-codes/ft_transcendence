@@ -219,7 +219,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             print(f"Failed to send message via WebSocket: {e}")
             
     @staticmethod
-    def sendTournamentNotification(player):
+    def sendTournamentNotification(requester_username ,player):
         channel_layer = get_channel_layer()
 
         if not channel_layer:
@@ -233,7 +233,9 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                 {
                     'type': 'notification_message',
                     'message': {
-                        'type': 'tournament',
+                        'type': 'tournament_request',
+                        'message': 'You have been invited to a tournament',
+                        'requester': requester_username
                     }
                 }
             )
