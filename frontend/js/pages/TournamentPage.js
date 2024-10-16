@@ -68,27 +68,24 @@ export class TournamentPage extends BaseHTMLElement {
     }
 
     startTournament() {
-        this.querySelector('#friendsList').style.display = 'none';
-        this.querySelector('#searchBar').style.display = 'none';
-        this.querySelector('#startTournament').style.display = 'none';
-        this.querySelector('#progressBarContainer').style.display = 'block';
-
         // make an api call to start the tournament by sending the selected friends as player2, player3 and player4
         const checkedBoxes = Array.from(this.querySelectorAll('.friend-checkbox:checked'));
-        // if (checkedBoxes.length !== 3) {
-        //     displayRequestStatus("error", "You must select exactly 3 players to start a tournament.");
-        //     return;
-        // }
         const message = {
-            player2_username: checkedBoxes[0].getAttribute('username').slice(6),
-            player3_username: checkedBoxes[1].getAttribute('username').slice(6),
-            player4_username: checkedBoxes[2].getAttribute('username').slice(6),
+            player2_username: checkedBoxes[0].getAttribute('username'),
+            player3_username: checkedBoxes[1].getAttribute('username'),
+            player4_username: checkedBoxes[2].getAttribute('username'),
         };
+        console.log(message);
+        
         app.api.post("/api/create-tournament/", message).then((response) => {
             if (response.status >= 400) {
                 displayRequestStatus("error", response.data.message);
                 return;
             }
+            this.querySelector('#friendsList').style.display = 'none';
+            this.querySelector('#searchBar').style.display = 'none';
+            this.querySelector('#startTournament').style.display = 'none';
+            this.querySelector('#progressBarContainer').style.display = 'block';
             displayRequestStatus("success", "Tournament created successfully!");
             let progress = 0;
             const progressBar = this.querySelector('#progressBar');

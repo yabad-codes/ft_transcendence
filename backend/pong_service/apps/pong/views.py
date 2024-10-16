@@ -228,9 +228,9 @@ class TournamentCreateView(APIView):
     
     def post(self, request):
         player = request.user
-        player2_username = request.data.get('player2')
-        player3_username = request.data.get('player3')
-        player4_username = request.data.get('player4')
+        player2_username = request.data.get('player2_username')
+        player3_username = request.data.get('player3_username')
+        player4_username = request.data.get('player4_username')
 
         if not player2_username or not player3_username or not player4_username:
             return Response({

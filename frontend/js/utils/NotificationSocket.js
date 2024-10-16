@@ -43,7 +43,7 @@ export function connectToNotificationServer() {
       }
 
       if (data.type === "tournament_request") {
-        displayRequestStatus("success", f`${data.message} from ${data.requester}!`);
+        displayRequestStatus("success", `${data.message} from ${data.requester}!`);
       }
     };
 
