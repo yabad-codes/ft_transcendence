@@ -88,7 +88,6 @@ export class TwoFactorAuthManager {
         } else if (this.tfa) {
             await api.request('disable-2fa/', 'POST');
 			this.messageHandler.showSuccess('Two-factor authentication disabled successfully.');
-			setTimeout(() => window.location.reload(), 2000);
         }
     }
   
