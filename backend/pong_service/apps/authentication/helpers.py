@@ -61,6 +61,7 @@ def create_player(validated_data):
 		api_user_id=validated_data.get('api_user_id', None),
 		first_name=validated_data['first_name'],
 		last_name=validated_data['last_name'],
+		tournament_name=validated_data['tournament_name'],
 		password=validated_data['password'],
 		avatar_url=validated_data.get('avatar_url', None)
 	)

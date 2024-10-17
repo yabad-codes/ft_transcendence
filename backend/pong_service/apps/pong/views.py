@@ -255,7 +255,36 @@ class TournamentCreateView(APIView):
         NotificationConsumer.sendTournamentNotification(player.username ,player3)
         NotificationConsumer.sendTournamentNotification(player.username ,player4)
         
+        players = self.construct_players(player, player2, player3, player4)
+        logger.info(f'Tournament created with players: {players}')
         return Response({
             'status': 'success',
-            'message': 'Tournament created'
+            'message': 'Tournament created',
+            'players': players
         }, status=status.HTTP_201_CREATED)
+    
+    def construct_players(self, player1, player2, player3, player4):
+        # Create a dictionary containing the players' data
+        players_data = {
+            'player1': {
+                'username': player1.username,
+                'tournament_name': player1.tournament_name,
+                'avatar': player1.avatar_url,
+            },
+            'player2': {
+                'username': player2.username,
+                'tournament_name': player2.tournament_name,
+                'avatar': player2.avatar_url,
+            },
+            'player3': {
+                'username': player3.username,
+                'tournament_name': player3.tournament_name,
+                'avatar': player3.avatar_url,
+            },
+            'player4': {
+                'username': player4.username,
+                'tournament_name': player4.tournament_name,
+                'avatar': player4.avatar_url,
+            }
+        }
+        return players_data

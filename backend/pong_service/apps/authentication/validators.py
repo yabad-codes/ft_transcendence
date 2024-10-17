@@ -11,6 +11,7 @@ USERNAME_REGEX = r'^(?=[a-zA-Z0-9]*-?[a-zA-Z0-9]*$)[a-zA-Z][a-zA-Z0-9\-]{2,19}$'
 NAME_REGEX = r'^[a-zA-Z]+([ -][a-zA-Z]+)*$'
 
 USERNAME_ERROR = "Username: 3-20 chars, 1+ letter, no spaces, only letters, numbers, or _."
+TOURNAMENT_NAME_ERROR = "Tournament Name: 3-20 chars, 1+ letter, no spaces, only letters, numbers, or _."
 NAME_ERROR = "First and last name must contain only letters, or a single space or hyphen followed by a letter."
 
 INCLUDE_USERNAME_AND_PASSWORD = "Must include 'username' and 'password'."
@@ -92,7 +93,7 @@ def tournament_name_validator(nickname):
         raise ValidationError('Nickname already exists.')
     regex_validator = RegexValidator(
         regex=USERNAME_REGEX,
-        message=USERNAME_ERROR
+        message=TOURNAMENT_NAME_ERROR
     )
     regex_validator(nickname)
 
