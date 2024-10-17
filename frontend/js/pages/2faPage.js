@@ -161,6 +161,7 @@ export class TwoFactorAuthPage extends BaseHTMLElement {
 
         const success = await this.verifyCode(code);
         if (success) {
+			app.isLoggedIn = true;
             this.messageHandler.showSuccess('Two-factor authentication successful. Redirecting...');
             setTimeout(() => Router.go('/'), 2000);
         } else {

@@ -41,10 +41,29 @@ const Router = {
     } else if (router.includes("/oauth-callback")) {
       Router.handleOAuthCallback();
     } else if (router === "/2fa") {
-      Router.loadMainHomeContent("twofa-page");
+		Router.checkIsSessionValid();
     } else {
       Router.loadNotFoundPage("not-found-page");
     }
+  },
+
+  checkIsSessionValid: () => {
+	
+	app.api.get("/api/session-check/").then((response) => {
+		console.log(response.data.success);
+		if (response.data.success === false) {
+			app.router.go("/not-found");
+		} else {
+			Router.loadTwoFactorPage();
+		}
+	});
+
+  },
+
+  loadTwoFactorPage: () => {
+	// Delete home, login, sign up or 404 pages if they exist then load the 2fa page
+	Router.removeOldPages();
+	Router.insertPage("twofa-page");
   },
 
   checkIsLoggedIn: async () => {
@@ -129,6 +148,7 @@ const Router = {
       "signup-page",
       "register-page",
       "not-found-page",
+	  "twofa-page",
     ];
 
     oldPages.forEach((page) => {
