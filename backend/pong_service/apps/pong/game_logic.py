@@ -26,7 +26,7 @@ class Ball:
 
 
 class PongGame:
-    def __init__(self, player1, player2, canvas_width: int = 800, canvas_height: int = 600):
+    def __init__(self, player1, player2, canvas_width: int = 1000, canvas_height: int = 600):
         self.canvas_width = canvas_width
         self.canvas_height = canvas_height
         self.grid = 15

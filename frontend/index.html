@@ -258,27 +258,27 @@
 
     <!-- Game Screen Template -->
     <template id="gamescreen">
-      <div class="game-screen">
-        <div id="gameId" class="game-id"></div>
-        <div class="players-info">
-          <div class="player">
-            <img
-              src="/api/avatar"
-              alt="Player 1"
-              class="player-avatar rounded-circle"
-            />
-            <span id="player1-score" class="player-score">0</span>
-          </div>
-          <div class="player">
-            <img
-              src="/api/avatar"
-              alt="Player 2"
-              class="player-avatar rounded-circle"
-            />
-            <span id="player2-score" class="player-score">0</span>
-          </div>
+      <div id="gameContainer">
+        <div id="gameInfo">
+            <h1>PONG game</h1>
         </div>
-        <canvas width="800" height="600" id="game"></canvas>
+        <div id="playerInfo">
+            <div class="player" id="leftPlayer">
+              <div>
+                <img src="" alt="Left Player Avatar">
+                <h3></h3>
+              </div>
+              <h3 class="score"></h3>
+            </div>
+            <div class="player" id="rightPlayer">
+              <div>
+                <img src="" alt="Right Player Avatar">
+                <h3></h3>
+              </div>
+              <h3 class="score"></h3>
+            </div>
+        </div>
+        <canvas width="1000" height="600" id="game"></canvas>
       </div>
     </template>
 
