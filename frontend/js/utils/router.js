@@ -32,6 +32,8 @@ const Router = {
       Router.loadMainHomeContent("chat-page");
     } else if (router === "/search" ){
       Router.loadMainHomeContent('search-page');
+    }else if (router === "/notifications" ){
+      Router.loadMainHomeContent('notification-page');
     } else if (router === "/leaderboard") {
       Router.loadMainHomeContent("leaderboard-page");
     } else if (router === "/settings") {

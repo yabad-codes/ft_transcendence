@@ -16,6 +16,19 @@
 
     <!-- NavBar -->
     <template id="navbar">
+      <style>
+        .notification-badge {
+          background-color: red;
+          color: white;
+          padding: 2px 2px;
+          border-radius: 50%;
+          font-size: 12px;
+          position: relative;
+          top: -10px;
+          right: -10px;
+        }
+
+      </style>
       <nav
         class="vertical-nav d-flex flex-column align-items-center justify-content-between p-2"
       >
@@ -37,6 +50,20 @@
             />
           </svg>
 
+        </a>
+        <a href="/notifications" class="nav-links">
+          <svg
+            width="38"
+            height="38"
+            viewBox="0 0 38 38"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M19 36c1.885 0 3.125-1.24 3.125-3.125h-6.25C15.875 34.76 17.115 36 19 36zm9.688-9.688V18.812c0-4.615-2.479-8.49-6.563-9.656v-1.469c0-.99-.802-1.875-1.875-1.875s-1.875.885-1.875 1.875v1.469c-4.084 1.167-6.563 5.042-6.563 9.656v7.5l-2.812 2.812v.938h22.5v-.938l-2.812-2.812z"
+              class="default-icon-color"
+            />
+          </svg>
         </a>
           <a href="/profile" class="nav-links">
             <svg
@@ -169,6 +196,8 @@
             />
           </svg>
         </button>
+
+
         <!-- </div> -->
       </nav>
     </template>
@@ -925,8 +954,10 @@
               </div>
               <div class="profile-user-name">Jhon Doe</div>
               <div class="d-flex align-items-center">
-                <button type="button" class="btn btn-primary mt-2 me-2  first-btn">Edit profile</button>
-                <button type="button" class="btn btn-primary mt-2 me-2  d-none second-btn">add friend</button>
+                <button type="button" class="btn btn-primary mt-2 me-2  d-none first-btn">Edit profile</button>
+                <button type="button" class="btn btn-primary mt-2 me-2  d-none second-btn">Add</button>
+                <button type="button" class="btn btn-primary mt-2 me-2  d-none third-btn">Block</button>
+                <button type="button" class="btn btn-primary mt-2 me-2  d-none fourth-btn">Remove</button>
               </div>
             </div>
           </div>
@@ -1011,18 +1042,7 @@
     </template>
 
     <!-- search Page -->
-    <template id="searchpage">
-      <div class="input-group rounded">
-        <input type="search" class="form-control rounded" placeholder="Search" aria-label="Search" aria-describedby="search-addon" />
-        <span class="input-group-text border-0" id="search-addon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-binoculars-fill" viewBox="0 0 16 16">
-            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"
-            class="default-icon-color"
-            />
-          </svg>
-        </span>
-      </div>
-    </template>
+
     <template id="search-page">
       <div id="search-container">
           <input type="text" id="search-input" placeholder="Enter search term...">
@@ -1033,6 +1053,9 @@
       <div id="search-results"></div>
     </template>
     <!-- Add other templates -->
+    <template id="notification-page">
+      
+    </template>
     
     <script src="/bootstrap-5.3.3-dist/js/bootstrap.min.js"></script>
   </body>

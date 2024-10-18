@@ -4,7 +4,7 @@ import { displayRequestStatus } from "../utils/errorManagement.js";
 
 export class SearchPage extends BaseHTMLElement {
   constructor() {
-    super("searchpage");
+    super("search-page");
     const { state, registerUpdate } = createState({
       searchResults: null,
       allPlayers: [],

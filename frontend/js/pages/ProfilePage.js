@@ -22,7 +22,7 @@ export class ProfilePage extends BaseHTMLElement {
         super.connectedCallback();
         this.determineProfileType();
         // this.changeProfileView();
-
+ 
         // this.updateMatchesListView.bind(this);
         // Add event listener for URL changes
         window.addEventListener('popstate', this.handleURLChange.bind(this));
@@ -133,20 +133,57 @@ export class ProfilePage extends BaseHTMLElement {
             statusIndicator.classList.add("offline");
             statusIndicator.classList.remove("online");
         }
-        console.log("Status indicator:", statusIndicator);
-        console.log("User online status:", user.online);
+        
 
 
 
         // Show/hide friend management buttons based on profile type
         if (this.state.isPersonalProfile) {
+            this.querySelector(".first-btn").classList.remove("d-none"); 
             this.querySelector(".first-btn").addEventListener("click", () => {
-                app.router.go('/edit-profile');
+                app.router.go('/settings');
             });
         }
         else {
-            this.querySelector(".first-btn").classList.add("d-none");
-            // check if friend or not
+            // Handle non-personal profile view
+            const addBtn = this.querySelector(".second-btn");
+            const blockBtn = this.querySelector(".third-btn");
+            const removeBtn = this.querySelector(".fourth-btn");
+
+            blockBtn.setAttribute('data-friendship-username', user.username);
+            // removeBtn.setAttribute('data-friendship-id', user.friendshipID);
+
+
+         
+            this.getFriendshipID(user.username).then(friendshipID => {
+                console.log("ID is :",friendshipID);
+                if (friendshipID) {
+                    // Proceed with removing the friend
+                    removeBtn.setAttribute('data-friendship-id',friendshipID);
+                } else {
+                    console.log("No friendship ID found for this user.");
+                }
+            });
+            // removeBtn.addEventListener("click", this.handleRemoveFriend.bind(this));
+            // blockBtn.addEventListener("click", this.handleBlockFriend.bind(this));
+    
+            if (user.isFriend) {
+                // User is a friend: show remove and block buttons
+                removeBtn.classList.remove("d-none");
+                blockBtn.classList.remove("d-none");
+                addBtn.classList.add("d-none");
+
+                removeBtn.addEventListener("click", this.handleRemoveFriend.bind(this));
+                blockBtn.addEventListener("click", this.handleBlockFriend.bind(this));
+            } else {
+                // User is not a friend: show add and block buttons
+                addBtn.classList.remove("d-none");
+                blockBtn.classList.remove("d-none");
+                removeBtn.classList.add("d-none");
+    
+                addBtn.addEventListener("click", this.handleAddFriend.bind(this));
+                blockBtn.addEventListener("click", this.handleBlockFriend.bind(this));
+            }
         }
         // add the logic to add friend and remove or block it 
         // ...
@@ -170,7 +207,7 @@ export class ProfilePage extends BaseHTMLElement {
                 <span class="col friend-name" style="cursor: pointer;">${friendship.username}</span>
             `;
     
-            // Add click event to navigate to friend's profile
+          
             const friendName = friendItem.querySelector('.friend-name');
             friendName.addEventListener('click', () => {
                 app.router.go(`/profile/${friendship.username}`);
@@ -233,6 +270,7 @@ export class ProfilePage extends BaseHTMLElement {
             .then(() => {
                 this.state.friends = this.state.friends.filter(friend => friend.username !== username);
                 event.target.parentNode.remove();
+                app.router.go(`/profile`);
             })
             .catch((error) => {
                 displayRequestStatus("error", "Failed to block friend");
@@ -249,6 +287,53 @@ export class ProfilePage extends BaseHTMLElement {
             .catch((error) => {
                 displayRequestStatus("error", "Failed to remove friend");
             });
+    }
+    handleAddFriend() {
+        const targetUsername = this.state.profile.username;
+        console.log('Attempting to send friend request to:', targetUsername);
+        
+        const requestData = {
+            player2_username: targetUsername
+        };
+        
+        try {app.api.post(`/api/friendships/`, requestData)
+            .then((response) => {
+                // Handle the response based on the status code
+                if (response.status === 200) {
+                    displayRequestStatus("success", "Friend request sent successfully");
+                    this.state.profile.isFriend = true; // Mark as a friend after success
+                    this.updateUserInfoView();
+                }
+                else if(response.status === 400){
+                    displayRequestStatus("error", "A pending friendship request already exists.");
+                    this.updateUserInfoView();
+                }
+                else if(response.status === 403){
+                    displayRequestStatus("error", "You are already friends.");
+                    this.updateUserInfoView();
+                }
+
+            })
+        } catch (error) {
+            let errorMessage = "Failed to send friend request";
+            displayRequestStatus("error", errorMessage);
+
+        }
+    }
+
+
+    getFriendshipID(username) {
+        return app.api.get("/api/friendships/").then((response) => {
+            if (response.status >= 400) {
+                displayRequestStatus("error", response.data);
+                return null;
+            }
+            this.state.friends = response.data.filter(friend => friend.friendshipAccepted);
+            const friendship = this.state.friends.find(friend => 
+                (friend.player1.username === username || friend.player2.username === username)
+            );
+            return friendship ? friendship.friendshipID : null;
+        });
     }
 }
 
