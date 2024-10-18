@@ -131,6 +131,7 @@ const Router = {
       "signup-page",
       "register-page",
       "not-found-page",
+      "tournament-screen",
     ];
 
     oldPages.forEach((page) => {

@@ -1,4 +1,5 @@
 import json
+import logging
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync, sync_to_async
@@ -6,6 +7,8 @@ from pong_service.helpers import get_user_from_access_token
 from django.db.models import Q
 from django.conf import settings
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -92,7 +95,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         from pong_service.apps.authentication.models import Player
-        from pong_service.apps.pong.models import GameRequest
+        from pong_service.apps.pong.models import GameRequest, Tournament
 
         if self.user is None:
             return None
@@ -101,6 +104,9 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         game_request = await sync_to_async(GameRequest.objects.filter)(Q(requester=self.user) | Q(opponent=self.user))
         if await sync_to_async(game_request.exists)():
             await sync_to_async(game_request.delete)()
+
+         # Fetch the tournament queryset asynchronously
+        await sync_to_async(Tournament.objects.filter(player1=self.user, status=Tournament.Status.STARTED).delete)()
 
         player = await sync_to_async(Player.objects.get)(id=self.user.id)
         player.online = False

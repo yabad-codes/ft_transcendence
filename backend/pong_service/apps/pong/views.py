@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from django.conf import settings
 from pong_service.apps.chat.consumers import NotificationConsumer
 from pong_service.apps.pong.models import Tournament
+import django.utils.timezone as timezone
 
 import logging
 
@@ -243,7 +244,7 @@ class TournamentCreateView(APIView):
         player4 = get_object_or_404(Player, username=player4_username)
 
         # Create a new tournament
-        Tournament.objects.create(
+        tournament = Tournament.objects.create(
             player1=player,
             player2=player2,
             player3=player3,
@@ -256,10 +257,10 @@ class TournamentCreateView(APIView):
         NotificationConsumer.sendTournamentNotification(player.username ,player4)
         
         players = self.construct_players(player, player2, player3, player4)
-        logger.info(f'Tournament created with players: {players}')
         return Response({
             'status': 'success',
             'message': 'Tournament created',
+            'tournament_id': str(tournament.id),
             'players': players
         }, status=status.HTTP_201_CREATED)
     
@@ -288,3 +289,70 @@ class TournamentCreateView(APIView):
             }
         }
         return players_data
+    
+class TournamentEndView(APIView):
+    permission_classes = (IsAuthenticated,)
+    
+    def post(self, request):
+        tournament_data = request.data
+        logger.info(f'Tournament end data received: {tournament_data}')
+        
+        try:
+            tournament_id = tournament_data['tournament_id']
+            results = tournament_data['results']
+        except KeyError as e:
+            return Response({
+                'status': 'error',
+                'message': f'Missing required field: {str(e)}'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        tournament = get_object_or_404(Tournament, id=tournament_id)
+        
+        if tournament.status == Tournament.Status.FINISHED:
+            return Response({
+                'status': 'error',
+                'message': 'This tournament has already been finished.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            self.process_tournament_results(tournament, results)
+        except Exception as e:
+            logger.error(f'Error processing tournament results: {str(e)}')
+            return Response({
+                'status': 'error',
+                'message': 'An error occurred while processing the tournament results.'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        return Response({
+            'status': 'success',
+            'message': 'Tournament ended successfully.',
+            'winner': tournament.winner.username,
+            'tournament_id': tournament.id
+        }, status=status.HTTP_200_OK)
+    
+    def process_tournament_results(self, tournament, results):
+        final_match = results[-1]
+        winner_username = final_match['winner']['username']
+        winner = get_object_or_404(Player, username=winner_username)
+        
+        tournament.winner = winner
+        tournament.status = Tournament.Status.FINISHED
+        tournament.save()
+        
+        for match in results:
+            self.create_pong_game(tournament, match)
+    
+    def create_pong_game(self, tournament, match):
+        player1 = get_object_or_404(Player, username=match['players'][0]['username'])
+        player2 = get_object_or_404(Player, username=match['players'][1]['username'])
+        winner = get_object_or_404(Player, username=match['winner']['username'])
+        
+        PongGame.objects.create(
+            player1=player1,
+            player2=player2,
+            winner=winner,
+            player1_score=match['score'][0],
+            player2_score=match['score'][1],
+            status=PongGame.Status.FINISHED,
+            created_at=timezone.now()
+        )

@@ -228,6 +228,34 @@
     </div>
     </template>
 
+    <!-- Tournament Screen Template -->
+    <template id="tournamentscreen">
+      <div id="gameContainer">
+        <div id="tournamentInfo">
+            <h1>PONG Tournament</h1>
+            <h2 id="currentRound"></h2>
+            <h3 id="currentMatch"></h3>
+        </div>
+        <div id="playerInfo">
+            <div class="player" id="leftPlayer">
+              <div>
+                <img src="" alt="Left Player Avatar">
+                <h3></h3>
+              </div>
+              <h3 class="score"></h3>
+            </div>
+            <div class="player" id="rightPlayer">
+              <div>
+                <img src="" alt="Right Player Avatar">
+                <h3></h3>
+              </div>
+              <h3 class="score"></h3>
+            </div>
+        </div>
+        <canvas width="1000" height="600" id="game"></canvas>
+      </div>
+    </template>
+
     <!-- Game Screen Template -->
     <template id="gamescreen">
       <div class="game-screen">

@@ -8,4 +8,5 @@ urlpatterns = [
     path('play/reject-game-request/', views.RejectGameRequestView.as_view(), name='reject_game_request'),
     path('history/matches/<str:username>/', views.PlayerGamesView.as_view(), name='player_matches'),
     path('create-tournament/', views.TournamentCreateView.as_view(), name='create_tournament'),
+    path('end-tournament/', views.TournamentEndView.as_view(), name='end_tournament'),
 ]
