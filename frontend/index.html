@@ -203,9 +203,56 @@
           <button class="btn secondary-btn" id="cancelMatchmakingBtn" disabled>
             Cancel Matchmaking
           </button>
+          <button class="btn primary-btn" id="createTournament" disabled>
+            Create Tournament
+          </button>
           <button class="btn tournament-btn">Join Tournament</button>
         </div>
         <div id="matchmakingStatus" class="status mt-3"></div>
+      </div>
+    </template>
+
+    <!-- Tournament template -->
+    <template id="tournamentpage">
+      <div class="container">
+        <h1>Create Pong Tournament</h1>
+        <input type="text" id="searchBar" placeholder="Search players...">
+        <div id="friendsList"></div>
+        <button id="startTournament" disabled>Start Tournament</button>
+        <div id="progressBarContainer">
+            <h4 style="text-align: center; margin-bottom: 10px;">Preparing Tournament...</h4>
+            <div class="progress">
+                <div id="progressBar"></div>
+            </div>
+        </div>
+    </div>
+    </template>
+
+    <!-- Tournament Screen Template -->
+    <template id="tournamentscreen">
+      <div id="gameContainer">
+        <div id="tournamentInfo">
+            <h1>PONG Tournament</h1>
+            <h2 id="currentRound"></h2>
+            <h3 id="currentMatch"></h3>
+        </div>
+        <div id="playerInfo">
+            <div class="player" id="leftPlayer">
+              <div>
+                <img src="" alt="Left Player Avatar">
+                <h3></h3>
+              </div>
+              <h3 class="score"></h3>
+            </div>
+            <div class="player" id="rightPlayer">
+              <div>
+                <img src="" alt="Right Player Avatar">
+                <h3></h3>
+              </div>
+              <h3 class="score"></h3>
+            </div>
+        </div>
+        <canvas width="1000" height="600" id="game"></canvas>
       </div>
     </template>
 
