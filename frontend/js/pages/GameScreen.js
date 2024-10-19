@@ -6,13 +6,11 @@ export class GameScreen extends BaseHTMLElement {
     this.gameId = null;
     this.gameSocket = null;
     this.gameState = null;
-    this.playerRole = null;
-    this.playerUsername = null;
+    this.currentPlayer = null;
+    this.opponent = null;
     this.canvas = null;
     this.ctx = null;
     this.gameOver = false;
-    this.player1 = { username: "", avatar: "", score: 0 };
-    this.player2 = { username: "", avatar: "", score: 0 };
   }
 
   connectedCallback() {
@@ -28,10 +26,6 @@ export class GameScreen extends BaseHTMLElement {
             <img src="/api/placeholder/100/100" alt="Player 1" class="w-16 h-16 rounded-full mb-2">
             <h3 class="text-lg font-semibold"></h3>
             <div class="score text-3xl font-bold"></div>
-          </div>
-          <div class="text-center">
-            <div id="currentRound" class="text-xl font-semibold mb-2"></div>
-            <div id="currentMatch" class="text-lg"></div>
           </div>
           <div id="rightPlayer" class="flex flex-col items-center">
             <img src="/api/placeholder/100/100" alt="Player 2" class="w-16 h-16 rounded-full mb-2">
@@ -86,33 +80,10 @@ export class GameScreen extends BaseHTMLElement {
     };
 
     ws.onmessage = (e) => {
-      if (e.data instanceof Blob) {
-        e.data.arrayBuffer().then((buffer) => {
-          this.decodeGameState(buffer);
-          this.drawGame();
-        });
-      } else if (e.data instanceof ArrayBuffer) {
-        this.decodeGameState(e.data);
-        this.drawGame();
+      if (e.data instanceof Blob || e.data instanceof ArrayBuffer) {
+        this.handleBinaryMessage(e.data);
       } else {
-        try {
-          const jsonData = JSON.parse(e.data);
-          console.log(jsonData);
-          if (jsonData.status === "player-role") {
-            this.setPlayerRole(jsonData.role);
-            this.setPlayerUsername(jsonData.username);
-            console.log(`You are player ${jsonData.role}`);
-          } else if (jsonData.status === "game_over") {
-            this.handleGameOver(jsonData.winner);
-          } else if (jsonData.status === "game_start") {
-            console.log("Game is starting!");
-            this.gameOver = false;
-            this.gameOverOverlay.classList.add("hidden");
-            this.updateMatchInfo();
-          }
-        } catch (e) {
-          console.error("Unexpected message from game server:", e);
-        }
+        this.handleJsonMessage(e.data);
       }
     };
 
@@ -124,6 +95,73 @@ export class GameScreen extends BaseHTMLElement {
     };
 
     this.gameSocket = ws;
+  }
+
+  handleJsonMessage(data) {
+    try {
+      const jsonData = JSON.parse(data);
+      console.log(jsonData);
+      if (jsonData.status === "player_info") {
+        this.setPlayerInfo(jsonData.data);
+      } else if (jsonData.status === "game_start") {
+        console.log("Game is starting!");
+        this.gameOver = false;
+        this.gameOverOverlay.classList.add("hidden");
+        this.updateMatchInfo();
+      } else if (jsonData.status === "game_over") {
+        this.handleGameOver(jsonData.winner);
+      }
+    } catch (e) {
+      console.error("Unexpected message from game server:", e);
+    }
+  }
+
+  handleBinaryMessage(data) {
+    if (data instanceof Blob) {
+      data.arrayBuffer().then((buffer) => {
+        this.decodeGameState(buffer);
+        this.drawGame();
+      });
+    } else if (data instanceof ArrayBuffer) {
+      this.decodeGameState(data);
+      this.drawGame();
+    }
+  }
+
+  setPlayerInfo(data) {
+    this.currentPlayer = data.currentPlayer;
+    this.opponent = data.opponent;
+    this.updatePlayerInfo();
+  }
+
+  updatePlayerInfo() {
+    const leftPlayer = this.querySelector("#leftPlayer");
+    const rightPlayer = this.querySelector("#rightPlayer");
+
+    if (this.currentPlayer.role === "player1") {
+      leftPlayer.querySelector("h3").textContent = this.currentPlayer.username;
+      leftPlayer.querySelector("img").src = this.currentPlayer.avatar;
+      rightPlayer.querySelector("h3").textContent = this.opponent.username;
+      rightPlayer.querySelector("img").src = this.opponent.avatar;
+    } else {
+      leftPlayer.querySelector("h3").textContent = this.opponent.username;
+      leftPlayer.querySelector("img").src = this.opponent.avatar;
+      rightPlayer.querySelector("h3").textContent = this.currentPlayer.username;
+      rightPlayer.querySelector("img").src = this.currentPlayer.avatar;
+    }
+  }
+
+  updateScores() {
+    const leftPlayer = this.querySelector("#leftPlayer");
+    const rightPlayer = this.querySelector("#rightPlayer");
+
+    if (this.currentPlayer.role === "player1") {
+      leftPlayer.querySelector(".score").textContent = this.gameState.score1;
+      rightPlayer.querySelector(".score").textContent = this.gameState.score2;
+    } else {
+      leftPlayer.querySelector(".score").textContent = this.gameState.score2;
+      rightPlayer.querySelector(".score").textContent = this.gameState.score1;
+    }
   }
 
   handleGameOver(winner) {
@@ -163,10 +201,6 @@ export class GameScreen extends BaseHTMLElement {
     this.updateScores();
   }
 
-  setPlayerRole(role) {
-    this.playerRole = role;
-  }
-
   setPlayerUsername(username) {
     this.playerUsername = username;
     if (this.playerRole === "player1") {
@@ -175,22 +209,6 @@ export class GameScreen extends BaseHTMLElement {
       this.player2.username = username;
     }
     this.updatePlayerInfo();
-  }
-
-  updatePlayerInfo() {
-    const leftPlayer = this.querySelector("#leftPlayer");
-    const rightPlayer = this.querySelector("#rightPlayer");
-
-    leftPlayer.querySelector("h3").textContent = this.player1.username;
-    rightPlayer.querySelector("h3").textContent = this.player2.username;
-  }
-
-  updateScores() {
-    const leftPlayer = this.querySelector("#leftPlayer");
-    const rightPlayer = this.querySelector("#rightPlayer");
-
-    leftPlayer.querySelector(".score").textContent = this.gameState.score1;
-    rightPlayer.querySelector(".score").textContent = this.gameState.score2;
   }
 
   updateMatchInfo() {
