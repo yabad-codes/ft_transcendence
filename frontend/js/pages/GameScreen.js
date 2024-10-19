@@ -19,18 +19,18 @@ export class GameScreen extends BaseHTMLElement {
 
   render() {
     this.innerHTML = `
-      <div id="gameScreen" class="flex flex-col items-center justify-center h-screen bg-gray-100">
-        <div class="mb-4 text-2xl font-bold">Pong Game</div>
-        <div class="flex items-center justify-between w-full max-w-4xl mb-4">
-          <div id="leftPlayer" class="flex flex-col items-center">
-            <img src="/api/placeholder/100/100" alt="Player 1" class="w-16 h-16 rounded-full mb-2">
+      <div id="gameScreen" class="flex flex-col items-center justify-center h-screen bg-gray-100" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <div class="mb-4 text-2xl font-bold" style="font-size: 50px; font-weight: 700; text-transform: uppercase; margin-top: 25px;">Pong Game</div>
+        <div class="flex items-center justify-between w-full max-w-4xl mb-4" style="display: flex; justify-content: space-evenly; width: 80%; margin-top: 33px;">
+          <div id="leftPlayer" class="flex flex-col items-center" style="text-align: center;">
+            <img src="/api/placeholder/100/100" alt="Player 1" class="w-16 h-16 rounded-full mb-2" style="width: 100px; border-radius: 50%;">
             <h3 class="text-lg font-semibold"></h3>
-            <div class="score text-3xl font-bold"></div>
+            <div class="score text-3xl font-bold" style="font-size: 30px; padding-top: 5px; padding-bottom: 5px; font-weight: 700;"></div>
           </div>
-          <div id="rightPlayer" class="flex flex-col items-center">
-            <img src="/api/placeholder/100/100" alt="Player 2" class="w-16 h-16 rounded-full mb-2">
+          <div id="rightPlayer" class="flex flex-col items-center" style="text-align: center;">
+            <img src="/api/placeholder/100/100" alt="Player 2" class="w-16 h-16 rounded-full mb-2" style="width: 100px; border-radius: 50%;">
             <h3 class="text-lg font-semibold"></h3>
-            <div class="score text-3xl font-bold"></div>
+            <div class="score text-3xl font-bold" style="font-size: 30px; padding-top: 5px; padding-bottom: 5px; font-weight: 700;"></div>
           </div>
         </div>
         <canvas id="game" width="1000" height="600" class="border-4 border-gray-800"></canvas>

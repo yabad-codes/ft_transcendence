@@ -77,17 +77,17 @@ class PongConsumer(AsyncWebsocketConsumer):
 
     async def check_if_game_ready(self):
         is_ready = await self.get_game_ready_status()
+        player_info = await self.get_player_info()
         await self.send(text_data=json.dumps({
-            'status': 'player-role',
-            'role': self.player_role,
-            'username': self.player_username
+            'status': 'player_info',
+            'data': player_info
         }))
         if is_ready:
             await self.channel_layer.group_send(
                 self.room_name,
                 {
                     'type': 'game_start',
-                    'game_id': self.game_id
+                    'game_id': self.game_id,
                 }
             )
             await self.start()
@@ -129,6 +129,31 @@ class PongConsumer(AsyncWebsocketConsumer):
             'status': 'game_start',
             'game_id': event['game_id']
         }))
+
+    @database_sync_to_async
+    def get_player_info(self):
+        from pong_service.apps.pong.models import PongGame
+        from pong_service.apps.authentication.models import Player
+
+        game = PongGame.objects.get(id=self.game_id)
+        player1 = Player.objects.get(id=game.player1_id)
+        player2 = Player.objects.get(id=game.player2_id)
+
+        current_player = player1 if self.player == player1 else player2
+        opponent = player2 if self.player == player1 else player1
+
+        return {
+            "currentPlayer": {
+                "username": current_player.username,
+                "avatar": current_player.avatar_url,
+                "role": "player1" if current_player == player1 else "player2"
+            },
+            "opponent": {
+                "username": opponent.username,
+                "avatar": opponent.avatar_url,
+                "role": "player2" if current_player == player1 else "player1"
+            }
+        }
 
     @database_sync_to_async
     def get_game_ready_status(self):
