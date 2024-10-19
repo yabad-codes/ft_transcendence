@@ -109,11 +109,25 @@ export class GameScreen extends BaseHTMLElement {
         this.gameOverOverlay.classList.add("hidden");
         this.updateMatchInfo();
       } else if (jsonData.status === "game_over") {
-        this.handleGameOver(jsonData.winner);
+        this.handleGameOver(jsonData.winner, jsonData.reason);
       }
     } catch (e) {
       console.error("Unexpected message from game server:", e);
     }
+  }
+
+  handleGameOver(winner, reason) {
+    this.gameOver = true;
+    let message;
+    if (reason === "disconnection") {
+      message = winner ? `${winner} wins due to opponent disconnection!` : "Game over due to unexpected disconnection.";
+    } else {
+      message = winner ? `Game over! ${winner} wins!` : "Game over! It's a tie!";
+    }
+    this.gameOverMessage.textContent = message;
+    this.gameOverOverlay.classList.remove("hidden");
+    console.log(message);
+    this.gameSocket.close();
   }
 
   handleBinaryMessage(data) {
@@ -159,8 +173,8 @@ export class GameScreen extends BaseHTMLElement {
       leftPlayer.querySelector(".score").textContent = this.gameState.score1;
       rightPlayer.querySelector(".score").textContent = this.gameState.score2;
     } else {
-      leftPlayer.querySelector(".score").textContent = this.gameState.score2;
-      rightPlayer.querySelector(".score").textContent = this.gameState.score1;
+      leftPlayer.querySelector(".score").textContent = this.gameState.score1;
+      rightPlayer.querySelector(".score").textContent = this.gameState.score2;
     }
   }
 
@@ -179,9 +193,7 @@ export class GameScreen extends BaseHTMLElement {
   }
 
   handleUnexpectedDisconnection() {
-    this.gameOverMessage.textContent =
-      "Connection lost. The game ended unexpectedly.";
-    this.gameOverOverlay.classList.remove("hidden");
+    this.handleGameOver(null, "disconnection");
   }
 
   startNewGame() {

@@ -8,6 +8,7 @@ from pong_service.apps.pong.game_logic import PongGame
 from asgiref.sync import sync_to_async
 from channels.db import database_sync_to_async
 from jwt import decode as jwt_decode
+from django.db import transaction
 
 
 class PongConsumer(AsyncWebsocketConsumer):
@@ -42,7 +43,31 @@ class PongConsumer(AsyncWebsocketConsumer):
             return
 
         if self.game_id in self.games:
+            game = self.games[self.game_id]
+
+            # Check if the game has already ended
+            if game.get_winner() is not None:
+                # Game has already ended, so we don't need to do anything
+                return
+
+            disconnected_player = self.player.id
+            winner = game.get_winner(disconnected_player=disconnected_player)
+            winner_username = winner.username if winner else None
+
+            # Update game status and send game over message only for the first disconnection
+            await self.update_game_status(disconnected=True, winner=winner)
+            await self.channel_layer.group_send(
+                self.room_name,
+                {
+                    'type': 'game_over',
+                    'winner': winner_username,
+                    'reason': 'disconnection'
+                }
+            )
+
+            # Remove the game from the games dictionary
             del self.games[self.game_id]
+
         if self.game_id in self.game_loops:
             self.game_loops[self.game_id].cancel()
             del self.game_loops[self.game_id]
@@ -51,6 +76,23 @@ class PongConsumer(AsyncWebsocketConsumer):
             self.room_name,
             self.channel_name
         )
+
+    async def send_game_over(self, winner=None, reason=None):
+        await self.channel_layer.group_send(
+            self.room_name,
+            {
+                'type': 'game_over',
+                'winner': winner.username if winner else None,
+                'reason': reason
+            }
+        )
+
+    async def game_over(self, event):
+        await self.send(text_data=json.dumps({
+            'status': 'game_over',
+            'winner': event['winner'],
+            'reason': event.get('reason')
+        }))
 
     async def receive(self, text_data):
         if not self.player:
@@ -114,10 +156,11 @@ class PongConsumer(AsyncWebsocketConsumer):
                 game_over = self.game.update(current_time)
                 await self.send_game_state()
                 if game_over:
+                    # update game info in the database
+                    await self.update_game_status(winner=self.game.get_winner())
                     await self.send_game_over()
-                    await asyncio.sleep(3)
-                    self.game.reset_ball()
-                await asyncio.sleep(1/60)
+                    break
+                await asyncio.sleep(1/30)
         except asyncio.CancelledError:
             print("Game loop cancelled")
         finally:
@@ -235,15 +278,46 @@ class PongConsumer(AsyncWebsocketConsumer):
         await self.close()
 
     @database_sync_to_async
-    def update_game_status(self, disconnected=False):
+    def update_game_status(self, disconnected=False, winner=None):
         from pong_service.apps.pong.models import PongGame
         from pong_service.apps.authentication.models import Player
 
-        game = PongGame.objects.get(id=self.game_id)
-        winner = self.game.get_winner(
-            disconnected_player=self.player.id) if disconnected else None
-        game.status = PongGame.Status.FINISHED
-        game.player1_score = self.game.scores[self.game.player1.id]
-        game.player2_score = self.game.scores[self.game.player2.id]
-        game.winner = winner
-        game.save()
+        with transaction.atomic():
+            game = PongGame.objects.select_for_update().get(id=self.game_id)
+            current_player = Player.objects.select_for_update().get(id=self.player.id)
+            
+            # Check if the game has already been finished
+            if game.status == PongGame.Status.FINISHED:
+                return  # Game already finished, don't update again
+            
+            game.status = PongGame.Status.FINISHED
+            game.player1_score = self.game.scores[self.game.player1.id]
+            game.player2_score = self.game.scores[self.game.player2.id]
+
+            if winner:
+                game.winner = winner
+            if not disconnected and not winner:
+                game.winner = self.game.get_winner()
+
+            game.save()
+
+            # Get the initial number of games for the current player
+            initial_games = current_player.wins + current_player.losses
+
+            # Update player stats only if the game just finished, has a winner, and current player's stats haven't been updated
+            if game.winner and (current_player.wins + current_player.losses == initial_games):
+                winner_player = Player.objects.select_for_update().get(id=game.winner.id)
+                loser_player = Player.objects.select_for_update().get(id=game.player1.id if game.winner == game.player2 else game.player2.id)
+                
+                print(f"Updating stats for winner and loser")
+                winner_player.wins += 1
+                loser_player.losses += 1
+                winner_player.save()
+                loser_player.save()
+
+    async def game_over(self, event):
+        await self.send(text_data=json.dumps({
+            'status': 'game_over',
+            'winner': event['winner'],
+            'reason': event.get('reason', 'normal')
+        }))
