@@ -11,22 +11,40 @@ export class GameScreen extends BaseHTMLElement {
     this.canvas = null;
     this.ctx = null;
     this.gameOver = false;
+    this.player1 = { username: "", avatar: "", score: 0 };
+    this.player2 = { username: "", avatar: "", score: 0 };
   }
 
   connectedCallback() {
     this.render();
-    this.initializeGame();
-    this.drawInitialGame();
-    this.connectToGameServer();
   }
 
   render() {
     this.innerHTML = `
-      <div id="gameScreen">
-        <canvas id="game" width="800" height="600"></canvas>
-        <div id="gameOverOverlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); color: white; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-          <h2 id="gameOverMessage" style="font-size: 32px; margin-bottom: 20px;"></h2>
-          <button id="newGameButton" style="font-size: 18px; padding: 10px 20px; margin: 10px;">New Game</button>
+      <div id="gameScreen" class="flex flex-col items-center justify-center h-screen bg-gray-100">
+        <div class="mb-4 text-2xl font-bold">Pong Game</div>
+        <div class="flex items-center justify-between w-full max-w-4xl mb-4">
+          <div id="leftPlayer" class="flex flex-col items-center">
+            <img src="/api/placeholder/100/100" alt="Player 1" class="w-16 h-16 rounded-full mb-2">
+            <h3 class="text-lg font-semibold"></h3>
+            <div class="score text-3xl font-bold"></div>
+          </div>
+          <div class="text-center">
+            <div id="currentRound" class="text-xl font-semibold mb-2"></div>
+            <div id="currentMatch" class="text-lg"></div>
+          </div>
+          <div id="rightPlayer" class="flex flex-col items-center">
+            <img src="/api/placeholder/100/100" alt="Player 2" class="w-16 h-16 rounded-full mb-2">
+            <h3 class="text-lg font-semibold"></h3>
+            <div class="score text-3xl font-bold"></div>
+          </div>
+        </div>
+        <canvas id="game" width="1000" height="600" class="border-4 border-gray-800"></canvas>
+        <div id="gameOverOverlay" class="hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-70 flex flex-col justify-center items-center">
+          <h2 id="gameOverMessage" class="text-4xl font-bold text-white mb-8"></h2>
+          <button id="newGameButton" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            New Game
+          </button>
         </div>
       </div>
     `;
@@ -37,6 +55,13 @@ export class GameScreen extends BaseHTMLElement {
     this.newGameButton = this.querySelector("#newGameButton");
 
     this.newGameButton.addEventListener("click", () => this.startNewGame());
+  }
+
+  set _setGameId(gameId) {
+    this.gameId = gameId;
+    this.initializeGame();
+    this.drawInitialGame();
+    this.connectToGameServer();
   }
 
   initializeGame() {
@@ -52,7 +77,9 @@ export class GameScreen extends BaseHTMLElement {
   }
 
   connectToGameServer() {
-    const ws = new WebSocket(`wss://${window.location.host}/ws/pong/${this.gameId}/`);
+    const ws = new WebSocket(
+      `wss://${window.location.host}/ws/pong/${this.gameId}/`
+    );
 
     ws.onopen = () => {
       console.log("Connected to game server");
@@ -80,7 +107,8 @@ export class GameScreen extends BaseHTMLElement {
           } else if (jsonData.status === "game_start") {
             console.log("Game is starting!");
             this.gameOver = false;
-            this.gameOverOverlay.style.display = "none";
+            this.gameOverOverlay.classList.add("hidden");
+            this.updateMatchInfo();
           }
         } catch (e) {
           console.error("Unexpected message from game server:", e);
@@ -107,20 +135,18 @@ export class GameScreen extends BaseHTMLElement {
       message = "Game over! It's a tie!";
     }
     this.gameOverMessage.textContent = message;
-    this.gameOverOverlay.style.display = "flex";
+    this.gameOverOverlay.classList.remove("hidden");
     console.log(message);
-    // close the connection
     this.gameSocket.close();
   }
 
   handleUnexpectedDisconnection() {
     this.gameOverMessage.textContent =
       "Connection lost. The game ended unexpectedly.";
-    this.gameOverOverlay.style.display = "flex";
+    this.gameOverOverlay.classList.remove("hidden");
   }
 
   startNewGame() {
-    // Implement logic to start a new game, e.g., redirect to game setup page
     window.location.href = "/";
   }
 
@@ -134,6 +160,7 @@ export class GameScreen extends BaseHTMLElement {
       score1: view.getUint32(16),
       score2: view.getUint32(20),
     };
+    this.updateScores();
   }
 
   setPlayerRole(role) {
@@ -142,6 +169,33 @@ export class GameScreen extends BaseHTMLElement {
 
   setPlayerUsername(username) {
     this.playerUsername = username;
+    if (this.playerRole === "player1") {
+      this.player1.username = username;
+    } else {
+      this.player2.username = username;
+    }
+    this.updatePlayerInfo();
+  }
+
+  updatePlayerInfo() {
+    const leftPlayer = this.querySelector("#leftPlayer");
+    const rightPlayer = this.querySelector("#rightPlayer");
+
+    leftPlayer.querySelector("h3").textContent = this.player1.username;
+    rightPlayer.querySelector("h3").textContent = this.player2.username;
+  }
+
+  updateScores() {
+    const leftPlayer = this.querySelector("#leftPlayer");
+    const rightPlayer = this.querySelector("#rightPlayer");
+
+    leftPlayer.querySelector(".score").textContent = this.gameState.score1;
+    rightPlayer.querySelector(".score").textContent = this.gameState.score2;
+  }
+
+  updateMatchInfo() {
+    this.querySelector("#currentRound").textContent = "Game";
+    this.querySelector("#currentMatch").textContent = `Match ${this.gameId}`;
   }
 
   setupEventListeners() {
@@ -165,10 +219,6 @@ export class GameScreen extends BaseHTMLElement {
   }
 
   drawInitialGame() {
-    // Set canvas size
-    this.canvas.width = 800;
-    this.canvas.height = 600;
-
     // Clear the canvas
     this.ctx.fillStyle = "white";
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -204,13 +254,6 @@ export class GameScreen extends BaseHTMLElement {
     this.ctx.fillStyle = "#FFA726"; // Orange for the ball
     this.ctx.fill();
     this.ctx.closePath();
-
-    // Draw the scores
-    this.ctx.font = "48px Arial";
-    this.ctx.fillStyle = "#117a8b"; // Blue for left score
-    this.ctx.fillText(this.gameState.score1, this.canvas.width / 4, 50);
-    this.ctx.fillStyle = "#dc3545"; // Red for right score
-    this.ctx.fillText(this.gameState.score2, (3 * this.canvas.width) / 4, 50);
   }
 }
 
