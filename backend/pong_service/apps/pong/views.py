@@ -347,6 +347,13 @@ class TournamentEndView(APIView):
         player2 = get_object_or_404(Player, username=match['players'][1]['username'])
         winner = get_object_or_404(Player, username=match['winner']['username'])
         
+        # Update player stats
+        winner.wins += 1
+        loser = player1 if winner == player2 else player2
+        loser.losses += 1
+        winner.save()
+        loser.save()
+        
         PongGame.objects.create(
             player1=player1,
             player2=player2,
