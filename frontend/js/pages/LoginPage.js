@@ -37,7 +37,11 @@ export class LoginPage extends BaseHTMLElement {
           displayRequestStatus("success", "Login successful");
           app.router.go("/");
           return;
-        }
+        } else if (response.status === 202) {
+		  console.log("status: ", response.status);
+		  app.router.go("/2fa");
+		  return;
+		}
         console.log("status: ", response.status);
         username.value = "";
         password.value = "";

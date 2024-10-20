@@ -41,9 +41,12 @@ export class SettingsPage extends BaseHTMLElement {
 	async setProfileImage() {
 		try {
 			const response = await api.getUserDetails();
+			console.log('User details:', response);
 			if (response.success) {
-				if (response.avatar)
-					this.profileImage.src = response.avatar;
+				if (response.avatar) {
+					const cacheBuster = new Date().getTime();
+                	this.profileImage.src = `${response.avatar}?t=${cacheBuster}`;
+				}
 			}
 		} catch (error) {
 			console.error('Error getting user details:', error);

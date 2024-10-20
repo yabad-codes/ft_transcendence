@@ -672,3 +672,13 @@ class UserDetailsView(APIView):
 			"user_id": user.id,
 			"avatar": user.avatar_url if user.avatar_url else None
 		})
+
+class SessionCheckView(APIView):
+	"""
+	API view for checking if a session is active.
+	"""
+	def get(self, request):
+		session_id = request.COOKIES.get('sessionid')
+		if session_id:
+			return Response({'success': True})
+		return Response({'success': False})
