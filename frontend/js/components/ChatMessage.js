@@ -241,7 +241,7 @@ export class ChatMessage extends BaseHTMLElement {
   handleDropdownItemAction(action) {
     switch (action) {
       case "game":
-        this.playGameWithUser();
+        this.requestGameWithUser();
         break;
       case "clear":
         this.clearChatMessages();
@@ -257,7 +257,15 @@ export class ChatMessage extends BaseHTMLElement {
     }
   }
 
-  playGameWithUser() {}
+  requestGameWithUser() {
+    app.api.post("/api/play/request-game-with-player/", { opponent_username: this._conversation.player.username }).then((response) => {
+      if (response.status >= 400) {
+        displayRequestStatus("error", response.data.message);
+        return;
+      }
+      displayRequestStatus("success", "Game request sent successfully");
+    });
+  }
 
   blockUser() {
     app.api.patch("/api/profile/" + this._conversation.player.username + "/block", {});

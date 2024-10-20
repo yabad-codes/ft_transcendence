@@ -20,6 +20,7 @@ export class GamePage extends BaseHTMLElement {
         <div class="game-options">
           <button id="requestGameBtn" class="btn btn-primary">Find Match</button>
           <button id="cancelMatchmakingBtn" class="btn btn-danger" disabled>Cancel</button>
+          <button id="createTournament" class="btn btn-primary">Create Tournament</button>
         </div>
         <div id="matchmakingStatus" class="status-message"></div>
         <div class="game-instructions">
@@ -37,10 +38,14 @@ export class GamePage extends BaseHTMLElement {
   setupEventListeners() {
     const requestGameBtn = this.querySelector("#requestGameBtn");
     const cancelMatchmakingBtn = this.querySelector("#cancelMatchmakingBtn");
+    const createTournamentBtn = this.querySelector("#createTournament");
 
     requestGameBtn.addEventListener("click", () => this.requestGame());
     cancelMatchmakingBtn.addEventListener("click", () =>
       this.cancelMatchmaking()
+    );
+    createTournamentBtn.addEventListener("click", () =>
+      app.router.go("/tournament", false)
     );
   }
 
@@ -56,7 +61,6 @@ export class GamePage extends BaseHTMLElement {
       });
 
       const data = await response.json();
-      console.log(data);
 
       if (response.ok) {
         this.updateStatus("Connecting to matchmaking...");
@@ -126,11 +130,10 @@ export class GamePage extends BaseHTMLElement {
   }
 
   startGame(gameId) {
-    // Create and render the GameScreen component
-    const gameScreen = document.createElement("game-screen");
-    gameScreen.gameId = gameId;
-    document.body.innerHTML = "";
-    document.body.appendChild(gameScreen);
+    app.router.removeOldPages();
+    app.router.insertPage("game-screen");
+    const gameScreen = document.querySelector("game-screen");
+    gameScreen._setGameId = gameId;
   }
 }
 

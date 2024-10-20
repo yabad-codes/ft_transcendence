@@ -26,10 +26,14 @@ const Router = {
     // this could be refactored and scaled later
     if (router === "/") {
       Router.loadMainHomeContent("game-page");
-    } else if (router === "/profile") {
-      Router.loadMainHomeContent("profile-page");
+    } else if (router === "/profile" || router.startsWith("/profile/")) {
+      Router.loadMainHomeContent('profile-page', true);
     } else if (router === "/chat") {
       Router.loadMainHomeContent("chat-page");
+    } else if (router === "/search" ){
+      Router.loadMainHomeContent('search-page');
+    }else if (router === "/notifications" ){
+      Router.loadMainHomeContent('notification-page');
     } else if (router === "/leaderboard") {
       Router.loadMainHomeContent("leaderboard-page");
     } else if (router === "/settings") {
@@ -41,7 +45,9 @@ const Router = {
     } else if (router.includes("/oauth-callback")) {
       Router.handleOAuthCallback();
     } else if (router === "/2fa") {
-		Router.checkIsSessionValid();
+  		Router.checkIsSessionValid();
+    } else if (router === "/tournament") {
+      Router.loadMainHomeContent("tournament-page");
     } else {
       Router.loadNotFoundPage("not-found-page");
     }
@@ -78,27 +84,27 @@ const Router = {
     return false;
   },
 
-  loadMainHomeContent: (pageName) => {
+  loadMainHomeContent: (pageName, forceRerender = false) => {
     // If the user is not logged in go to login page
     if (!app.isLoggedIn) {
-      console.log("User is not logged in");
-      app.router.go("/login");
-      return;
+        console.log("User is not logged in");
+        app.router.go("/login");
+        return;
     }
 
     // If the home page doesn't exist in the DOM then render the home page first
-    if (!document.querySelector("home-page")) {
-      Router.loadHomePage();
+    if (!document.querySelector('home-page')) {
+        Router.loadHomePage();
     }
+    
+    const mainElement = document.querySelector('main');
 
-    const mainElement = document.querySelector("main");
-
-    // If the page content already exists, no need to render it again (for performance reasons)
-    if (mainElement.querySelector(pageName)) return;
+    // If the page content already exists and we're not forcing a re-render, no need to render it again
+    if (!forceRerender && mainElement.querySelector(pageName)) return;
 
     // Load the new page on the main content
     const mainContent = document.createElement(pageName);
-    mainElement.innerHTML = "";
+    mainElement.innerHTML = '';
     mainElement.appendChild(mainContent);
   },
 
@@ -148,7 +154,9 @@ const Router = {
       "signup-page",
       "register-page",
       "not-found-page",
-	  "twofa-page",
+  	  "twofa-page",
+      "tournament-screen",
+      "game-screen",
     ];
 
     oldPages.forEach((page) => {

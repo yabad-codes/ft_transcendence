@@ -1,4 +1,5 @@
 import json
+import logging
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync, sync_to_async
@@ -6,6 +7,8 @@ from pong_service.helpers import get_user_from_access_token
 from django.db.models import Q
 from django.conf import settings
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -92,15 +95,18 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         from pong_service.apps.authentication.models import Player
-        from pong_service.apps.pong.models import GameRequest
+        from pong_service.apps.pong.models import GameRequest, Tournament
 
         if self.user is None:
             return None
 
         # Check if the user in a game request and remove it
-        game_request = await sync_to_async(GameRequest.objects.filter)(Q(player=self.user) | Q(opponent=self.user))
-        if game_request.exists():
+        game_request = await sync_to_async(GameRequest.objects.filter)(Q(requester=self.user) | Q(opponent=self.user))
+        if await sync_to_async(game_request.exists)():
             await sync_to_async(game_request.delete)()
+
+         # Fetch the tournament queryset asynchronously
+        await sync_to_async(Tournament.objects.filter(player1=self.user, status=Tournament.Status.STARTED).delete)()
 
         player = await sync_to_async(Player.objects.get)(id=self.user.id)
         player.online = False
@@ -161,6 +167,81 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                     'message': {
                         'type': 'friend_request',
                         'user_id': user_id
+                    }
+                }
+            )
+        except Exception as e:
+            # Handle exceptions, possibly logging or retrying
+            print(f"Failed to send message via WebSocket: {e}")
+
+    @staticmethod
+    def sendGameRequestNotification(user_id, opponent_id, request_id):
+        channel_layer = get_channel_layer()
+
+        if not channel_layer:
+            # Log error or raise an exception as needed
+            print("Channel layer is not available.")
+            return
+
+        try:
+            async_to_sync(channel_layer.group_send)(
+                f'notification_{opponent_id}',
+                {
+                    'type': 'notification_message',
+                    'message': {
+                        'type': 'game_request',
+                        'request_id': request_id,
+                        'requester_name': user_id.username,
+                        'avatar_url': user_id.avatar_url,
+                    }
+                }
+            )
+        except Exception as e:
+            # Handle exceptions, possibly logging or retrying
+            print(f"Failed to send message via WebSocket: {e}")
+    
+    @staticmethod
+    def sendGameRequestResponseNotification(requester_id, game_id):
+        channel_layer = get_channel_layer()
+
+        if not channel_layer:
+            # Log error or raise an exception as needed
+            print("Channel layer is not available.")
+            return
+
+        try:
+            async_to_sync(channel_layer.group_send)(
+                f'notification_{requester_id}',
+                {
+                    'type': 'notification_message',
+                    'message': {
+                        'type': 'game_request_response',
+                        'game_id': game_id,
+                    }
+                }
+            )
+        except Exception as e:
+            # Handle exceptions, possibly logging or retrying
+            print(f"Failed to send message via WebSocket: {e}")
+            
+    @staticmethod
+    def sendTournamentNotification(requester_username ,player):
+        channel_layer = get_channel_layer()
+
+        if not channel_layer:
+            # Log error or raise an exception as needed
+            print("Channel layer is not available.")
+            return
+
+        try:
+            async_to_sync(channel_layer.group_send)(
+                f'notification_{player.id}',
+                {
+                    'type': 'notification_message',
+                    'message': {
+                        'type': 'tournament_request',
+                        'message': 'You have been invited to a tournament',
+                        'requester': requester_username
                     }
                 }
             )

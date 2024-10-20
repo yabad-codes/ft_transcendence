@@ -17,7 +17,7 @@ from django.db.models import Q
 from django.http import Http404
 from .helpers import set_cookie
 from urllib.parse import urlencode
-
+from pong_service.apps.pong.models import PongGame, Tournament
 from rest_framework_simplejwt.views import (
     TokenObtainPairView, 
     TokenRefreshView
@@ -228,6 +228,11 @@ class LoginView(TokenObtainPairView):
                         serializer.errors,
                         status=status.HTTP_400_BAD_REQUEST
                 )
+            return Response(
+            {"error": "Invalid data."},
+            status=status.HTTP_400_BAD_REQUEST
+            )
+    
 
 
 class RegisterView(CreateAPIView):
@@ -295,6 +300,63 @@ class PlayerListView(ListAPIView):
         blocked_user_ids = blocked_users.values_list('blockedUser', flat=True)
         return Player.objects.exclude(id__in=blocked_user_ids)
 
+class PlayerOnlineListView(ListAPIView):
+    """
+    API view that returns a list of online players.
+
+    Inherits from ListAPIView and uses PlayerListSerializer
+    to serialize the queryset.
+
+    Requires authentication for access.
+    """
+    queryset = Player.objects.all()
+    serializer_class = PlayerListSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """
+        Handle GET request to list all online players.
+
+        :param request: The HTTP request object.
+        :return: A Response object with the serialized player data.
+        """
+        # exclude players who are already in a game or a tournament
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def get_queryset(self):
+        """
+        Exclude blocked users, players in active games or tournaments, and filter for online players.
+        """
+        # Get blocked users
+        blocked_users = BlockedUsers.objects.filter(
+            Q(player=self.request.user) | Q(blockedUser=self.request.user)
+        )
+        blocked_user_ids = set(blocked_users.values_list('blockedUser', flat=True))
+
+        # Get players in active games (Pending or Started)
+        active_game_players = PongGame.objects.filter(
+            Q(status=PongGame.Status.PENDING) | Q(status=PongGame.Status.STARTED)
+        ).values_list('player1', 'player2')
+
+        # Get players in active tournaments (Started)
+        active_tournament_players = Tournament.objects.filter(
+            status=Tournament.Status.STARTED
+        ).values_list('player1', 'player2', 'player3', 'player4')
+
+        # Combine all player IDs to exclude
+        exclude_player_ids = blocked_user_ids.copy()
+        for game in active_game_players:
+            exclude_player_ids.update(game)
+        for tournament in active_tournament_players:
+            exclude_player_ids.update(tournament)
+            
+        exclude_player_ids.add(self.request.user.id)
+
+        # Exclude blocked and active players, and filter for online players
+        return Player.objects.exclude(id__in=exclude_player_ids).filter(online=True)
 
 class PlayerPublicProfileView(generics.RetrieveAPIView):
     """

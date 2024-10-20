@@ -16,6 +16,18 @@ export class NavBar extends BaseHTMLElement {
                 app.router.go(urlPath)
             })
         })
+
+        // Handle logout
+        this.querySelector('.logout-button').addEventListener('click', async () => {
+            const response = await app.api.post('/api/logout/', {})
+            console.log(response);
+            if (response.status === 200) {
+                console.log('Logged out successfully');
+                app.isLoggedIn = false;
+                app.profile = null;
+                app.router.go('/login')
+            }
+        })
     }
 }
 
