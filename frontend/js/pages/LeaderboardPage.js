@@ -18,9 +18,9 @@ export class LeaderboardPage extends BaseHTMLElement {
   async fetchPlayers() {
 	try {
 		const response = await api.getPlayers();
-		//! Backend API response should include a success member like this : { success: true, players: [] }
 		if (response.success) {
 			this.players = response.data;
+			console.log('Players:', this.players);
 			this.calculateRank();
 		}
 	}
@@ -39,19 +39,26 @@ export class LeaderboardPage extends BaseHTMLElement {
   calculateRank() {
 	if (!this.players.length) return;
   
-	// Sort players by performance score
+	this.players.forEach(player => {
+	  player.matches_played = player.wins + player.losses;
+	});
+  
 	this.players.sort((a, b) => {
-	  const performanceA = a.matches_played > 0 ? (a.wins - a.losses) / a.matches_played : 0;
-	  const performanceB = b.matches_played > 0 ? (b.wins - b.losses) / b.matches_played : 0;
+	  if (a.matches_played === 0 && b.matches_played === 0) return 0;
+	  if (a.matches_played === 0) return 1;
+	  if (b.matches_played === 0) return -1;
+  
+	  const performanceA = (a.wins - a.losses) / a.matches_played;
+	  const performanceB = (b.wins - b.losses) / b.matches_played;
   
 	  return performanceB - performanceA;
 	});
   
-	// Assign ranks
 	this.players.forEach((player, index) => {
 	  player.rank = index + 1;
 	});
   }
+  
   
   
 
@@ -83,6 +90,7 @@ export class LeaderboardPage extends BaseHTMLElement {
 		this.wins_number = player.wins || 0;
 		this.losses_value = player.losses || 0;
 
+
 		this.LeaderboardContainer.insertAdjacentHTML('beforeend', this.generateCard());
 	});
   }
@@ -93,17 +101,17 @@ export class LeaderboardPage extends BaseHTMLElement {
 		<div class="podium d-flex align-items-end justify-content-center mb-4">
 			<div class="podium-item second-place h-75 d-flex flex-column align-items-center justify-content-end mx-2 px-3 pb-2 rounded">
 				<div class="trophy mb-2"><i class="fas fa-trophy text-white"></i></div>
-				<img src="${this.players[1].avatar}" alt="Player 2" class="rounded-circle mb-2 player-avatar">
+				<img src="${this.players[1].avatar_url}" alt="Player 2" class="rounded-circle mb-2 player-avatar">
 				<span class="text-white">${this.players[1].username}</span>
 			</div>
 			<div class="podium-item first-place h-100 d-flex flex-column align-items-center justify-content-end mx-2 px-3 pb-2 rounded">
 				<div class="trophy mb-2"><i class="fas fa-trophy text-white"></i></div>
-				<img src="${this.players[0].avatar}" alt="Player 1" class="rounded-circle mb-2 player-avatar">
+				<img src="${this.players[0].avatar_url}" alt="Player 1" class="rounded-circle mb-2 player-avatar">
 				<span class="text-white">${this.players[0].username}</span>
 			</div>
 			<div class="podium-item third-place h-50 d-flex flex-column align-items-center justify-content-end mx-2 px-3 pb-2 rounded">
 				<div class="trophy mb-2"><i class="fas fa-trophy text-white"></i></div>
-				<img src="${this.players[2].avatar}" alt="Player 3" class="rounded-circle mb-2 player-avatar">
+				<img src="${this.players[2].avatar_url}" alt="Player 3" class="rounded-circle mb-2 player-avatar">
 				<span class="text-white">${this.players[2].username}</span>
 			</div>
 		</div>
