@@ -228,6 +228,11 @@ class LoginView(TokenObtainPairView):
                         serializer.errors,
                         status=status.HTTP_400_BAD_REQUEST
                 )
+            return Response(
+            {"error": "Invalid data."},
+            status=status.HTTP_400_BAD_REQUEST
+            )
+    
 
 
 class RegisterView(CreateAPIView):
