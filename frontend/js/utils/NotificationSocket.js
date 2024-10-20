@@ -36,10 +36,10 @@ export function connectToNotificationServer() {
           displayRequestStatus("error", "Game request declined successfully");
           return;
         }
-        const gameScreen = document.createElement("game-screen");
-        gameScreen.gameId = data.game_id;
-        document.body.innerHTML = "";
-        document.body.appendChild(gameScreen);
+        app.router.removeOldPages();
+        app.router.insertPage("game-screen");
+        const gameScreen = document.querySelector("game-screen");
+        gameScreen._setGameId = data.game_id;
       }
 
       if (data.type === "tournament_request") {

@@ -55,10 +55,11 @@ export const GameRequestPopup = (function() {
                     return;
                 }
                 hidePopup();
-                const gameScreen = new GameScreen();
-                gameScreen.gameId = response.data.game_id;
-                document.body.innerHTML = "";
-                document.body.appendChild(gameScreen);
+                app.router.removeOldPages();
+                app.router.insertPage("game-screen");
+                const gameScreen = document.querySelector("game-screen");
+                gameScreen._setGameId = response.data.game_id;
+
             })
             .catch((error) => {
                 console.error(error);

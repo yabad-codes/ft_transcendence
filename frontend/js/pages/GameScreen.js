@@ -40,13 +40,6 @@ export class GameScreen extends BaseHTMLElement {
         </div>
       </div>
     `;
-    this.canvas = this.querySelector("#game");
-    this.ctx = this.canvas.getContext("2d");
-    this.gameOverOverlay = this.querySelector("#gameOverOverlay");
-    this.gameOverMessage = this.querySelector("#gameOverMessage");
-    this.newGameButton = this.querySelector("#newGameButton");
-
-    this.newGameButton.addEventListener("click", () => this.startNewGame());
   }
 
   set _setGameId(gameId) {
@@ -65,6 +58,14 @@ export class GameScreen extends BaseHTMLElement {
       score1: 0,
       score2: 0,
     };
+
+    this.canvas = this.querySelector("#game");
+    this.ctx = this.canvas.getContext("2d");
+    this.gameOverOverlay = this.querySelector("#gameOverOverlay");
+    this.gameOverMessage = this.querySelector("#gameOverMessage");
+    this.newGameButton = this.querySelector("#newGameButton");
+
+    this.newGameButton.addEventListener("click", () => this.startNewGame());
     this.setupEventListeners();
   }
 
