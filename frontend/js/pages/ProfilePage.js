@@ -302,7 +302,7 @@ export class ProfilePage extends BaseHTMLElement {
         match.winner === this.state.profile.username ? "Won" : "Lost";
 
       matchItem.innerHTML = `
-            <div style="text-align: center; padding-right: 15px;" class="matches-label">${
+            <div style="text-align: center;" class="matches-label">${
               match.date
             }</div>
             <div class="d-flex align-items-center justify-content-between mb-5">
@@ -312,7 +312,7 @@ export class ProfilePage extends BaseHTMLElement {
                     }" />
                     <span>${this.state.profile.username}</span>
                 </div>
-                <div class="text-center mt-2 d-flex flex-column">
+                <div class="text-center mt-2 d-flex flex-column" style="padding-right: 15px;">
                     <span class="pb-2">${playerScore} / ${opponentScore}</span>
                     <span class="badge ${
                     result === "Won" ? "bg-success" : "bg-danger"
