@@ -61,7 +61,6 @@ export class GamePage extends BaseHTMLElement {
       });
 
       const data = await response.json();
-      console.log(data);
 
       if (response.ok) {
         this.updateStatus("Connecting to matchmaking...");
@@ -131,11 +130,10 @@ export class GamePage extends BaseHTMLElement {
   }
 
   startGame(gameId) {
-    // Create and render the GameScreen component
-    const gameScreen = document.createElement("game-screen");
-    gameScreen.gameId = gameId;
-    document.body.innerHTML = "";
-    document.body.appendChild(gameScreen);
+    app.router.removeOldPages();
+    app.router.insertPage("game-screen");
+    const gameScreen = document.querySelector("game-screen");
+    gameScreen._setGameId = gameId;
   }
 }
 

@@ -6,8 +6,8 @@ export class GameScreen extends BaseHTMLElement {
     this.gameId = null;
     this.gameSocket = null;
     this.gameState = null;
-    this.playerRole = null;
-    this.playerUsername = null;
+    this.currentPlayer = null;
+    this.opponent = null;
     this.canvas = null;
     this.ctx = null;
     this.gameOver = false;
@@ -15,18 +15,28 @@ export class GameScreen extends BaseHTMLElement {
 
   connectedCallback() {
     this.render();
-    this.initializeGame();
-    this.drawInitialGame();
-    this.connectToGameServer();
   }
 
   render() {
     this.innerHTML = `
-      <div id="gameScreen">
-        <canvas id="game" width="800" height="600"></canvas>
-        <div id="gameOverOverlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); color: white; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-          <h2 id="gameOverMessage" style="font-size: 32px; margin-bottom: 20px;"></h2>
-          <button id="newGameButton" style="font-size: 18px; padding: 10px 20px; margin: 10px;">New Game</button>
+      <div id="gameScreen" class="flex flex-col items-center justify-center h-screen bg-gray-100" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <div class="mb-4 text-2xl font-bold" style="font-size: 50px; font-weight: 700; text-transform: uppercase; margin-top: 25px;">Pong Game</div>
+        <div class="flex items-center justify-between w-full max-w-4xl mb-4" style="display: flex; justify-content: space-evenly; width: 80%; margin-top: 33px;">
+          <div id="leftPlayer" class="flex flex-col items-center" style="text-align: center;">
+            <img src="" alt="Player 1" class="w-16 h-16 rounded-full mb-2" style="width: 100px; border-radius: 50%;">
+            <h3 class="text-lg font-semibold"></h3>
+            <div class="score text-3xl font-bold" style="font-size: 30px; padding-top: 5px; padding-bottom: 5px; font-weight: 700;"></div>
+          </div>
+          <div id="rightPlayer" class="flex flex-col items-center" style="text-align: center;">
+            <img src="" alt="Player 2" class="w-16 h-16 rounded-full mb-2" style="width: 100px; border-radius: 50%;">
+            <h3 class="text-lg font-semibold"></h3>
+            <div class="score text-3xl font-bold" style="font-size: 30px; padding-top: 5px; padding-bottom: 5px; font-weight: 700;"></div>
+          </div>
+        </div>
+        <canvas id="game" width="1000" height="600" class="border-4 border-gray-800"></canvas>
+        <div id="gameOverOverlay" class="fixed top-0 left-0 w-full h-full flex flex-col justify-center items-center" style="display: flex; justify-content: center; align-items: center; flex-direction: column; margin-top: 20px;">
+          <h2 id="gameOverMessage" class="text-4xl font-bold mb-8"></h2>
+          <button id="newGameButton" style="width: 115px; height: 50px; border-radius: 200px; background-color: transparent; font-size: 15px; font-weight: 600; margin-top: 20px;">Close</button>
         </div>
       </div>
     `;
@@ -37,6 +47,13 @@ export class GameScreen extends BaseHTMLElement {
     this.newGameButton = this.querySelector("#newGameButton");
 
     this.newGameButton.addEventListener("click", () => this.startNewGame());
+  }
+
+  set _setGameId(gameId) {
+    this.gameId = gameId;
+    this.initializeGame();
+    this.drawInitialGame();
+    this.connectToGameServer();
   }
 
   initializeGame() {
@@ -52,39 +69,19 @@ export class GameScreen extends BaseHTMLElement {
   }
 
   connectToGameServer() {
-    const ws = new WebSocket(`wss://${window.location.host}/ws/pong/${this.gameId}/`);
+    const ws = new WebSocket(
+      `wss://${window.location.host}/ws/pong/${this.gameId}/`
+    );
 
     ws.onopen = () => {
       console.log("Connected to game server");
     };
 
     ws.onmessage = (e) => {
-      if (e.data instanceof Blob) {
-        e.data.arrayBuffer().then((buffer) => {
-          this.decodeGameState(buffer);
-          this.drawGame();
-        });
-      } else if (e.data instanceof ArrayBuffer) {
-        this.decodeGameState(e.data);
-        this.drawGame();
+      if (e.data instanceof Blob || e.data instanceof ArrayBuffer) {
+        this.handleBinaryMessage(e.data);
       } else {
-        try {
-          const jsonData = JSON.parse(e.data);
-          console.log(jsonData);
-          if (jsonData.status === "player-role") {
-            this.setPlayerRole(jsonData.role);
-            this.setPlayerUsername(jsonData.username);
-            console.log(`You are player ${jsonData.role}`);
-          } else if (jsonData.status === "game_over") {
-            this.handleGameOver(jsonData.winner);
-          } else if (jsonData.status === "game_start") {
-            console.log("Game is starting!");
-            this.gameOver = false;
-            this.gameOverOverlay.style.display = "none";
-          }
-        } catch (e) {
-          console.error("Unexpected message from game server:", e);
-        }
+        this.handleJsonMessage(e.data);
       }
     };
 
@@ -98,6 +95,85 @@ export class GameScreen extends BaseHTMLElement {
     this.gameSocket = ws;
   }
 
+  handleJsonMessage(data) {
+    try {
+      const jsonData = JSON.parse(data);
+      if (jsonData.status === "player_info") {
+        this.setPlayerInfo(jsonData.data);
+      } else if (jsonData.status === "game_start") {
+        console.log("Game is starting!");
+        this.gameOver = false;
+        this.gameOverOverlay.classList.add("hidden");
+        this.updateMatchInfo();
+      } else if (jsonData.status === "game_over") {
+        this.handleGameOver(jsonData.winner, jsonData.reason);
+      }
+    } catch (e) {
+    }
+  }
+
+  handleGameOver(winner, reason) {
+    this.gameOver = true;
+    let message;
+    if (reason === "disconnection") {
+      message = winner ? `${winner} wins due to opponent disconnection!` : "Game over due to unexpected disconnection.";
+    } else {
+      message = winner ? `Game over! ${winner} wins!` : "Game over! It's a tie!";
+    }
+    this.gameOverMessage.textContent = message;
+    this.gameOverOverlay.classList.remove("hidden");
+    console.log(message);
+    this.gameSocket.close();
+  }
+
+  handleBinaryMessage(data) {
+    if (data instanceof Blob) {
+      data.arrayBuffer().then((buffer) => {
+        this.decodeGameState(buffer);
+        this.drawGame();
+      });
+    } else if (data instanceof ArrayBuffer) {
+      this.decodeGameState(data);
+      this.drawGame();
+    }
+  }
+
+  setPlayerInfo(data) {
+    this.currentPlayer = data.currentPlayer;
+    this.opponent = data.opponent;
+    this.updatePlayerInfo();
+  }
+
+  updatePlayerInfo() {
+    const leftPlayer = this.querySelector("#leftPlayer");
+    const rightPlayer = this.querySelector("#rightPlayer");
+
+    if (this.currentPlayer.role === "player1") {
+      leftPlayer.querySelector("h3").textContent = this.currentPlayer.username;
+      leftPlayer.querySelector("img").src = this.currentPlayer.avatar;
+      rightPlayer.querySelector("h3").textContent = this.opponent.username;
+      rightPlayer.querySelector("img").src = this.opponent.avatar;
+    } else {
+      leftPlayer.querySelector("h3").textContent = this.opponent.username;
+      leftPlayer.querySelector("img").src = this.opponent.avatar;
+      rightPlayer.querySelector("h3").textContent = this.currentPlayer.username;
+      rightPlayer.querySelector("img").src = this.currentPlayer.avatar;
+    }
+  }
+
+  updateScores() {
+    const leftPlayer = this.querySelector("#leftPlayer");
+    const rightPlayer = this.querySelector("#rightPlayer");
+
+    if (this.currentPlayer.role === "player1") {
+      leftPlayer.querySelector(".score").textContent = this.gameState.score1;
+      rightPlayer.querySelector(".score").textContent = this.gameState.score2;
+    } else {
+      leftPlayer.querySelector(".score").textContent = this.gameState.score1;
+      rightPlayer.querySelector(".score").textContent = this.gameState.score2;
+    }
+  }
+
   handleGameOver(winner) {
     this.gameOver = true;
     let message;
@@ -107,21 +183,19 @@ export class GameScreen extends BaseHTMLElement {
       message = "Game over! It's a tie!";
     }
     this.gameOverMessage.textContent = message;
-    this.gameOverOverlay.style.display = "flex";
+    this.gameOverOverlay.classList.remove("hidden");
     console.log(message);
-    // close the connection
     this.gameSocket.close();
   }
 
   handleUnexpectedDisconnection() {
-    this.gameOverMessage.textContent =
-      "Connection lost. The game ended unexpectedly.";
-    this.gameOverOverlay.style.display = "flex";
+    this.handleGameOver(null, "disconnection");
   }
 
   startNewGame() {
-    // Implement logic to start a new game, e.g., redirect to game setup page
-    window.location.href = "/";
+    // close the game socket and redirect to the home page
+    this.gameSocket.close();
+    app.router.go("/");
   }
 
   decodeGameState(arrayBuffer) {
@@ -134,14 +208,22 @@ export class GameScreen extends BaseHTMLElement {
       score1: view.getUint32(16),
       score2: view.getUint32(20),
     };
-  }
-
-  setPlayerRole(role) {
-    this.playerRole = role;
+    this.updateScores();
   }
 
   setPlayerUsername(username) {
     this.playerUsername = username;
+    if (this.playerRole === "player1") {
+      this.player1.username = username;
+    } else {
+      this.player2.username = username;
+    }
+    this.updatePlayerInfo();
+  }
+
+  updateMatchInfo() {
+    this.querySelector("#currentRound").textContent = "Game";
+    this.querySelector("#currentMatch").textContent = `Match ${this.gameId}`;
   }
 
   setupEventListeners() {
@@ -165,33 +247,26 @@ export class GameScreen extends BaseHTMLElement {
   }
 
   drawInitialGame() {
-    // Set canvas size
-    this.canvas.width = 800;
-    this.canvas.height = 600;
-
-    // Clear the canvas
-    this.ctx.fillStyle = "white";
+    // Clear the canvas with black background
+    this.ctx.fillStyle = "black";
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
+  
     // Draw the border
-    this.ctx.strokeStyle = "black";
+    this.ctx.strokeStyle = "white";
     this.ctx.lineWidth = 2;
     this.ctx.strokeRect(0, 0, this.canvas.width, this.canvas.height);
-
+  
     // Draw the center line
-    this.ctx.setLineDash([5, 15]);
     this.ctx.beginPath();
     this.ctx.moveTo(this.canvas.width / 2, 0);
     this.ctx.lineTo(this.canvas.width / 2, this.canvas.height);
     this.ctx.stroke();
-    this.ctx.setLineDash([]);
-
+  
     // Draw the paddles
-    this.ctx.fillStyle = "#117a8b"; // Blue for left paddle
+    this.ctx.fillStyle = "white";
     this.ctx.fillRect(20, this.gameState.player1Y, 10, 80); // Left paddle
-    this.ctx.fillStyle = "#dc3545"; // Red for right paddle
     this.ctx.fillRect(this.canvas.width - 30, this.gameState.player2Y, 10, 80); // Right paddle
-
+  
     // Draw the ball
     this.ctx.beginPath();
     this.ctx.arc(
@@ -201,16 +276,8 @@ export class GameScreen extends BaseHTMLElement {
       0,
       Math.PI * 2
     );
-    this.ctx.fillStyle = "#FFA726"; // Orange for the ball
     this.ctx.fill();
     this.ctx.closePath();
-
-    // Draw the scores
-    this.ctx.font = "48px Arial";
-    this.ctx.fillStyle = "#117a8b"; // Blue for left score
-    this.ctx.fillText(this.gameState.score1, this.canvas.width / 4, 50);
-    this.ctx.fillStyle = "#dc3545"; // Red for right score
-    this.ctx.fillText(this.gameState.score2, (3 * this.canvas.width) / 4, 50);
   }
 }
 

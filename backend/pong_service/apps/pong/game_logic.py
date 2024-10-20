@@ -26,7 +26,7 @@ class Ball:
 
 
 class PongGame:
-    def __init__(self, player1, player2, canvas_width: int = 800, canvas_height: int = 600):
+    def __init__(self, player1, player2, canvas_width: int = 1000, canvas_height: int = 600):
         self.canvas_width = canvas_width
         self.canvas_height = canvas_height
         self.grid = 15
@@ -143,12 +143,12 @@ class PongGame:
             paddle.dy = 0
 
     def get_winner(self, disconnected_player: Optional[int] = None) -> Optional[int]:
-        if disconnected_player:
-            return self.player1 if self.player1.id != disconnected_player else self.player2
         if self.scores[self.player1.id] >= 11:
             return self.player1
         elif self.scores[self.player2.id] >= 11:
             return self.player2
+        if disconnected_player:
+            return self.player2 if disconnected_player == self.player1.id else self.player1
         return None
 
     def get_state(self) -> Dict[str, float]:

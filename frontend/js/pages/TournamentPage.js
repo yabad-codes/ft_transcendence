@@ -84,7 +84,6 @@ export class TournamentPage extends BaseHTMLElement {
       player3_username: checkedBoxes[1].getAttribute("username"),
       player4_username: checkedBoxes[2].getAttribute("username"),
     };
-    console.log(message);
 
     app.api.post("/api/create-tournament/", message).then((response) => {
       if (response.status >= 400) {
@@ -131,8 +130,6 @@ export class TournamentPage extends BaseHTMLElement {
       tournament_id: tournamentId,
       results: results
     };
-
-    console.log(requestBody);
 
     app.api.post("/api/end-tournament/", requestBody).then((response) => {
       if (response.status >= 400) {
