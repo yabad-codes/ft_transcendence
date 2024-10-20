@@ -27,7 +27,7 @@ export class SearchPage extends BaseHTMLElement {
 
   render() {
     this.innerHTML = `
-      <div class="container mt-5">
+      <div class="mt-5">
         <div class="row justify-content-center">
           <div class="col-md-8">
             <h1 class="text-center mb-4">Player Search</h1>

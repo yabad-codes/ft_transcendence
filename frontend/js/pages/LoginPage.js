@@ -24,9 +24,6 @@ export class LoginPage extends BaseHTMLElement {
       const username = event.target.querySelector("input[placeholder='Username']");
       const password = event.target.querySelector("input[placeholder='Password']");
 
-      console.log("username: ", username.value);
-      console.log("password: ", password.value);
-
       const message = { username: username.value, password: password.value };
 
       app.api.post("/api/login/", message).then(async (response) => {

@@ -4,7 +4,7 @@
     background-color: #f0f2f5;
     padding: 20px;
 }
-.container {
+tournament-page .container {
     background-color: #ffffff;
     border-radius: 15px;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);

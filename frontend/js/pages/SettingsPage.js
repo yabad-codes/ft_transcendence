@@ -41,7 +41,6 @@ export class SettingsPage extends BaseHTMLElement {
 	async setProfileImage() {
 		try {
 			const response = await api.getUserDetails();
-			console.log('User details:', response);
 			if (response.success) {
 				if (response.avatar) {
 					const cacheBuster = new Date().getTime();

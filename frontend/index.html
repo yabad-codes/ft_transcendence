@@ -63,25 +63,15 @@
         <!-- Nav links -->
         <div class="nav-links-container d-inline-flex flex-column">
         <a href="/search" class="nav-links">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-binoculars-fill" viewBox="0 0 16 16">
-            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"
-            class="default-icon-color"
-            />
+          <svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M28.5 17.4167C28.5 23.5378 23.5378 28.5 17.4166 28.5C11.2955 28.5 6.33331 23.5378 6.33331 17.4167C6.33331 11.2955 11.2955 6.33334 17.4166 6.33334C23.5378 6.33334 28.5 11.2955 28.5 17.4167Z" fill="white"/>
+            <path d="M31.6667 31.6667L28.5 28.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
           </svg>
-
         </a>
         <a href="/notifications" class="nav-links">
-          <svg
-            width="38"
-            height="38"
-            viewBox="0 0 38 38"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M19 36c1.885 0 3.125-1.24 3.125-3.125h-6.25C15.875 34.76 17.115 36 19 36zm9.688-9.688V18.812c0-4.615-2.479-8.49-6.563-9.656v-1.469c0-.99-.802-1.875-1.875-1.875s-1.875.885-1.875 1.875v1.469c-4.084 1.167-6.563 5.042-6.563 9.656v7.5l-2.812 2.812v.938h22.5v-.938l-2.812-2.812z"
-              class="default-icon-color"
-            />
+          <svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10.2956 11.0441C10.3588 10.4126 10.3903 10.0969 10.4365 9.82561C11.0557 6.18369 14.0881 3.43938 17.7736 3.18558C18.0481 3.16667 18.3654 3.16667 19 3.16667V3.16667C19.6346 3.16667 19.9519 3.16667 20.2264 3.18558C23.9119 3.43938 26.9443 6.18369 27.5636 9.82561C27.6097 10.0969 27.6413 10.4126 27.7044 11.0441L28.1582 15.5821C28.3009 17.0085 28.3722 17.7217 28.5654 18.4032C28.6637 18.7498 28.7853 19.0894 28.9294 19.4197C29.2127 20.069 29.6102 20.6653 30.4054 21.8581L32.7604 25.3906C33.6729 26.7593 34.1292 27.4437 33.8465 27.9719C33.5639 28.5 32.7413 28.5 31.0963 28.5H6.90372C5.25869 28.5 4.43618 28.5 4.15353 27.9719C3.87088 27.4437 4.32712 26.7593 5.23962 25.3906L7.59466 21.8581C8.38981 20.6653 8.78738 20.069 9.07064 19.4197C9.21472 19.0894 9.33632 18.7498 9.43461 18.4032C9.62785 17.7217 9.69917 17.0085 9.84181 15.5821L10.2956 11.0441Z" fill="white"/>
+            <path d="M15.9413 32.6632C16.1217 32.8316 16.5192 32.9803 17.0723 33.0864C17.6253 33.1925 18.3029 33.25 19 33.25C19.6971 33.25 20.3747 33.1925 20.9278 33.0864C21.4808 32.9803 21.8784 32.8316 22.0588 32.6632" stroke="white" stroke-width="2" stroke-linecap="round"/>
           </svg>
         </a>
           <a href="/profile" class="nav-links">
@@ -845,6 +835,14 @@
     <!-- Profile Page -->
     <template id="profilepage">
       <style>
+        .containers2 {
+          background-color: #ffffff;
+          border-radius: 15px;
+          box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+          padding: 30px;
+          margin: 0 auto;
+          margin-top: 0px;
+        }
         .avatar {
           position: relative;
           display: inline-block;
@@ -866,7 +864,7 @@
           background-color: #ccc;
         }
       </style>
-      <div class="container mt-5 profile-page">
+      <div class="containers2 mt-5 profile-page">
 
         <!-- part of personal data -->
         <div class="row  profile-info">
