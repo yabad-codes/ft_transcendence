@@ -23,22 +23,20 @@ export class GameScreen extends BaseHTMLElement {
         <div class="mb-4 text-2xl font-bold" style="font-size: 50px; font-weight: 700; text-transform: uppercase; margin-top: 25px;">Pong Game</div>
         <div class="flex items-center justify-between w-full max-w-4xl mb-4" style="display: flex; justify-content: space-evenly; width: 80%; margin-top: 33px;">
           <div id="leftPlayer" class="flex flex-col items-center" style="text-align: center;">
-            <img src="/api/placeholder/100/100" alt="Player 1" class="w-16 h-16 rounded-full mb-2" style="width: 100px; border-radius: 50%;">
+            <img src="" alt="Player 1" class="w-16 h-16 rounded-full mb-2" style="width: 100px; border-radius: 50%;">
             <h3 class="text-lg font-semibold"></h3>
             <div class="score text-3xl font-bold" style="font-size: 30px; padding-top: 5px; padding-bottom: 5px; font-weight: 700;"></div>
           </div>
           <div id="rightPlayer" class="flex flex-col items-center" style="text-align: center;">
-            <img src="/api/placeholder/100/100" alt="Player 2" class="w-16 h-16 rounded-full mb-2" style="width: 100px; border-radius: 50%;">
+            <img src="" alt="Player 2" class="w-16 h-16 rounded-full mb-2" style="width: 100px; border-radius: 50%;">
             <h3 class="text-lg font-semibold"></h3>
             <div class="score text-3xl font-bold" style="font-size: 30px; padding-top: 5px; padding-bottom: 5px; font-weight: 700;"></div>
           </div>
         </div>
         <canvas id="game" width="1000" height="600" class="border-4 border-gray-800"></canvas>
-        <div id="gameOverOverlay" class="hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-70 flex flex-col justify-center items-center">
-          <h2 id="gameOverMessage" class="text-4xl font-bold text-white mb-8"></h2>
-          <button id="newGameButton" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            New Game
-          </button>
+        <div id="gameOverOverlay" class="fixed top-0 left-0 w-full h-full flex flex-col justify-center items-center" style="display: flex; justify-content: center; align-items: center; flex-direction: column; margin-top: 20px;">
+          <h2 id="gameOverMessage" class="text-4xl font-bold mb-8"></h2>
+          <button id="newGameButton" style="width: 115px; height: 50px; border-radius: 200px; background-color: transparent; font-size: 15px; font-weight: 600; margin-top: 20px;">Close</button>
         </div>
       </div>
     `;
@@ -100,7 +98,6 @@ export class GameScreen extends BaseHTMLElement {
   handleJsonMessage(data) {
     try {
       const jsonData = JSON.parse(data);
-      console.log(jsonData);
       if (jsonData.status === "player_info") {
         this.setPlayerInfo(jsonData.data);
       } else if (jsonData.status === "game_start") {
@@ -112,7 +109,6 @@ export class GameScreen extends BaseHTMLElement {
         this.handleGameOver(jsonData.winner, jsonData.reason);
       }
     } catch (e) {
-      console.error("Unexpected message from game server:", e);
     }
   }
 
@@ -197,7 +193,9 @@ export class GameScreen extends BaseHTMLElement {
   }
 
   startNewGame() {
-    window.location.href = "/";
+    // close the game socket and redirect to the home page
+    this.gameSocket.close();
+    app.router.go("/");
   }
 
   decodeGameState(arrayBuffer) {
@@ -249,29 +247,26 @@ export class GameScreen extends BaseHTMLElement {
   }
 
   drawInitialGame() {
-    // Clear the canvas
-    this.ctx.fillStyle = "white";
+    // Clear the canvas with black background
+    this.ctx.fillStyle = "black";
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
+  
     // Draw the border
-    this.ctx.strokeStyle = "black";
+    this.ctx.strokeStyle = "white";
     this.ctx.lineWidth = 2;
     this.ctx.strokeRect(0, 0, this.canvas.width, this.canvas.height);
-
+  
     // Draw the center line
-    this.ctx.setLineDash([5, 15]);
     this.ctx.beginPath();
     this.ctx.moveTo(this.canvas.width / 2, 0);
     this.ctx.lineTo(this.canvas.width / 2, this.canvas.height);
     this.ctx.stroke();
-    this.ctx.setLineDash([]);
-
+  
     // Draw the paddles
-    this.ctx.fillStyle = "#117a8b"; // Blue for left paddle
+    this.ctx.fillStyle = "white";
     this.ctx.fillRect(20, this.gameState.player1Y, 10, 80); // Left paddle
-    this.ctx.fillStyle = "#dc3545"; // Red for right paddle
     this.ctx.fillRect(this.canvas.width - 30, this.gameState.player2Y, 10, 80); // Right paddle
-
+  
     // Draw the ball
     this.ctx.beginPath();
     this.ctx.arc(
@@ -281,7 +276,6 @@ export class GameScreen extends BaseHTMLElement {
       0,
       Math.PI * 2
     );
-    this.ctx.fillStyle = "#FFA726"; // Orange for the ball
     this.ctx.fill();
     this.ctx.closePath();
   }

@@ -160,7 +160,7 @@ class PongConsumer(AsyncWebsocketConsumer):
                     await self.update_game_status(winner=self.game.get_winner())
                     await self.send_game_over()
                     break
-                await asyncio.sleep(1/30)
+                await asyncio.sleep(1/60)
         except asyncio.CancelledError:
             print("Game loop cancelled")
         finally:

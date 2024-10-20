@@ -61,7 +61,6 @@ export class GamePage extends BaseHTMLElement {
       });
 
       const data = await response.json();
-      console.log(data);
 
       if (response.ok) {
         this.updateStatus("Connecting to matchmaking...");
