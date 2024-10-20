@@ -1,0 +1,88 @@
+:host {
+    display: block;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f2f5;
+    padding: 20px;
+}
+.container {
+    background-color: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+h1 {
+    color: #4a4a4a;
+    margin-bottom: 30px;
+    text-align: center;
+}
+.avatar_69 {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #ffffff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+.friend-item {
+    display: flex;
+    align-items: center;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+.friend-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+.friend-item label {
+    margin-left: 15px;
+    margin-bottom: 0;
+    font-size: 18px;
+    color: #333;
+}
+#searchBar {
+    width: 100%;
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: 1px solid #ced4da;
+    margin-bottom: 20px;
+}
+#startTournament {
+    display: block;
+    width: 100%;
+    border-radius: 20px;
+    padding: 10px 30px;
+    font-size: 18px;
+    font-weight: bold;
+    text-transform: uppercase;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+#startTournament:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+#progressBarContainer {
+    display: none;
+    margin-top: 30px;
+}
+.progress {
+    height: 25px;
+    background-color: #e9ecef;
+    border-radius: 15px;
+    overflow: hidden;
+}
+#progressBar {
+    height: 100%;
+    background-color: #28a745;
+    width: 0%;
+    transition: width 0.5s ease;
+}

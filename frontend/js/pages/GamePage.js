@@ -4,39 +4,61 @@ export class GamePage extends BaseHTMLElement {
   constructor() {
     super("gamepage");
     this.matchmakingSocket = null;
-    this.gameState = "matchmaking";
+    this.gameState = "idle";
   }
 
   connectedCallback() {
     super.connectedCallback();
+    this.render();
     this.setupEventListeners();
   }
 
+  render() {
+    this.innerHTML = `
+      <div class="game-container">
+        <h1 class="game-title">Pong Game</h1>
+        <div class="game-options">
+          <button id="requestGameBtn" class="btn btn-primary">Find Match</button>
+          <button id="cancelMatchmakingBtn" class="btn btn-danger" disabled>Cancel</button>
+          <button id="createTournament" class="btn btn-primary">Create Tournament</button>
+        </div>
+        <div id="matchmakingStatus" class="status-message"></div>
+        <div class="game-instructions">
+          <h2>How to Play</h2>
+          <ul>
+            <li>Use 'W' key to move paddle up</li>
+            <li>Use 'S' key to move paddle down</li>
+            <li>First player to score 11 points wins</li>
+          </ul>
+        </div>
+      </div>
+    `;
+  }
+
   setupEventListeners() {
-    const requestGameBtn = document.getElementById("requestGameBtn");
-    const cancelMatchmakingBtn = document.getElementById(
-      "cancelMatchmakingBtn"
-    );
+    const requestGameBtn = this.querySelector("#requestGameBtn");
+    const cancelMatchmakingBtn = this.querySelector("#cancelMatchmakingBtn");
+    const createTournamentBtn = this.querySelector("#createTournament");
 
     requestGameBtn.addEventListener("click", () => this.requestGame());
     cancelMatchmakingBtn.addEventListener("click", () =>
       this.cancelMatchmaking()
     );
+    createTournamentBtn.addEventListener("click", () =>
+      app.router.go("/tournament", false)
+    );
   }
 
   async requestGame() {
     try {
-      const response = await fetch(
-        "https://localhost:8081/api/play/request-game/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          mode: "cors",
-        }
-      );
+      const response = await fetch("/api/play/request-game/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        mode: "cors",
+      });
 
       const data = await response.json();
 
@@ -44,36 +66,38 @@ export class GamePage extends BaseHTMLElement {
         this.updateStatus("Connecting to matchmaking...");
         this.connectToMatchmaking(data.websocket_url);
       } else {
-        this.updateStatus(`Error: ${data.message}`);
+        this.updateStatus(`Error: ${data.message}`, "error");
       }
     } catch (error) {
-      this.updateStatus(`Error: ${error.message}`);
+      this.updateStatus(`Error: ${error.message}`, "error");
     }
   }
 
   connectToMatchmaking(websocketUrl) {
     websocketUrl = websocketUrl.replace(/\/$/, "");
     this.matchmakingSocket = new WebSocket(
-      `wss://localhost:8081${websocketUrl}/`
+      `wss://${window.location.host}${websocketUrl}/`
     );
 
     this.matchmakingSocket.onopen = () => {
-      this.updateStatus("Waiting for opponent...");
+      this.updateStatus("Waiting for opponent...", "waiting");
       this.toggleButtons(true);
     };
 
     this.matchmakingSocket.onmessage = (e) => {
       const data = JSON.parse(e.data);
       if (data.status === "matched") {
-        this.updateStatus(`Matched! Game ID: ${data.game_id}`);
+        this.updateStatus(`Matched! Preparing game...`, "success");
         this.matchmakingSocket.close();
-        this.renderGameScreen(data.game_id);
+        this.startGame(data.game_id);
       }
     };
 
     this.matchmakingSocket.onclose = () => {
-      this.updateStatus("Disconnected from matchmaking");
-      this.toggleButtons(false);
+      if (this.gameState === "matchmaking") {
+        this.updateStatus("Disconnected from matchmaking", "error");
+        this.toggleButtons(false);
+      }
     };
   }
 
@@ -87,56 +111,29 @@ export class GamePage extends BaseHTMLElement {
       );
       this.matchmakingSocket.close();
     }
-    this.updateStatus("Matchmaking cancelled");
+    this.updateStatus("Matchmaking cancelled", "info");
     this.toggleButtons(false);
   }
 
-  updateStatus(message) {
-    const statusElement = document.getElementById("matchmakingStatus");
+  updateStatus(message, type = "info") {
+    const statusElement = this.querySelector("#matchmakingStatus");
     statusElement.textContent = message;
+    statusElement.className = `status-message ${type}`;
   }
 
   toggleButtons(isMatchmaking) {
-    const requestGameBtn = document.getElementById("requestGameBtn");
-    const cancelMatchmakingBtn = document.getElementById(
-      "cancelMatchmakingBtn"
-    );
+    const requestGameBtn = this.querySelector("#requestGameBtn");
+    const cancelMatchmakingBtn = this.querySelector("#cancelMatchmakingBtn");
     requestGameBtn.disabled = isMatchmaking;
     cancelMatchmakingBtn.disabled = !isMatchmaking;
+    this.gameState = isMatchmaking ? "matchmaking" : "idle";
   }
 
-  renderGameScreen(gameId) {
-    const gameScreenTemplate = document
-      .getElementById("gamescreen")
-      .content.cloneNode(true);
-    const gameIdElement = gameScreenTemplate.querySelector("#gameId");
-    gameIdElement.textContent = gameId;
-
-    const gameContainer = document.querySelector(".game-container");
-    gameContainer.innerHTML = ""; // Clear the existing content
-    gameContainer.appendChild(gameScreenTemplate); // Load the new game screen
-    this.initGameWebSocket(gameId);
-  }
-
-  initGameWebSocket(gameId) {
-    const ws = new WebSocket(`wss://localhost:8081/ws/pong/${gameId}/`);
-
-    ws.onopen = () => {
-      console.log("Connected to game websocket");
-    };
-
-    ws.onmessage = (e) => {
-      const data = JSON.parse(e.data);
-      console.log(data);
-    };
-
-    ws.onclose = () => {
-      console.log("Disconnected from game websocket");
-    };
-
-    ws.onerror = (error) => {
-      console.error("Game websocket error", error);
-    };
+  startGame(gameId) {
+    app.router.removeOldPages();
+    app.router.insertPage("game-screen");
+    const gameScreen = document.querySelector("game-screen");
+    gameScreen._setGameId = gameId;
   }
 }
 

@@ -3,7 +3,7 @@ import bleach
 import logging
 import requests
 from django.conf import settings
-from rest_framework import serializers
+from rest_framework import serializers, status
 from .models import Player
 from google.cloud import storage
 from django.conf import settings
@@ -61,6 +61,7 @@ def create_player(validated_data):
 		api_user_id=validated_data.get('api_user_id', None),
 		first_name=validated_data['first_name'],
 		last_name=validated_data['last_name'],
+		tournament_name=validated_data['tournament_name'],
 		password=validated_data['password'],
 		avatar_url=validated_data.get('avatar_url', None)
 	)

@@ -11,6 +11,7 @@ USERNAME_REGEX = r'^(?=[a-zA-Z0-9]*-?[a-zA-Z0-9]*$)[a-zA-Z][a-zA-Z0-9\-]{2,19}$'
 NAME_REGEX = r'^[a-zA-Z]+([ -][a-zA-Z]+)*$'
 
 USERNAME_ERROR = "Username: 3-20 chars, 1+ letter, no spaces, only letters, numbers, or _."
+TOURNAMENT_NAME_ERROR = "Tournament Name: 3-20 chars, 1+ letter, no spaces, only letters, numbers, or _."
 NAME_ERROR = "First and last name must contain only letters, or a single space or hyphen followed by a letter."
 
 INCLUDE_USERNAME_AND_PASSWORD = "Must include 'username' and 'password'."
@@ -70,6 +71,31 @@ def username_validator(username):
         message=USERNAME_ERROR
     )
     regex_validator(username)
+    
+def tournament_name_validator(nickname):
+    """
+    Validates the given username.
+
+    Checks if the username already exists in the database and raises a ValueError if it does.
+    Additionally, applies a regex validation to ensure the username matches a specific pattern.
+
+    Args:
+            username (str): The username to be validated.
+
+    Raises:
+            ValueError: If the username already exists in the database.
+
+    Returns:
+            None
+    """
+    
+    if Player.objects.filter(tournament_name=nickname).exists():
+        raise ValidationError('Nickname already exists.')
+    regex_validator = RegexValidator(
+        regex=USERNAME_REGEX,
+        message=TOURNAMENT_NAME_ERROR
+    )
+    regex_validator(nickname)
 
 def name_validator(name):
     """

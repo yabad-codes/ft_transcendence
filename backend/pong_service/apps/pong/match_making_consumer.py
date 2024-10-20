@@ -1,4 +1,5 @@
 import json
+import random
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async, async_to_sync
 from channels.db import database_sync_to_async
@@ -20,8 +21,6 @@ class MatchMakingConsumer(AsyncWebsocketConsumer):
 
         if self.access:
             self.player = await self.get_user_from_access_token(self.access)
-            print(f'Player {
-                  self.player.username} connected to matchmaking from yabad was here!!!')
         else:
             self.player = None
 
@@ -130,84 +129,3 @@ class MatchMakingConsumer(AsyncWebsocketConsumer):
                 }))
             else:
                 print(f"Warning: No active connection for player {player_id}")
-
-
-class PongConsumer(AsyncWebsocketConsumer):
-    async def connect(self):
-        self.cookies = self.scope['cookies']
-        self.game_id = self.scope['url_route']['kwargs']['game_id']
-        self.room_name = f'pong_{self.game_id}'
-        access = self.cookies.get('access')
-
-        if not access:
-            self.player = None
-        else:
-            self.player = await self.get_user_from_access_token(self.cookies.get('access'))
-
-        if not self.player:
-            await self.close()
-            return
-
-        await self.channel_layer.group_add(
-            self.room_name,
-            self.channel_name
-        )
-        print(f'Player {self.player.username} connected to game {
-              self.game_id}')
-        await self.accept()
-
-        await self.check_if_game_ready()
-
-    async def disconnect(self, close_code):
-        if not self.player:
-            return
-        print(f'Player {self.player.username} disconnected from game {
-              self.game_id}')
-        await self.channel_layer.group_discard(
-            self.room_name,
-            self.channel_name
-        )
-
-    async def receive(self, text_data):
-        pass
-
-    async def get_user_from_access_token(self, access_token):
-        from django.conf import settings
-        from pong_service.apps.authentication.models import Player
-        from jwt import InvalidTokenError
-        from rest_framework_simplejwt.exceptions import TokenError
-        try:
-            decoded_token = await sync_to_async(jwt_decode)(access_token, settings.SECRET_KEY, algorithms=['HS256'])
-            user_id = decoded_token.get('user_id')
-
-            if user_id is None:
-                return None
-
-            user = await sync_to_async(Player.objects.get)(id=user_id)
-            return user
-        except (TokenError, InvalidTokenError, Player.DoesNotExist):
-            return None
-
-    async def check_if_game_ready(self):
-        is_ready = await self.get_game_ready_status()
-        if is_ready:
-            print('Game is ready')
-            await self.channel_layer.group_send(
-                self.room_name,
-                {
-                    'type': 'game_start',
-                    'game_id': self.game_id
-                }
-            )
-
-    async def game_start(self, event):
-        await self.send(text_data=json.dumps({
-            'status': 'game_start',
-            'game_id': event['game_id']
-        }))
-
-    @database_sync_to_async
-    def get_game_ready_status(self):
-        from pong_service.apps.pong.models import PongGame
-        game = PongGame.objects.get(id=self.game_id)
-        return bool(game.player1 and game.player2)

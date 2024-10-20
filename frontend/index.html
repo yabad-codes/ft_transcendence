@@ -12,6 +12,25 @@
     <!-- error-management -->
     <div id="error-management"></div>
 
+    <!-- Player game request -->
+    <div id="gameRequestPopup">
+        <div class="popup-content">
+            <div class="avatar-container">
+                <img id="avatarImg" class="avatar" src="" alt="User Avatar">
+            </div>
+            <h5 class="mb-3 text-center">Game Request</h5>
+            <p id="requestMessage" class="text-center"></p>
+            <div class="progress mb-3">
+                <div id="timeProgress" class="progress-bar" role="progressbar" style="width: 100%"></div>
+            </div>
+            <p id="timeLeft" class="text-center mb-3"></p>
+            <div class="d-flex justify-content-center">
+                <button id="declineBtn" class="btn btn-outline-secondary me-2">Decline</button>
+                <button id="acceptBtn" class="btn btn-primary">Accept</button>
+            </div>
+        </div>
+    </div>
+
     <!-- COMPONENTS -->
 
     <!-- NavBar -->
@@ -221,39 +240,82 @@
           <button class="btn secondary-btn" id="cancelMatchmakingBtn" disabled>
             Cancel Matchmaking
           </button>
+          <button class="btn primary-btn" id="createTournament" disabled>
+            Create Tournament
+          </button>
           <button class="btn tournament-btn">Join Tournament</button>
         </div>
         <div id="matchmakingStatus" class="status mt-3"></div>
       </div>
     </template>
 
+    <!-- Tournament template -->
+    <template id="tournamentpage">
+      <div class="container">
+        <h1>Create Pong Tournament</h1>
+        <input type="text" id="searchBar" placeholder="Search players...">
+        <div id="friendsList"></div>
+        <button id="startTournament" disabled>Start Tournament</button>
+        <div id="progressBarContainer">
+            <h4 style="text-align: center; margin-bottom: 10px;">Preparing Tournament...</h4>
+            <div class="progress">
+                <div id="progressBar"></div>
+            </div>
+        </div>
+    </div>
+    </template>
+
+    <!-- Tournament Screen Template -->
+    <template id="tournamentscreen">
+      <div id="gameContainer">
+        <div id="tournamentInfo">
+            <h1>PONG Tournament</h1>
+            <h2 id="currentRound"></h2>
+            <h3 id="currentMatch"></h3>
+        </div>
+        <div id="playerInfo">
+            <div class="player" id="leftPlayer">
+              <div>
+                <img src="" alt="Left Player Avatar">
+                <h3></h3>
+              </div>
+              <h3 class="score"></h3>
+            </div>
+            <div class="player" id="rightPlayer">
+              <div>
+                <img src="" alt="Right Player Avatar">
+                <h3></h3>
+              </div>
+              <h3 class="score"></h3>
+            </div>
+        </div>
+        <canvas width="1000" height="600" id="game"></canvas>
+      </div>
+    </template>
+
     <!-- Game Screen Template -->
     <template id="gamescreen">
-      <div class="game-screen">
-        <div id="gameId" class="game-id"></div>
-        <div class="players-info">
-          <div class="player">
-            <img
-              src="/api/avatar"
-              alt="Player 1"
-              class="player-avatar rounded-circle"
-            />
-            <span id="player1-score" class="player-score">0</span>
-          </div>
-          <div class="player">
-            <img
-              src="/api/avatar"
-              alt="Player 2"
-              class="player-avatar rounded-circle"
-            />
-            <span id="player2-score" class="player-score">0</span>
-          </div>
+      <div id="gameContainer">
+        <div id="gameInfo">
+            <h1>PONG game</h1>
         </div>
-        <div class="game-board">
-          <div class="paddle player1-paddle"></div>
-          <div class="paddle player2-paddle"></div>
-          <div class="ball"></div>
+        <div id="playerInfo">
+            <div class="player" id="leftPlayer">
+              <div>
+                <img src="" alt="Left Player Avatar">
+                <h3></h3>
+              </div>
+              <h3 class="score"></h3>
+            </div>
+            <div class="player" id="rightPlayer">
+              <div>
+                <img src="" alt="Right Player Avatar">
+                <h3></h3>
+              </div>
+              <h3 class="score"></h3>
+            </div>
         </div>
+        <canvas width="1000" height="600" id="game"></canvas>
       </div>
     </template>
 
@@ -372,6 +434,12 @@
                       required
                     />
                     <input
+                      type="text"
+                      class="login-input"
+                      placeholder="Tournament name"
+                      required
+                    />
+                    <input
                       type="password"
                       class="login-input"
                       placeholder="Password"
@@ -437,110 +505,7 @@
             class="p-3 border border-secondary-subtle border-top-0 border-end-0 border-start-0"
           />
           <div class="flex-grow-1 overflow-y-auto popup-friends text-start">
-            <button
-              class="popup-btn w-100 border border-secondary-subtle border-top-0 border-end-0 border-start-0"
-            >
-              <div class="avatar me-2">
-                <img
-                  class="avatar_image shadow-sm"
-                  src="./images/avatar.jpg"
-                  alt="Avatar image"
-                />
-                <span class="avatar_status"></span>
-              </div>
-              Anouar El Maaroufi
-            </button>
-            <button
-              class="popup-btn w-100 border border-secondary-subtle border-top-0 border-end-0 border-start-0"
-            >
-              <div class="avatar me-2">
-                <img
-                  class="avatar_image shadow-sm"
-                  src="./images/avatar.jpg"
-                  alt="Avatar image"
-                />
-                <span class="avatar_status"></span>
-              </div>
-              Anouar El Maaroufi
-            </button>
-            <button
-              class="popup-btn w-100 border border-secondary-subtle border-top-0 border-end-0 border-start-0"
-            >
-              <div class="avatar me-2">
-                <img
-                  class="avatar_image shadow-sm"
-                  src="./images/avatar.jpg"
-                  alt="Avatar image"
-                />
-                <span class="avatar_status"></span>
-              </div>
-              Anouar El Maaroufi
-            </button>
-            <button
-              class="popup-btn w-100 border border-secondary-subtle border-top-0 border-end-0 border-start-0"
-            >
-              <div class="avatar me-2">
-                <img
-                  class="avatar_image shadow-sm"
-                  src="./images/avatar.jpg"
-                  alt="Avatar image"
-                />
-                <span class="avatar_status"></span>
-              </div>
-              Anouar El Maaroufi
-            </button>
-            <button
-              class="popup-btn w-100 border border-secondary-subtle border-top-0 border-end-0 border-start-0"
-            >
-              <div class="avatar me-2">
-                <img
-                  class="avatar_image shadow-sm"
-                  src="./images/avatar.jpg"
-                  alt="Avatar image"
-                />
-                <span class="avatar_status"></span>
-              </div>
-              Anouar El Maaroufi
-            </button>
-            <button
-              class="popup-btn w-100 border border-secondary-subtle border-top-0 border-end-0 border-start-0"
-            >
-              <div class="avatar me-2">
-                <img
-                  class="avatar_image shadow-sm"
-                  src="./images/avatar.jpg"
-                  alt="Avatar image"
-                />
-                <span class="avatar_status"></span>
-              </div>
-              Anouar El Maaroufi
-            </button>
-            <button
-              class="popup-btn w-100 border border-secondary-subtle border-top-0 border-end-0 border-start-0"
-            >
-              <div class="avatar me-2">
-                <img
-                  class="avatar_image shadow-sm"
-                  src="./images/avatar.jpg"
-                  alt="Avatar image"
-                />
-                <span class="avatar_status"></span>
-              </div>
-              Anouar El Maaroufi
-            </button>
-            <button
-              class="popup-btn w-100 border border-secondary-subtle border-top-0 border-end-0 border-start-0"
-            >
-              <div class="avatar me-2">
-                <img
-                  class="avatar_image shadow-sm"
-                  src="./images/avatar.jpg"
-                  alt="Avatar image"
-                />
-                <span class="avatar_status"></span>
-              </div>
-              Anouar El Maaroufi
-            </button>
+            <!-- Friends -->
           </div>
         </div>
       </div>
@@ -584,56 +549,7 @@
         <h5 class="pe-4 ps-4">Direct messages</h5>
         <div class="flex-grow-1 overflow-y-auto">
           <div class="direct_message_container pe-4 ps-4">
-            <button
-              class="direct_message_btn border-0 w-100 p-3 rounded-pill d-inline-flex mb-2"
-            >
-              <div class="avatar me-2">
-                <img
-                  class="avatar_image"
-                  src="./images/avatar.jpg"
-                  alt="Avatar image"
-                />
-                <span class="avatar_status"></span>
-              </div>
-              <div
-                class="flex-grow-1 d-flex flex-column justify-content-between position-relative"
-                style="height: 60px"
-              >
-                <h6 class="text-start m-0">James bones</h6>
-                <p class="direct_message_text text-start m-0">
-                  Hello today is a wonderful day... hjkjjljkgg
-                </p>
-                <span
-                  class="direct_message_notification_icon position-absolute top-0 end-0 border border-light badge rounded-circle d-flex justify-content-center align-items-center"
-                  >2</span
-                >
-              </div>
-            </button>
-            <button
-              class="btn border-0 w-100 p-3 rounded-pill d-inline-flex mb-2"
-            >
-              <div class="avatar me-2">
-                <img
-                  class="avatar_image"
-                  src="./images/avatar.jpg"
-                  alt="Avatar image"
-                />
-                <span class="avatar_status"></span>
-              </div>
-              <div
-                class="flex-grow-1 d-flex flex-column justify-content-between position-relative"
-                style="height: 60px"
-              >
-                <h6 class="text-start m-0">James bones</h6>
-                <p class="direct_message_text text-start m-0">
-                  Hello today is a wonderful day... blabla
-                </p>
-                <span
-                  class="direct_message_notification_icon position-absolute top-0 end-0 border border-light badge rounded-circle d-flex justify-content-center align-items-center"
-                  >2</span
-                >
-              </div>
-            </button>
+            <!-- Direct messages -->
           </div>
         </div>
       </div>
@@ -644,13 +560,13 @@
           <div
             class="z-3 d-inline-flex justify-content-between align-items-center p-3 user_profile_bar"
           >
-            <span class="fw-semibold">
+            <button class="fw-semibold border-0" style="background-color: transparent;">
               <div class="avatar me-2">
                 <img class="avatar_image" src="" alt="Avatar image" />
                 <span class="avatar_status"></span>
               </div>
               <span></span>
-            </span>
+            </button>
 
             <div class="dropdown">
               <button id="dropdownButton" class="border-0 bg-transparent">
@@ -672,6 +588,14 @@
                 class="dropdown-menu"
                 aria-labelledby="dropdownButton"
               >
+              <li>
+                <a
+                  class="dropdown-item text-danger"
+                  href="#"
+                  data-action="game"
+                  >Play a game</a
+                >
+              </li>
                 <li>
                   <a
                     class="dropdown-item text-danger"
