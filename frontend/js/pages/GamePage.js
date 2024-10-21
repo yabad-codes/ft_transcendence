@@ -19,8 +19,8 @@ export class GamePage extends BaseHTMLElement {
         <h1 class="game-title">Pong Game</h1>
         <div class="game-options">
           <button id="requestGameBtn" class="btn btn-primary">Find Match</button>
-          <button id="cancelMatchmakingBtn" class="btn btn-danger" disabled>Cancel</button>
           <button id="createTournament" class="btn btn-primary">Create Tournament</button>
+          <button id="cancelMatchmakingBtn" class="btn btn-danger" disabled>Cancel</button>
         </div>
         <div id="matchmakingStatus" class="status-message"></div>
         <div class="game-instructions">
@@ -123,8 +123,11 @@ export class GamePage extends BaseHTMLElement {
 
   toggleButtons(isMatchmaking) {
     const requestGameBtn = this.querySelector("#requestGameBtn");
+    const createTournamentBtn = this.querySelector("#createTournament");
     const cancelMatchmakingBtn = this.querySelector("#cancelMatchmakingBtn");
+
     requestGameBtn.disabled = isMatchmaking;
+    createTournamentBtn.disabled = isMatchmaking;
     cancelMatchmakingBtn.disabled = !isMatchmaking;
     this.gameState = isMatchmaking ? "matchmaking" : "idle";
   }
