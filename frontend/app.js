@@ -14,6 +14,7 @@ import { SearchPage } from "./js/pages/SearchPage.js";
 import { NotificationPage } from "./js/pages/NotificationPage.js"; 
 import { TournamentPage } from "./js/pages/TournamentPage.js";
 import { TournamentScreen } from "./js/pages/TournamentScreen.js";
+import { NotFoundPage } from "./js/pages/NotFoundPage.js";
 import { api } from "./js/utils/api.js";
 import Router from "./js/utils/router.js";
 import { connectToNotificationServer } from "./js/utils/NotificationSocket.js";
