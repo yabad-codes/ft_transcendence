@@ -21,7 +21,7 @@ def sanitize_and_validate_data(validated_data):
 	Returns:
 		dict: The sanitized and validated data.
 	"""
-	fields = ['username', 'first_name', 'last_name']
+	fields = ['username','first_name', 'last_name', 'tournament_name']
 	for field in fields:
 		if field in validated_data:
 			validated_data[field] = bleach.clean(validated_data[field])
@@ -80,7 +80,8 @@ def get_player_representation(player):
 		'username': player.username,
 		'first_name': player.first_name,
 		'last_name': player.last_name,
-		'avatar_url': player.avatar_url if player.avatar_url else None
+		'avatar_url': player.avatar_url if player.avatar_url else None,
+		'tournament_name': player.tournament_name
 	}
  
 def update_player_info(self, instance, validated_data):
@@ -94,7 +95,7 @@ def update_player_info(self, instance, validated_data):
 	Returns:
 		The updated player instance.
 	"""
-	fields = ['username', 'first_name', 'last_name']
+	fields = ['first_name', 'last_name', 'tournament_name']
 	for field in fields:
 		if field in validated_data:
 			setattr(instance, field, validated_data[field])
