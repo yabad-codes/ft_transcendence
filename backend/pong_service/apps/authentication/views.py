@@ -633,7 +633,7 @@ class ChangePasswordView(generics.UpdateAPIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response({"message":"update password successfully", "success": True}, status=status.HTTP_200_OK)
-            return Response({"errors": serializers.errors, "success": False}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"success": False}, status=status.HTTP_400_BAD_REQUEST)
 
 class CheckTwoFactorView(APIView):
 	"""
