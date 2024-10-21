@@ -109,17 +109,26 @@ export class GameScreen extends BaseHTMLElement {
       } else if (jsonData.status === "game_over") {
         this.handleGameOver(jsonData.winner, jsonData.reason);
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   handleGameOver(winner, reason) {
+    // if the winner is myself then update won of app.profile.wins
+    if (winner === app.profile.username) {
+      app.profile.wins += 1;
+    } else {
+      app.profile.losses += 1;
+    }
     this.gameOver = true;
     let message;
     if (reason === "disconnection") {
-      message = winner ? `${winner} wins due to opponent disconnection!` : "Game over due to unexpected disconnection.";
+      message = winner
+        ? `${winner} wins due to opponent disconnection!`
+        : "Game over due to unexpected disconnection.";
     } else {
-      message = winner ? `Game over! ${winner} wins!` : "Game over! It's a tie!";
+      message = winner
+        ? `Game over! ${winner} wins!`
+        : "Game over! It's a tie!";
     }
     this.gameOverMessage.textContent = message;
     this.gameOverOverlay.classList.remove("hidden");
@@ -173,20 +182,6 @@ export class GameScreen extends BaseHTMLElement {
       leftPlayer.querySelector(".score").textContent = this.gameState.score1;
       rightPlayer.querySelector(".score").textContent = this.gameState.score2;
     }
-  }
-
-  handleGameOver(winner) {
-    this.gameOver = true;
-    let message;
-    if (winner) {
-      message = `Game over! ${winner} wins!`;
-    } else {
-      message = "Game over! It's a tie!";
-    }
-    this.gameOverMessage.textContent = message;
-    this.gameOverOverlay.classList.remove("hidden");
-    console.log(message);
-    this.gameSocket.close();
   }
 
   handleUnexpectedDisconnection() {
@@ -251,23 +246,23 @@ export class GameScreen extends BaseHTMLElement {
     // Clear the canvas with black background
     this.ctx.fillStyle = "black";
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-  
+
     // Draw the border
     this.ctx.strokeStyle = "white";
     this.ctx.lineWidth = 2;
     this.ctx.strokeRect(0, 0, this.canvas.width, this.canvas.height);
-  
+
     // Draw the center line
     this.ctx.beginPath();
     this.ctx.moveTo(this.canvas.width / 2, 0);
     this.ctx.lineTo(this.canvas.width / 2, this.canvas.height);
     this.ctx.stroke();
-  
+
     // Draw the paddles
     this.ctx.fillStyle = "white";
     this.ctx.fillRect(20, this.gameState.player1Y, 10, 80); // Left paddle
     this.ctx.fillRect(this.canvas.width - 30, this.gameState.player2Y, 10, 80); // Right paddle
-  
+
     // Draw the ball
     this.ctx.beginPath();
     this.ctx.arc(

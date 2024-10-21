@@ -217,6 +217,7 @@ class PlayerGamesView(APIView):
                 "winner": game.winner.username,
                 "player_score": player_score,
                 "opponent_score": opponent_score,
+                "opponent_avatar": game.player2.avatar_url,
                 "date": game.created_at.strftime("%Y-%m-%d")
             }
             games_data.append(game_data)
