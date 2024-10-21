@@ -29,8 +29,9 @@ export class LoginPage extends BaseHTMLElement {
       app.api.post("/api/login/", message).then(async (response) => {
         if (response.status === 200) {
           app.isLoggedIn = true;
-          app.profile = await app.api.getProfile();
           connectToNotificationServer();
+          app.profile = await app.api.getProfile();
+          app.profile.online = true;
           displayRequestStatus("success", "Login successful");
           app.router.go("/");
           return;
