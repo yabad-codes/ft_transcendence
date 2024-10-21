@@ -1,6 +1,6 @@
 import Cookies from "./Cookies.js";
 const api = {
-  baseUrl: "https://localhost:8081/api",
+  baseUrl: "/api",
 
   get: async (url) => {
     const response = await fetch(url);

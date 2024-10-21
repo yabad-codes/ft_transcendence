@@ -1,5 +1,5 @@
 const api = {
-	baseUrl: 'https://localhost:8081/api',
+	baseUrl: '/api',
 
 	async request(endpoint, method = 'GET', data = null) {
 		const url = `${this.baseUrl}/${endpoint}`;

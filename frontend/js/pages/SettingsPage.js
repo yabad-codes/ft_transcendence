@@ -106,7 +106,7 @@ export class SettingsPage extends BaseHTMLElement {
 				formData.append('avatar', file);
 	
 				try {
-					const response = await fetch('https://localhost:8081/api/update-avatar/', {
+					const response = await fetch('/api/update-avatar/', {
 						method: 'POST',
 						body: formData,
 						credentials: 'include',

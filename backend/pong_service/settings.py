@@ -16,7 +16,6 @@ from pathlib import Path
 from google.oauth2 import service_account
 import redis
 import os
-##adding logger for debugging
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -47,11 +46,12 @@ SECRET_KEY = 'django-insecure-^fy@3vqd&fs7882dpiznd_!@%j*yvv75%e$xndx0)%v*bm@efv
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+HOST_IP = os.environ.get('HOST_IP')
+
 ALLOWED_HOSTS = [
     'localhost',
-    '10.11.4.8',
+    HOST_IP,
 ]
-
 
 # Application definition
 
@@ -191,9 +191,10 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = '/app/static/'
 
-##setting for link google cloud storage with django
+# setting for link google cloud storage with django
 
-GS_CREDENTIALS = service_account.Credentials.from_service_account_file(os.path.join(BASE_DIR, 'credentials.json'))
+GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+    os.path.join(BASE_DIR, 'credentials.json'))
 DEFAULT_FILE_STORAGE = 'pong_service.apps.authentication.gcloud.GoogleCloudMediaStorage'
 GS_PROJECT_ID = 'transcendencestorage'
 GS_BUCKET_NAME = 'avatars_ft_tran'
@@ -209,7 +210,7 @@ AUTH_USER_MODEL = 'authentication.Player'
 
 APPEND_SLASH = True
 
-#for fixe the  CSRF error we can add it after
+# for fixe the  CSRF error we can add it after
 CSRF_TRUSTED_ORIGINS = [
     'https://localhost:8081',  # For local development
     'https://127.0.0.1:8081',  # Your production domain
