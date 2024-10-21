@@ -21,8 +21,12 @@ export class LoginPage extends BaseHTMLElement {
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
 
-      const username = event.target.querySelector("input[placeholder='Username']");
-      const password = event.target.querySelector("input[placeholder='Password']");
+      const username = event.target.querySelector(
+        "input[placeholder='Username']"
+      );
+      const password = event.target.querySelector(
+        "input[placeholder='Password']"
+      );
 
       const message = { username: username.value, password: password.value };
 
@@ -36,15 +40,15 @@ export class LoginPage extends BaseHTMLElement {
           app.router.go("/");
           return;
         } else if (response.status === 202) {
-		  console.log("status: ", response.status);
-		  app.router.go("/2fa");
-		  return;
-		}
+          console.log("status: ", response.status);
+          app.router.go("/2fa");
+          return;
+        }
         console.log("status: ", response.status);
         username.value = "";
         password.value = "";
-        
-        displayRequestStatus("error", response.data);
+
+        displayRequestStatus("error", "Username or password is incorrect");
       });
     });
   }
@@ -60,7 +64,7 @@ export class LoginPage extends BaseHTMLElement {
 
   Oauth42Login() {
     const oauth42Button = this.querySelector(".oauth42");
-  
+
     oauth42Button.addEventListener("click", (event) => {
       event.preventDefault();
       app.api.get("/api/oauth/login/").then((response) => {
