@@ -666,7 +666,7 @@ class UserDetailsView(APIView):
 		user = request.user
 		return Response({
 			"success": True,
-			"username": user.username,
+			"tournament_name": user.tournament_name,
 			"first_name": user.first_name,
 			"last_name": user.last_name,
 			"user_id": user.id,
