@@ -626,7 +626,7 @@ class ChangePasswordView(generics.UpdateAPIView):
             """
             self.object = self.get_object()
             if self.object.password is None:
-                serializer = CreatePasswordSerializer(self.object, data=request.data, parial=True,context={'request': request})
+               return Response({"message":"You are using a 42 login", "success": False}, status=status.HTTP_400_BAD_REQUEST)  
             else:    
                 serializer= ChangePasswordSerializer(self.object, data=request.data, partial=True, context={'request': request}) 
             
