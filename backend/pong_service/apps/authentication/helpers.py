@@ -9,7 +9,8 @@ from google.cloud import storage
 from django.conf import settings
 from rest_framework.response import Response
 
-
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 def sanitize_and_validate_data(validated_data):
 	"""
@@ -228,6 +229,7 @@ def construct_user_data(user_data):
     data = {}
     
     data['username'] = get_unique_username(user_data['login'], user_data['id'])
+    data['tournament_name'] = get_unique_tournament_name(user_data['login'])
     data['api_user_id'] = user_data['id']
     data['first_name'] = user_data['first_name']
     data['last_name'] = user_data['last_name']
@@ -252,6 +254,15 @@ def get_unique_username(username, api_user_id):
 	if api_user_id_exists:
 		player = Player.objects.get(api_user_id=api_user_id)
 		return player.username
+
+def get_unique_tournament_name(username):
+	if not Player.objects.filter(tournament_name=username).exists():
+		return username
+
+	tournament_name = f'{username}{random.randint(0, 100)}'
+	while Player.objects.filter(tournament_name=tournament_name).exists():
+		tournament_name = f'{username}{random.randint(0, 100)}'
+	return tournament_name
 
 def user_already_exists(user_data):
     return Player.objects.filter(api_user_id=user_data['api_user_id']).exists()
