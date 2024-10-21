@@ -367,7 +367,7 @@ export class ChatMessage extends BaseHTMLElement {
     );
     chatPage.state.conversations.splice(conversationIndex, 1);
     // remove the opened conversation from the object
-    chatPage.prevOpenedConversations = null;
+    chatPage.prevOpenedConversation = null;
     delete chatPage.openedConversations[this._conversation.id];
 
     // remove the current parent element
