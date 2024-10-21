@@ -330,8 +330,8 @@ export class SettingsPage extends BaseHTMLElement {
 					<form>
 						<div class="row mb-3">
 							<div class="col-12">
-								<label for="username" class="form-label">Username</label>
-								<input type="text" class="form-control" id="username">
+								<label for="tournament_name" class="form-label">Tournament Name</label>
+								<input type="text" class="form-control" id="tournament_name">
 							</div>
 						</div>
 

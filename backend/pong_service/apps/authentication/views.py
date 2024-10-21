@@ -626,14 +626,14 @@ class ChangePasswordView(generics.UpdateAPIView):
             """
             self.object = self.get_object()
             if self.object.password is None:
-                serializer = CreatePasswordSerializer(self.object, data=request.data, parial=True,context={'request': request})
+               return Response({"message":"You are using a 42 login", "success": False}, status=status.HTTP_400_BAD_REQUEST)  
             else:    
                 serializer= ChangePasswordSerializer(self.object, data=request.data, partial=True, context={'request': request}) 
             
             if serializer.is_valid():
                 serializer.save()
                 return Response({"message":"update password successfully", "success": True}, status=status.HTTP_200_OK)
-            return Response({"errors": serializers.errors, "success": False}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"success": False}, status=status.HTTP_400_BAD_REQUEST)
 
 class CheckTwoFactorView(APIView):
 	"""
@@ -666,7 +666,7 @@ class UserDetailsView(APIView):
 		user = request.user
 		return Response({
 			"success": True,
-			"username": user.username,
+			"tournament_name": user.tournament_name,
 			"first_name": user.first_name,
 			"last_name": user.last_name,
 			"user_id": user.id,

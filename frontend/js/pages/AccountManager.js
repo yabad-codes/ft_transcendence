@@ -9,7 +9,7 @@ import { MessageHandler } from './MessageHandler.js';
 export class AccountManager {
 	constructor() {
 
-		this.username = document.getElementById('username');
+		this.tournament_name = document.getElementById('tournament_name');
 		this.firstName = document.getElementById('firstName');
 		this.lastName = document.getElementById('lastName');
 		this.profilePicture = document.getElementById('profilePicture');
@@ -33,12 +33,12 @@ export class AccountManager {
 			if (response.success) {
 
 				this.originalValues = {
-					username: response.username,
+					tournament_name: response.tournament_name,
 					first_name: response.first_name,
 					last_name: response.last_name,
 				};
 
-				this.username.value = response.username;
+				this.tournament_name.value = response.tournament_name;
 				this.firstName.value = response.first_name;
 				this.lastName.value = response.last_name;
 
@@ -58,8 +58,8 @@ export class AccountManager {
 
 		const data = {};
 
-		if (this.username.value !== this.originalValues.username)
-			data.username = this.username.value;
+		if (this.tournament_name.value !== this.originalValues.tournament_name)
+			data.tournament_name = this.tournament_name.value;
 
 		if (this.firstName.value !== this.originalValues.first_name)
 			data.first_name = this.firstName.value;
