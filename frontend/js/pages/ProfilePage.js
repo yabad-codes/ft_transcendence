@@ -307,7 +307,7 @@ export class ProfilePage extends BaseHTMLElement {
             }</div>
             <div class="d-flex align-items-center justify-content-between mb-5">
                 <div class="d-flex align-items-center">
-                    <img class="avatar_image me-2" src="${app.profile.avatar_url}" alt="${
+                    <img class="avatar_image me-2" src="${this.state.profile.avatar_url}" alt="${
                       this.state.profile.username
                     }" />
                     <span>${this.state.profile.username}</span>
