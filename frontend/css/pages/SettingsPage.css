@@ -362,3 +362,17 @@ input:checked + .slider:before {
 .unblock-btn:hover {
 	background-color: #36a420;
 }
+
+/* Game Settings */
+.color-picker-group {
+    margin-bottom: 20px;
+}
+
+.color-preview {
+    width: 30px;
+    height: 30px;
+    border: 1px solid #ccc;
+    display: inline-block;
+    margin-left: 10px;
+    vertical-align: middle;
+}

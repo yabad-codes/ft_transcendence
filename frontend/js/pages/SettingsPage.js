@@ -4,6 +4,7 @@ import { ModalManager } from "./ModalManager.js";
 import { TwoFactorAuthManager } from "./TwoFactorAuthManager.js";
 import { AccountManager } from "./AccountManager.js";
 import { PasswordManager } from "./PasswordManager.js";
+import { GameManager } from "./GameManager.js";
 import { api } from "../utils/api_service.js";
 
 export class SettingsPage extends BaseHTMLElement {
@@ -35,6 +36,11 @@ export class SettingsPage extends BaseHTMLElement {
 				title: "Blocked Users",
 				content: this.getBlockedUsersContent.bind(this),
 			},
+			gameSettings: {
+				title: "Game Settings",
+				content: this.gameSettingsContent.bind(this),
+				footer: () => { return ''; }
+			}
         };
     }
 
@@ -164,6 +170,10 @@ export class SettingsPage extends BaseHTMLElement {
 		this.renderBlockedUsers();
 	}
 
+	handleGameSettingsModalTask() {
+		this.gameManager = new GameManager();
+	}
+
     renderModal() {
         const modalConfig = this.modals[this.activeModal];
 
@@ -190,6 +200,9 @@ export class SettingsPage extends BaseHTMLElement {
 				break;
 			case 'blockedUsers':
 				this.handleBlockedUsersModalTask();
+				break;
+			case 'gameSettings':
+				this.handleGameSettingsModalTask();
 				break;
 			default:
 				break;
@@ -486,6 +499,53 @@ export class SettingsPage extends BaseHTMLElement {
 		});
 	}
 
+	// || Game Settings ||
+	gameSettingsContent() {
+		return `
+			<div class="modal-body">
+				
+
+				<div class="color-picker-group">
+					<label class="form-label">Board Color</label>
+					<select class="form-select" id="boardColor">
+						<option value="#000000">Black</option>
+						<option value="#1E1E1E">Dark Gray</option>
+						<option value="#2C3E50">Navy Blue</option>
+						<option value="#2E4053">Deep Blue Gray</option>
+					</select>
+					<div class="color-preview" id="boardPreview"></div>
+    			</div>
+    
+				<div class="color-picker-group">
+					<label class="form-label">Paddles Color</label>
+					<select class="form-select" id="paddleColor">
+						<option value="#FFFFFF">White</option>
+						<option value="#FF0000">Red</option>
+						<option value="#00FF00">Green</option>
+						<option value="#0000FF">Blue</option>
+					</select>
+					<div class="color-preview" id="paddlePreview"></div>
+				</div>
+    
+				<div class="color-picker-group">
+					<label class="form-label">Ball Color</label>
+					<select class="form-select" id="ballColor">
+						<option value="#FFFFFF">White</option>
+						<option value="#FFD700">Gold</option>
+						<option value="#FF69B4">Hot Pink</option>
+						<option value="#7FFF00">Chartreuse</option>
+					</select>
+					<div class="color-preview" id="ballPreview"></div>
+				</div>
+				
+
+				<div id="messageAlert" class="alert d-none" role="alert">
+					<span id="messageText" class="small"></span>
+					<button type="button" class="btn-close" aria-label="Close"></button>
+				</div>
+			</div>
+		`;
+	}
 }
 
 customElements.define("settings-page", SettingsPage);
