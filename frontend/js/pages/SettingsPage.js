@@ -124,6 +124,7 @@ export class SettingsPage extends BaseHTMLElement {
 						const reader = new FileReader();
 						reader.onload = (e) => {
 							this.profileImage.src = e.target.result;
+							app.profile.avatar_url = e.target.result;
 						};
 						reader.readAsDataURL(file);
 					} else {

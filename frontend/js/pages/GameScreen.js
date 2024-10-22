@@ -244,7 +244,7 @@ export class GameScreen extends BaseHTMLElement {
 
   drawInitialGame() {
     // Clear the canvas with black background
-    this.ctx.fillStyle = "black";
+    this.ctx.fillStyle = localStorage.getItem('boardColor') || 'black';
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
     // Draw the border
@@ -259,7 +259,7 @@ export class GameScreen extends BaseHTMLElement {
     this.ctx.stroke();
 
     // Draw the paddles
-    this.ctx.fillStyle = "white";
+    this.ctx.fillStyle = localStorage.getItem('paddleColor') || 'white';
     this.ctx.fillRect(20, this.gameState.player1Y, 10, 80); // Left paddle
     this.ctx.fillRect(this.canvas.width - 30, this.gameState.player2Y, 10, 80); // Right paddle
 
@@ -272,6 +272,7 @@ export class GameScreen extends BaseHTMLElement {
       0,
       Math.PI * 2
     );
+    this.ctx.fillStyle = localStorage.getItem('ballColor') || 'white';
     this.ctx.fill();
     this.ctx.closePath();
   }

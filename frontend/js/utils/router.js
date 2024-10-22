@@ -174,6 +174,7 @@ const Router = {
     if (status === "success") {
       app.isLoggedIn = true;
       app.profile = await app.api.getProfile();
+      app.profile.online = true;
       window.history.replaceState(null, null, "/");
       app.router.go("/");
       connectToNotificationServer();
