@@ -129,7 +129,7 @@ export class LeaderboardPage extends BaseHTMLElement {
 			<div class="col-3 player-info">
 				<img src="${this.avatar_src}" alt="Player avatar" class="player-avatar rounded-circle">
 				<div class="player-details">
-					<div class="player-name">${this.player_name}</div>
+					<a href="/profile/${this.player_name}" class="player-name">${this.player_name}</a>
 				</div>
 			</div>
 			<div class="col-1 matches-container text-center">
@@ -145,7 +145,9 @@ export class LeaderboardPage extends BaseHTMLElement {
 				<div class="losses-label">losses</div>
 			</div>
 			<div class="col-1 text-end">
-				<img src="./images/arrow.png" alt="More icon" class="more-icon">
+				<a href="/profile/${this.player_name}">
+					<img src="./images/arrow.png" alt="More icon" class="more-icon">
+				</a>
 			</div>
 		</section>
 	`;

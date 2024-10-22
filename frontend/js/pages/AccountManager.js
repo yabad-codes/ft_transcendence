@@ -43,8 +43,10 @@ export class AccountManager {
 				this.lastName.value = response.last_name;
 
 				this.profileName.textContent = `${response.first_name} ${response.last_name}`;
-				if (response.avatar)
-					this.profilePicture.src = response.avatar;
+				if (response.avatar) {
+					const cacheBuster = new Date().getTime();
+					this.profilePicture.src = `${response.avatar}?t=${cacheBuster}`;
+				}
 				this.profileId.textContent = response.user_id?.substring(0, 8);
 			} else {
 				this.messageHandler.showError('Failed to get user details.');
