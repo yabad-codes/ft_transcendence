@@ -275,10 +275,6 @@ input:checked + .slider:before {
 .save-button:hover {
 	color: #000;
 }
-
-.btn:disabled {
-	background-color: var(--secondary-color);
-}
 /* Change Password Feature CSS */
 .password-strength {
 	height: 5px;

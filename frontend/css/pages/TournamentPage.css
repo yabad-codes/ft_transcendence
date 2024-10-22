@@ -12,12 +12,12 @@ tournament-page .container {
     max-width: 600px;
     margin: 0 auto;
 }
-h1 {
+tournament-page h1 {
     color: #4a4a4a;
     margin-bottom: 30px;
     text-align: center;
 }
-.avatar_69 {
+tournament-page .avatar_69 {
     width: 60px;
     height: 60px;
     border-radius: 50%;
@@ -25,7 +25,7 @@ h1 {
     border: 3px solid #ffffff;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
-.friend-item {
+tournament-page .friend-item {
     display: flex;
     align-items: center;
     background-color: #f8f9fa;
@@ -34,17 +34,17 @@ h1 {
     margin-bottom: 15px;
     transition: all 0.3s ease;
 }
-.friend-item:hover {
+tournament-page .friend-item:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
-.friend-item label {
+tournament-page .friend-item label {
     margin-left: 15px;
     margin-bottom: 0;
     font-size: 18px;
     color: #333;
 }
-#searchBar {
+tournament-page #searchBar {
     width: 100%;
     border-radius: 20px;
     padding: 10px 20px;
@@ -52,7 +52,7 @@ h1 {
     border: 1px solid #ced4da;
     margin-bottom: 20px;
 }
-#startTournament {
+tournament-page #startTournament {
     display: block;
     width: 100%;
     border-radius: 20px;
@@ -66,21 +66,21 @@ h1 {
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
-#startTournament:disabled {
+tournament-page #startTournament:disabled {
     background-color: #6c757d;
     cursor: not-allowed;
 }
-#progressBarContainer {
+tournament-page #progressBarContainer {
     display: none;
     margin-top: 30px;
 }
-.progress {
+tournament-page .progress {
     height: 25px;
     background-color: #e9ecef;
     border-radius: 15px;
     overflow: hidden;
 }
-#progressBar {
+tournament-page #progressBar {
     height: 100%;
     background-color: #28a745;
     width: 0%;
