@@ -194,7 +194,7 @@ STATIC_ROOT = '/app/static/'
 # setting for link google cloud storage with django
 
 GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-    os.path.join(BASE_DIR, 'credentials.json'))
+    os.path.join(BASE_DIR, '.env'))
 DEFAULT_FILE_STORAGE = 'pong_service.apps.authentication.gcloud.GoogleCloudMediaStorage'
 GS_PROJECT_ID = 'transcendencestorage'
 GS_BUCKET_NAME = 'avatars_ft_tran'
