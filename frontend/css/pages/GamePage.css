@@ -1,101 +1,174 @@
-.game-container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
-  text-align: center;
-  font-family: Arial, sans-serif;
-  background-color: #f0f0f0;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+game-page .game-wrapper {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-height: 100vh;
+	background-color: #f5f5f7;
 }
 
-.game-title {
-  color: #333;
-  margin-bottom: 20px;
+game-page .game-container {
+	width: 100%;
+	max-width: 1200px;
+	padding: 3rem;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 4rem;
+	align-items: center;
 }
 
-.game-options {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 20px;
+game-page .game-info {
+	padding-right: 2rem;
 }
 
-.btn {
-  padding: 10px 20px;
-  font-size: 16px;
-  cursor: pointer;
-  border: none;
-  border-radius: 5px;
-  transition: background-color 0.3s;
+game-page .game-title {
+	font-size: 3.5rem;
+	font-weight: 700;
+	color: #1d1d1f;
+	margin-bottom: 1.5rem;
+	line-height: 1.1;
 }
 
-.btn-primary {
-  background-color: #007bff;
-  color: white;
+game-page .game-subtitle {
+	font-size: 1.25rem;
+	color: #6e6e73;
+	margin-bottom: 2.5rem;
+	line-height: 1.4;
 }
 
-.btn-primary:hover {
-  background-color: #0056b3;
+game-page .btn-container {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 1rem;
+	max-width: 400px;
 }
 
-.btn-danger {
-  background-color: #dc3545;
-  color: white;
+game-page .btn {
+	padding: 1rem 1.5rem;
+	border-radius: 12px;
+	font-size: 1rem;
+	font-weight: 600;
+	text-align: center;
+	transition: all 0.2s ease;
+	cursor: pointer;
+	position: relative;
+	overflow: hidden;
+	border: none;
 }
 
-.btn-danger:hover {
-  background-color: #c82333;
+game-page .btn-primary {
+	background: var(--secondary-color);
+	opacity: .9;
+	color: white;
 }
 
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+game-page .btn-primary:hover {
+	background: var(--secondary-color);
+	opacity: 1;
+	transform: translateY(-1px);
 }
 
-.status-message {
-  font-size: 18px;
-  margin-bottom: 20px;
-  padding: 10px;
-  border-radius: 5px;
+game-page .btn-secondary {
+	background: #fff;
+	color: var(--secondary-color);
+	border: 2px solid var(--secondary-color);
 }
 
-.status-message.info {
-  background-color: #d1ecf1;
-  color: #0c5460;
+game-page .btn-secondary:hover {
+	background: #f5f5f7;
+	color: #000;
 }
 
-.status-message.error {
-  background-color: #f8d7da;
-  color: #721c24;
+game-page .btn-danger {
+	background: var(--primary-color);
+	color: white;
+	opacity: .9;
 }
 
-.status-message.waiting {
-  background-color: #fff3cd;
-  color: #856404;
+game-page .btn-danger:hover {
+	opacity: 1;
 }
 
-.status-message.success {
-  background-color: #d4edda;
-  color: #155724;
+game-page .btn[disabled] {
+	opacity: 0.6;
+	cursor: not-allowed !important;
 }
 
-.game-instructions {
-  background-color: white;
-  padding: 20px;
-  border-radius: 5px;
-  text-align: left;
+game-page .game-visual {
+	background: white;
+	border-radius: 24px;
+	padding: 2.5rem;
+	box-shadow: 0 20px 40px rgba(0,0,0,0.1);
 }
 
-.game-instructions h2 {
-  color: #333;
-  margin-bottom: 10px;
+game-page .game-instructions {
+	margin-top: 2rem;
 }
 
-.game-instructions ul {
-  padding-left: 20px;
+game-page .game-instructions h2 {
+	font-size: 1.5rem;
+	color: #1d1d1f;
+	margin-bottom: 1rem;
+	font-weight: 600;
 }
 
-.game-instructions li {
-  margin-bottom: 5px;
+game-page .instruction-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+game-page .instruction-list li {
+	display: flex;
+	align-items: center;
+	padding: 1rem;
+	background: white;
+	border-radius: 12px;
+	margin-bottom: 0.75rem;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+game-page .instruction-list li:before {
+	content: '→';
+	margin-right: 1rem;
+	color: var(--secondary-color);
+	font-weight: bold;
+}
+
+game-page .status-message {
+	margin-top: 1.5rem;
+	padding: 1rem;
+	border-radius: 12px;
+	font-weight: 500;
+	text-align: center;
+}
+
+game-page .status-message.info {
+	background: #f2f9ff;
+	color: #333;
+}
+
+game-page .status-message.error {
+	background: #fff2f2;
+	color: #ff3b30;
+}
+
+game-page .status-message.success {
+	background: #f2fff5;
+	color: #34c759;
+}
+
+@media (max-width: 1024px) {
+	game-page .game-container {
+		grid-template-columns: 1fr;
+		padding: 2rem;
+		gap: 2rem;
+	}
+
+	game-page .game-info {
+		padding-right: 0;
+	}
+
+	game-page .game-title {
+		font-size: 2.5rem;
+	}
 }

@@ -15,23 +15,33 @@ export class GamePage extends BaseHTMLElement {
 
   render() {
     this.innerHTML = `
-      <div class="game-container">
-        <h1 class="game-title">Pong Game</h1>
-        <div class="game-options">
-          <button id="requestGameBtn" class="btn btn-primary">Find Match</button>
-          <button id="createTournament" class="btn btn-primary">Create Tournament</button>
-          <button id="cancelMatchmakingBtn" class="btn btn-danger" disabled>Cancel</button>
-        </div>
-        <div id="matchmakingStatus" class="status-message"></div>
-        <div class="game-instructions">
-          <h2>How to Play</h2>
-          <ul>
-            <li>Use 'W' key to move paddle up</li>
-            <li>Use 'S' key to move paddle down</li>
-            <li>First player to score 11 points wins</li>
-          </ul>
-        </div>
-      </div>
+		<div class="game-wrapper">
+		<div class="game-container">
+		<div class="game-info">
+			<h1 class="game-title">Experience Pong Like Never Before</h1>
+			<p class="game-subtitle">Challenge players worldwide in real-time matches. Compete in tournaments and climb the global leaderboards.</p>
+			
+			<div class="btn-container">
+			<button id="requestGameBtn" class="btn btn-primary">Quick Match</button>
+			<button id="createTournament" class="btn btn-secondary">Create Tournament</button>
+			<button id="cancelMatchmakingBtn" class="btn btn-danger" disabled>Cancel Match</button>
+			</div>
+			
+			<div id="matchmakingStatus" class="status-message"></div>
+		</div>
+		
+		<div class="game-visual">
+			<div class="game-instructions">
+			<h2>Game Controls</h2>
+			<ul class="instruction-list">
+				<li>Press W key to move paddle upward</li>
+				<li>Press S key to move paddle downward</li>
+				<li>Score 11 points to win the match</li>
+			</ul>
+			</div>
+		</div>
+		</div>
+	</div>
     `;
   }
 
