@@ -380,10 +380,8 @@ export class ProfilePage extends BaseHTMLElement {
             "error",
             "A pending friendship request already exists."
           );
-          this.updateUserInfoView();
         } else if (response.status === 403) {
           displayRequestStatus("error", "You are already friends.");
-          this.updateUserInfoView();
         }
       });
     } catch (error) {
