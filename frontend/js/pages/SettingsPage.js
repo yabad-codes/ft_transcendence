@@ -4,6 +4,7 @@ import { ModalManager } from "./ModalManager.js";
 import { TwoFactorAuthManager } from "./TwoFactorAuthManager.js";
 import { AccountManager } from "./AccountManager.js";
 import { PasswordManager } from "./PasswordManager.js";
+import { GameManager } from "./GameManager.js";
 import { api } from "../utils/api_service.js";
 
 export class SettingsPage extends BaseHTMLElement {
@@ -35,6 +36,11 @@ export class SettingsPage extends BaseHTMLElement {
 				title: "Blocked Users",
 				content: this.getBlockedUsersContent.bind(this),
 			},
+			gameSettings: {
+				title: "Game Settings",
+				content: this.gameSettingsContent.bind(this),
+				footer: () => { return ''; }
+			}
         };
     }
 
@@ -118,6 +124,7 @@ export class SettingsPage extends BaseHTMLElement {
 						const reader = new FileReader();
 						reader.onload = (e) => {
 							this.profileImage.src = e.target.result;
+							app.profile.avatar_url = e.target.result;
 						};
 						reader.readAsDataURL(file);
 					} else {
@@ -164,6 +171,10 @@ export class SettingsPage extends BaseHTMLElement {
 		this.renderBlockedUsers();
 	}
 
+	handleGameSettingsModalTask() {
+		this.gameManager = new GameManager();
+	}
+
     renderModal() {
         const modalConfig = this.modals[this.activeModal];
 
@@ -190,6 +201,9 @@ export class SettingsPage extends BaseHTMLElement {
 				break;
 			case 'blockedUsers':
 				this.handleBlockedUsersModalTask();
+				break;
+			case 'gameSettings':
+				this.handleGameSettingsModalTask();
 				break;
 			default:
 				break;
@@ -486,6 +500,74 @@ export class SettingsPage extends BaseHTMLElement {
 		});
 	}
 
+	// || Game Settings ||
+	gameSettingsContent() {
+		return `
+			<div class="modal-body">
+				
+				<div class="row g-4">
+					<!-- Board Color Section -->
+					<div class="col-12">
+						<div class="color-picker-group p-3 bg-light rounded-3 shadow-sm">
+							<div class="d-flex align-items-center justify-content-between">
+								<label class="form-label h6 mb-3">
+									<i class="fas fa-palette me-2"></i>Board Color
+								</label>
+								<div class="color-preview rounded-circle shadow-sm" id="boardPreview"></div>
+							</div>
+							<select class="form-select form-select-lg bg-white border-0 shadow-sm" id="boardColor">
+								<option value="#000000">Midnight Black</option>
+								<option value="#1E1E1E">Carbon Gray</option>
+								<option value="#2C3E50">Ocean Blue</option>
+								<option value="#2E4053">Twilight Gray</option>
+								<option value="#34495E">Storm Blue</option>
+							</select>
+						</div>
+					</div>
+		
+					<!-- Paddles Color Section -->
+					<div class="col-12">
+						<div class="color-picker-group p-3 bg-light rounded-3 shadow-sm">
+							<div class="d-flex align-items-center justify-content-between">
+								<label class="form-label h6 mb-3">
+									<i class="fas fa-table-tennis me-2"></i>Paddles Color
+								</label>
+								<div class="color-preview rounded-circle shadow-sm" id="paddlePreview"></div>
+							</div>
+							<select class="form-select form-select-lg bg-white border-0 shadow-sm" id="paddleColor">
+								<option value="#FFFFFF">Pure White</option>
+								<option value="#FF0000">Racing Red</option>
+								<option value="#00FF00">Neon Green</option>
+								<option value="#0000FF">Electric Blue</option>
+								<option value="#FFA500">Blazing Orange</option>
+							</select>
+						</div>
+					</div>
+		
+					<!-- Ball Color Section -->
+					<div class="col-12">
+						<div class="color-picker-group p-3 bg-light rounded-3 shadow-sm">
+							<div class="d-flex align-items-center justify-content-between">
+								<label class="form-label h6 mb-3">
+									<i class="fas fa-circle me-2"></i>Ball Color
+								</label>
+								<div class="color-preview rounded-circle shadow-sm" id="ballPreview"></div>
+							</div>
+							<select class="form-select form-select-lg bg-white border-0 shadow-sm" id="ballColor">
+								<option value="#FFFFFF">Classic White</option>
+								<option value="#FFD700">Golden Shine</option>
+								<option value="#FF69B4">Neon Pink</option>
+								<option value="#7FFF00">Lime Flash</option>
+								<option value="#9B59B6">Royal Purple</option>
+							</select>
+						</div>
+					</div>
+				
+				</div>
+				
+			</div>
+		`;
+	}
 }
 
 customElements.define("settings-page", SettingsPage);
