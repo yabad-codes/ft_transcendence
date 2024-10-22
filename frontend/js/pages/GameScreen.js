@@ -23,12 +23,12 @@ export class GameScreen extends BaseHTMLElement {
         <div class="mb-4 text-2xl font-bold" style="font-size: 50px; font-weight: 700; text-transform: uppercase; margin-top: 25px;">Pong Game</div>
         <div class="flex items-center justify-between w-full max-w-4xl mb-4" style="display: flex; justify-content: space-evenly; width: 80%; margin-top: 33px;">
           <div id="leftPlayer" class="flex flex-col items-center" style="text-align: center;">
-            <img src="" alt="Player 1" class="w-16 h-16 rounded-full mb-2" style="width: 100px; border-radius: 50%;">
+            <img src="" alt="Player 1" class="w-16 h-16 rounded-full mb-2" style="width: 100px; border-radius: 50%; height: 100px; object-fit: cover;">
             <h3 class="text-lg font-semibold"></h3>
             <div class="score text-3xl font-bold" style="font-size: 30px; padding-top: 5px; padding-bottom: 5px; font-weight: 700;"></div>
           </div>
           <div id="rightPlayer" class="flex flex-col items-center" style="text-align: center;">
-            <img src="" alt="Player 2" class="w-16 h-16 rounded-full mb-2" style="width: 100px; border-radius: 50%;">
+            <img src="" alt="Player 2" class="w-16 h-16 rounded-full mb-2" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover;">
             <h3 class="text-lg font-semibold"></h3>
             <div class="score text-3xl font-bold" style="font-size: 30px; padding-top: 5px; padding-bottom: 5px; font-weight: 700;"></div>
           </div>

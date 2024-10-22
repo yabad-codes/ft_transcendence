@@ -99,7 +99,7 @@ export class ProfilePage extends BaseHTMLElement {
       .then((response) => {
         if (response.status >= 400) {
           displayRequestStatus("error", response.data);
-          app.router.go("/404");
+          app.router.go("/not-found-page");
           return;
         }
         this.state.profile = response.data;
@@ -331,6 +331,7 @@ export class ProfilePage extends BaseHTMLElement {
   }
 
   handleBlockFriend(event) {
+	console.log("Block friend");
     const username = event.target.getAttribute("data-friendship-username");
     app.api
       .patch(`/api/profile/${username}/block`)
