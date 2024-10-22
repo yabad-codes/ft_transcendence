@@ -504,45 +504,66 @@ export class SettingsPage extends BaseHTMLElement {
 		return `
 			<div class="modal-body">
 				
-
-				<div class="color-picker-group">
-					<label class="form-label">Board Color</label>
-					<select class="form-select" id="boardColor">
-						<option value="#000000">Black</option>
-						<option value="#1E1E1E">Dark Gray</option>
-						<option value="#2C3E50">Navy Blue</option>
-						<option value="#2E4053">Deep Blue Gray</option>
-					</select>
-					<div class="color-preview" id="boardPreview"></div>
-    			</div>
-    
-				<div class="color-picker-group">
-					<label class="form-label">Paddles Color</label>
-					<select class="form-select" id="paddleColor">
-						<option value="#FFFFFF">White</option>
-						<option value="#FF0000">Red</option>
-						<option value="#00FF00">Green</option>
-						<option value="#0000FF">Blue</option>
-					</select>
-					<div class="color-preview" id="paddlePreview"></div>
-				</div>
-    
-				<div class="color-picker-group">
-					<label class="form-label">Ball Color</label>
-					<select class="form-select" id="ballColor">
-						<option value="#FFFFFF">White</option>
-						<option value="#FFD700">Gold</option>
-						<option value="#FF69B4">Hot Pink</option>
-						<option value="#7FFF00">Chartreuse</option>
-					</select>
-					<div class="color-preview" id="ballPreview"></div>
+				<div class="row g-4">
+					<!-- Board Color Section -->
+					<div class="col-12">
+						<div class="color-picker-group p-3 bg-light rounded-3 shadow-sm">
+							<div class="d-flex align-items-center justify-content-between">
+								<label class="form-label h6 mb-3">
+									<i class="fas fa-palette me-2"></i>Board Color
+								</label>
+								<div class="color-preview rounded-circle shadow-sm" id="boardPreview"></div>
+							</div>
+							<select class="form-select form-select-lg bg-white border-0 shadow-sm" id="boardColor">
+								<option value="#000000">Midnight Black</option>
+								<option value="#1E1E1E">Carbon Gray</option>
+								<option value="#2C3E50">Ocean Blue</option>
+								<option value="#2E4053">Twilight Gray</option>
+								<option value="#34495E">Storm Blue</option>
+							</select>
+						</div>
+					</div>
+		
+					<!-- Paddles Color Section -->
+					<div class="col-12">
+						<div class="color-picker-group p-3 bg-light rounded-3 shadow-sm">
+							<div class="d-flex align-items-center justify-content-between">
+								<label class="form-label h6 mb-3">
+									<i class="fas fa-table-tennis me-2"></i>Paddles Color
+								</label>
+								<div class="color-preview rounded-circle shadow-sm" id="paddlePreview"></div>
+							</div>
+							<select class="form-select form-select-lg bg-white border-0 shadow-sm" id="paddleColor">
+								<option value="#FFFFFF">Pure White</option>
+								<option value="#FF0000">Racing Red</option>
+								<option value="#00FF00">Neon Green</option>
+								<option value="#0000FF">Electric Blue</option>
+								<option value="#FFA500">Blazing Orange</option>
+							</select>
+						</div>
+					</div>
+		
+					<!-- Ball Color Section -->
+					<div class="col-12">
+						<div class="color-picker-group p-3 bg-light rounded-3 shadow-sm">
+							<div class="d-flex align-items-center justify-content-between">
+								<label class="form-label h6 mb-3">
+									<i class="fas fa-circle me-2"></i>Ball Color
+								</label>
+								<div class="color-preview rounded-circle shadow-sm" id="ballPreview"></div>
+							</div>
+							<select class="form-select form-select-lg bg-white border-0 shadow-sm" id="ballColor">
+								<option value="#FFFFFF">Classic White</option>
+								<option value="#FFD700">Golden Shine</option>
+								<option value="#FF69B4">Neon Pink</option>
+								<option value="#7FFF00">Lime Flash</option>
+								<option value="#9B59B6">Royal Purple</option>
+							</select>
+						</div>
+					</div>
+				
 				</div>
 				
-
-				<div id="messageAlert" class="alert d-none" role="alert">
-					<span id="messageText" class="small"></span>
-					<button type="button" class="btn-close" aria-label="Close"></button>
-				</div>
 			</div>
 		`;
 	}
